@@ -8,6 +8,7 @@ namespace hypixel
     {
         public override Task Execute(MessageData data)
         {
+            /* TODO: get this directly from an updater
             if(BinUpdater.SoldLastMin.Count > 0)
             {
                 var recentSold = BinUpdater.SoldLastMin.Take(50)
@@ -16,7 +17,7 @@ namespace hypixel
                     .ToList();
 
                 return data.SendBack(data.Create("endedAuctions",recentSold , A_MINUTE));
-            }
+            }*/
 
             using (var context = new HypixelContext())
             {

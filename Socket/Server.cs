@@ -218,8 +218,8 @@ namespace hypixel
 
             if (path == "/low")
             {
-                var relevant = Updater.LastAuctionCount.Where(a => a.Value > 0 && a.Value < 72);
-                await context.WriteAsync(JSON.Stringify(relevant));
+                //var relevant = Updater.LastAuctionCount.Where(a => a.Value > 0 && a.Value < 72);
+                //await context.WriteAsync(JSON.Stringify(relevant));
                 return;
             }
 
@@ -493,8 +493,6 @@ namespace hypixel
                 LastNameUpdate = NameUpdater.LastUpdate,
                 CacheSize = CacheService.Instance.CacheSize,
                 QueueSize = Indexer.QueueCount,
-                LastAuctionPull = Updater.LastPull,
-                LastUpdateSize = Updater.UpdateSize,
                 SubscriptionTobics = SubscribeEngine.Instance.SubCount,
                 ConnectionCount = SkyblockBackEnd.ConnectionCount
             };

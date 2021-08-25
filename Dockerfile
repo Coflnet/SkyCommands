@@ -3,7 +3,6 @@ WORKDIR /build
 RUN git clone --depth=1 https://github.com/Ekwav/websocket-sharp
 RUN git clone --depth=1 -b separation https://github.com/Coflnet/HypixelSkyblock.git dev
 RUN mkdir -p /build/skyblock/External/api
-RUN git clone --depth=1 https://github.com/Ekwav/Hypixel.NET.git /build/dev/External/api
 WORKDIR /build/SkyCommand
 COPY . .
 RUN touch /build/dev/keyfile.p12 
