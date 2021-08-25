@@ -4,10 +4,11 @@ RUN git clone --depth=1 https://github.com/Ekwav/websocket-sharp
 RUN git clone --depth=1 -b separation https://github.com/Coflnet/HypixelSkyblock.git dev
 RUN mkdir -p /build/skyblock/External/api
 WORKDIR /build/SkyCommand
+COPY SkyCommands.csproj SkyCommands.csproj
+RUN dotnet restore
 COPY . .
 RUN touch /build/dev/keyfile.p12 
 RUN cp -n /build/dev/appsettings.json /build/dev/custom.conf.json
-RUN dotnet restore
 RUN dotnet publish -c release
 
 FROM mcr.microsoft.com/dotnet/aspnet:3.1

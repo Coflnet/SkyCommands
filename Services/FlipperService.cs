@@ -2,9 +2,9 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using Confluent.Kafka;
-using hypixel.Flipper;
 
 namespace hypixel
 {
@@ -281,5 +281,39 @@ namespace hypixel
                 SoldAuctions.TryRemove(item, out DateTime deleted);
             }
         }
+    }
+
+    [DataContract]
+    public class FlipInstance
+    {
+        [DataMember(Name = "median")]
+        public int MedianPrice;
+        [DataMember(Name = "cost")]
+        public int LastKnownCost;
+        [DataMember(Name = "uuid")]
+        public string Uuid;
+        [DataMember(Name = "name")]
+        public string Name;
+        [DataMember(Name = "sellerName")]
+        public string SellerName;
+        [DataMember(Name = "volume")]
+        public float Volume;
+        [DataMember(Name = "tag")]
+        public string Tag;
+        [DataMember(Name = "bin")]
+        public bool Bin;
+        [DataMember(Name = "sold")]
+        public bool Sold { get; set; }
+        [DataMember(Name = "tier")]
+        public Tier Rarity { get; set; }
+        [DataMember(Name = "prop")]
+        public List<string> Interesting { get; set; }
+        [DataMember(Name = "secondLowestBin")]
+        public long? SecondLowestBin { get; set; }
+
+        [DataMember(Name = "lowestBin")]
+        public long? LowestBin;
+        [IgnoreDataMember]
+        public long UId;
     }
 }

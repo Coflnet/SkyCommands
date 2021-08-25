@@ -15,7 +15,7 @@ namespace Coflnet.Hypixel.Controller
     [Route("api")]
     public class PricesController : ControllerBase
     {
-                /// <summary>
+        /// <summary>
         /// Aggregated sumary of item prices for the last day
         /// </summary>
         /// <param name="itemTag">The item tag you want prices for</param>
@@ -38,8 +38,7 @@ namespace Coflnet.Hypixel.Controller
         [HttpGet]
         public async Task<ActionResult<BinResponse>> GetLowestBin(string itemTag, [FromQuery] Tier? tier)
         {
-            Console.WriteLine(tier);
-            var result = await hypixel.Flipper.FlipperEngine.GetLowestBin(itemTag, tier ?? Tier.UNCOMMON);
+            var result = await ItemPrices.GetLowestBin(itemTag, tier ?? Tier.UNCOMMON);
             return Ok(new BinResponse(result.FirstOrDefault()?.Price ?? 0, result.FirstOrDefault()?.Uuid, result.LastOrDefault()?.Price ?? 0));
         }
 

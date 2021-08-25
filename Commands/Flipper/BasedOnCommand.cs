@@ -3,21 +3,22 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
+using RestSharp;
 
 namespace hypixel
 {
     public class BasedOnCommand : Command
     {
-        public override Task Execute(MessageData data)
+
+        static RestClient SkyFlipperHost = new RestClient(SimplerConfig.Config.Instance["SKYFLIPPER_HOST"]);
+        public override async Task Execute(MessageData data)
         {
             var uuid = data.GetAs<string>();
             System.Console.WriteLine(uuid);
             using (var context = new HypixelContext())
             {
-                var auction = AuctionService.Instance.GetAuction(uuid,
-                    auctions => auctions
-                    .Include(a => a.NbtData)
-                    .Include(a => a.Enchantments));
+                var auction = AuctionService.Instance.GetAuction(uuid);
                 if (auction == null)
                     throw new CoflnetException("auction_unkown", "not found");
                     /*
@@ -31,9 +32,9 @@ namespace hypixel
                     }).ToList(), 120));
                 }*/
 
-                var result = Flipper.FlipperEngine.Instance.GetRelevantAuctionsCache(auction, context);
-                result.Wait();
-                return data.SendBack(data.Create("basedOnResp", result.Result.Item1
+                var response = await SkyFlipperHost.ExecuteAsync(new RestRequest(uuid + "/based"));// Flipper.FlipperEngine.Instance.GetRelevantAuctionsCache(auction, context);
+                var result = JsonConvert.DeserializeObject<List<SaveAuction>>(response.Content);
+                await data.SendBack(data.Create("basedOnResp", result
                             .Select(a => new Response()
                             {
                                 uuid = a.Uuid,
