@@ -62,10 +62,16 @@ namespace hypixel
         {
             SlowSubs.AddOrUpdate(con.Id, cid => id, (cid, oldMId) => id);
             SendFlipHistory(con, id, LoadBurst, 0);
+            Task.Run(async() =>
+            {
+                await Task.Delay(1000);
+                Console.WriteLine("Added new con " + SlowSubs.Count);
+            });
         }
 
         public void RemoveNonConnection(SkyblockBackEnd con)
         {
+            throw new Exception("should not happen");
             SlowSubs.TryRemove(con.Id, out int value);
         }
 
@@ -131,7 +137,6 @@ namespace hypixel
         private void DeliverFlip(FlipInstance flip)
         {
             MessageData message = CreateDataFromFlip(flip);
-            Console.Write("d flips");
             NotifyAll(message, Subs);
             SlowFlips.Enqueue(flip);
             Flipps.Enqueue(flip);
@@ -181,8 +186,8 @@ namespace hypixel
                     if (SoldAuctions.ContainsKey(flip.UId))
                         flip.Sold = true;
                     var message = CreateDataFromFlip(flip);
-                    Console.WriteLine("\nshouting slow flip");
                     NotifyAll(message, SlowSubs);
+                    Console.Write("sf+" + SlowSubs.Count);
                     LoadBurst.Enqueue(flip);
                     if (LoadBurst.Count > 5)
                         LoadBurst.Dequeue();
@@ -234,7 +239,7 @@ namespace hypixel
                             var cr = c.Consume(500);
                             if (cr == null)
                                 continue;
-                            if (cr.TopicPartitionOffset.Offset % 20 == 0)
+                            if (cr.TopicPartitionOffset.Offset % 200 == 0)
                                 Console.WriteLine($"consumed {cr.TopicPartitionOffset.Topic} {cr.TopicPartitionOffset.Offset}");
                             work(cr.Message.Value);
                             batch.Add(cr.TopicPartitionOffset);

@@ -1,7 +1,9 @@
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
+using Coflnet.Sky.Filter;
+using hypixel;
 
-namespace hypixel.Filter
+namespace Coflnet.Sky.Commands
 {
     public class GetFilterOptionsCommand : Command
     {

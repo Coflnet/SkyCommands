@@ -1,7 +1,9 @@
 using System.Linq;
 using System.Threading.Tasks;
+using Coflnet.Sky.Filter;
+using hypixel;
 
-namespace hypixel.Filter
+namespace Coflnet.Sky.Commands
 {
     public class GetFilterForCommand : Command
     {

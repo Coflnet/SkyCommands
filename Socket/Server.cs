@@ -113,7 +113,7 @@ namespace hypixel
 
             };
             server.Log.Output = (a,b)=>{
-                Console.Write("socket error ");
+                Console.Write("socket error " + a.Message + b);
             };
             server.Start();
             Console.WriteLine("started http");
@@ -489,11 +489,9 @@ namespace hypixel
                 NameRequests = Program.RequestsSinceStart,
                 Indexed = Indexer.IndexedAmount,
                 LastIndexFinish = Indexer.LastFinish,
-                LastBazaarUpdate = dev.BazaarUpdater.LastUpdate,
                 LastNameUpdate = NameUpdater.LastUpdate,
                 CacheSize = CacheService.Instance.CacheSize,
                 QueueSize = Indexer.QueueCount,
-                SubscriptionTobics = SubscribeEngine.Instance.SubCount,
                 ConnectionCount = SkyblockBackEnd.ConnectionCount
             };
 

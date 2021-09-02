@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Coflnet.Sky.Filter;
 
 namespace SkyCommands
 {
@@ -15,7 +16,7 @@ namespace SkyCommands
         public static void Main(string[] args)
         {
             Console.WriteLine("\nupdate");
-            var FilterEngine = new hypixel.Filter.FilterEngine();
+            var FilterEngine = new FilterEngine();
             hypixel.ItemPrices.AddFilters = FilterEngine.AddFilters;
             var server = new Server();
             Task.Run(() => server.Start()).ConfigureAwait(false);

@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using MessagePack;
+using RestSharp;
 
 namespace hypixel
 {
@@ -13,9 +14,11 @@ namespace hypixel
                 var args = data.GetAs<Arguments>();
                 var userId = data.UserId;
                 
-                var affected = SubscribeEngine.Instance.Unsubscribe(userId, args.Topic,args.Type).Result;
+                //var affected = SubscribeEngine.Instance.Unsubscribe(userId, args.Topic,args.Type).Result;
+                var request = new RestRequest("Subscription/{userId}/sub",Method.DELETE).AddJsonBody(new SubscribeItem(){Type=args.Type,TopicId=args.Topic}).AddParameter("userId",userId);
+                var response = SubscribeClient.Client.ExecuteAsync(request);
 
-                return data.SendBack(data.Create("unsubscribed", affected));
+                return data.SendBack(data.Create("unsubscribed", response.Result));
             }
         }
 
@@ -29,5 +32,11 @@ namespace hypixel
             [Key("type")]
             public SubscribeItem.SubType Type;
         }
+    }
+
+    public static class SubscribeClient 
+    {
+        public static RestClient Client = new RestClient(SimplerConfig.Config.Instance["SUBSCRIPTION_HOST"]);
+
     }
 }

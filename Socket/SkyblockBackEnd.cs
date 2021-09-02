@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using RateLimiter;
 using ComposableAsync;
+using Coflnet.Sky.Commands;
 
 namespace hypixel
 {
@@ -53,7 +54,6 @@ namespace hypixel
             Commands.Add("playerAuctions", new PlayerAuctionsCommand());
             Commands.Add("playerBids", new PlayerBidsCommand());
             Commands.Add("allItemNames", new AllItemNamesCommand());
-            Commands.Add("bazaarPrices", new BazaarPricesCommand());
             Commands.Add("getAllEnchantments", new GetAllEnchantmentsCommand());
             Commands.Add("getEnchantments", new GetEnchantmentsCommand());
             Commands.Add("fullSearch", new FullSearchCommand());
@@ -98,8 +98,8 @@ namespace hypixel
             Commands.Add("gPurchase", new GooglePurchaseCommand());
             Commands.Add("paypalPurchase", new ValidatePaypalCommand());
 
-            Commands.Add("getFilter", new Filter.GetFilterOptionsCommand());
-            Commands.Add("filterFor", new Filter.GetFilterForCommand());
+            Commands.Add("getFilter", new GetFilterOptionsCommand());
+            Commands.Add("filterFor", new GetFilterForCommand());
             Commands.Add("subFlip", new SubFlipperCommand());
             Commands.Add("unsubFlip", new UnsubFlipperCommand());
             Commands.Add("getFlips", new RecentFlipsCommand());
@@ -266,6 +266,7 @@ namespace hypixel
         protected override void OnOpen()
         {
             base.OnOpen();
+            SetConnectionId(this.ID);
         }
 
         public void SetConnectionId(string stringId)

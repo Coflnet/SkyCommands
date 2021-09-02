@@ -1,35 +1,40 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using MessagePack;
+using Newtonsoft.Json;
+using RestSharp;
 
 namespace hypixel
 {
     public class PushSubscribeCommand : Command
     {
-        public override Task Execute(MessageData data)
+        public override async Task Execute(MessageData data)
         {
             var args = data.GetAs<Arguments>();
 
-            using (var context = new HypixelContext())
-            {
-                var user = data.User;
 
-                var subscriptions = context.SubscribeItem.Where(s => s.UserId == user.Id);
-                if (!user.HasPremium && subscriptions.Count() >= 3)
-                    throw new NoPremiumException("Nonpremium users can only have 3 subscriptions");
+            var user = data.User;
+            var userSubsRequest = new RestRequest("Subscription/{userId}", Method.GET)
+                .AddParameter("userId", user.Id);
 
+            var subscriptionsResponse = (await SubscribeClient.Client.ExecuteAsync(userSubsRequest)).Content;
+            var subscriptions = JsonConvert.DeserializeObject<UserResponse>(subscriptionsResponse).subscriptions;
+            if (!user.HasPremium && subscriptions.Count() >= 3)
+                throw new NoPremiumException("Nonpremium users can only have 3 subscriptions");
+        
+            var request = new RestRequest("Subscription/{userId}/sub", Method.PUT)
+                .AddJsonBody(new SubscribeItem() { Type = args.Type, TopicId = args.Topic })
+                .AddParameter("userId", user.Id);
+            var response = SubscribeClient.Client.ExecuteAsync(request);
 
-                SubscribeEngine.Instance.AddNew(new SubscribeItem()
-                {
-                    GeneratedAt = DateTime.Now,
-                    Price = args.Price,
-                    TopicId = args.Topic,
-                    Type = args.Type,
-                    UserId = user.Id
-                });
-            }
-            return data.Ok();
+            await data.Ok();
+        }
+
+        public class UserResponse
+        {
+            public List<SubscribeItem> subscriptions { get; set; }
         }
 
         [MessagePackObject]
