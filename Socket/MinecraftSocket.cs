@@ -24,11 +24,13 @@ namespace Coflnet.Sky.Commands
             var key = new Random().Next();
             base.OnOpen();
             SendMessage("Please click this [LINK] to login", $"https://sky.coflnet.com/conMc?uuid={Uuid}&secret={key % 100000}");
+            FlipperService.Instance.AddConnection(this);
         }
 
         protected override void OnMessage(MessageEventArgs e)
         {
             base.OnMessage(e);
+            Console.WriteLine("received message from mcmod " + e.Data);
         }
 
         protected override void OnClose(CloseEventArgs e)

@@ -15,7 +15,7 @@ namespace SkyCommands
     {
         public static void Main(string[] args)
         {
-            Console.WriteLine("\nupdate");
+            Console.WriteLine("sky-commands");
             var FilterEngine = new FilterEngine();
             hypixel.ItemPrices.AddFilters = FilterEngine.AddFilters;
             var server = new Server();
