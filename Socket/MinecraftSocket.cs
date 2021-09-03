@@ -24,7 +24,7 @@ namespace Coflnet.Sky.Commands
             var key = new Random().Next();
             base.OnOpen();
             SendMessage("Please click this [LINK] to login", $"https://sky.coflnet.com/conMc?uuid={Uuid}&secret={key % 100000}");
-            FlipperService.Instance.AddConnection(this);
+            FlipperService.Instance.AddNonConnection(this);
         }
 
         protected override void OnMessage(MessageEventArgs e)
@@ -52,7 +52,7 @@ namespace Coflnet.Sky.Commands
 
         public bool SendFlip(FlipInstance flip)
         {
-            if (flip.MedianPrice - flip.LastKnownCost > 2_000_0000)
+            if (flip.MedianPrice - flip.LastKnownCost < 10_000)
                 SendMessage($"FLIP: {flip.Name} - Cost {flip.LastKnownCost} Median {flip.MedianPrice} ", "/viewauction " + flip.Uuid);
             return true;
         }
