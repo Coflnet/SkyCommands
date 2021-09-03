@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
+using Coflnet.Sky.Commands;
 using Confluent.Kafka;
 
 namespace hypixel
@@ -16,8 +17,9 @@ namespace hypixel
     {
         public static FlipperService Instance = new FlipperService();
 
-        private ConcurrentDictionary<long, int> Subs = new ConcurrentDictionary<long, int>();
-        private ConcurrentDictionary<long, int> SlowSubs = new ConcurrentDictionary<long, int>();
+
+        private ConcurrentDictionary<long, IFlipConection> Subs = new ConcurrentDictionary<long, IFlipConection>();
+        private ConcurrentDictionary<long, IFlipConection> SlowSubs = new ConcurrentDictionary<long, IFlipConection>();
         public ConcurrentQueue<FlipInstance> Flipps = new ConcurrentQueue<FlipInstance>();
         private ConcurrentQueue<FlipInstance> SlowFlips = new ConcurrentQueue<FlipInstance>();
         /// <summary>
@@ -51,48 +53,46 @@ namespace hypixel
                 }
             }
         }
-        public void AddConnection(SkyblockBackEnd con, int id = 0)
+        public void AddConnection(IFlipConection con)
         {
-            Subs.AddOrUpdate(con.Id, cid => id, (cid, oldMId) => id);
+            Subs.AddOrUpdate(con.Id, cid => con, (cid, oldMId) => con);
             var toSendFlips = Flipps.Reverse().Take(5);
-            SendFlipHistory(con, id, toSendFlips);
+            SendFlipHistory(con, toSendFlips);
         }
 
-        public void AddNonConnection(SkyblockBackEnd con, int id = 0)
+        public void AddNonConnection(IFlipConection con)
         {
-            SlowSubs.AddOrUpdate(con.Id, cid => id, (cid, oldMId) => id);
-            SendFlipHistory(con, id, LoadBurst, 0);
-            Task.Run(async() =>
+            SlowSubs.AddOrUpdate(con.Id, cid => con, (cid, oldMId) => con);
+            SendFlipHistory(con, LoadBurst, 0);
+            Task.Run(async () =>
             {
                 await Task.Delay(1000);
                 Console.WriteLine("Added new con " + SlowSubs.Count);
             });
         }
 
-        public void RemoveNonConnection(SkyblockBackEnd con)
+        public void RemoveNonConnection(IFlipConection con)
         {
-            throw new Exception("should not happen");
-            SlowSubs.TryRemove(con.Id, out int value);
+            SlowSubs.TryRemove(con.Id, out IFlipConection value);
         }
 
-        public void RemoveConnection(SkyblockBackEnd con)
+        public void RemoveConnection(IFlipConection con)
         {
-            Subs.TryRemove(con.Id, out int value);
+            Subs.TryRemove(con.Id, out IFlipConection value);
             RemoveNonConnection(con);
         }
 
 
 
 
-        private static void SendFlipHistory(SkyblockBackEnd con, int id, IEnumerable<FlipInstance> toSendFlips, int delay = 5000)
+        private static void SendFlipHistory(IFlipConection con, IEnumerable<FlipInstance> toSendFlips, int delay = 5000)
         {
             Task.Run(async () =>
             {
                 foreach (var item in toSendFlips)
                 {
-                    var data = CreateDataFromFlip(item);
-                    data.mId = id;
-                    con.SendBack(data);
+                    con.SendFlip(item);
+
                     await Task.Delay(delay);
                 }
             }).ConfigureAwait(false);
@@ -113,9 +113,14 @@ namespace hypixel
 
         private void NotifySubsInactiveAuction(string auctionUUid)
         {
-            var message = new MessageData("sold", auctionUUid);
-            NotifyAll(message, Subs);
-            NotifyAll(message, SlowSubs);
+            foreach (var item in Subs)
+            {
+                item.Value.SendSold(auctionUUid);
+            }
+            foreach (var item in SlowSubs)
+            {
+                item.Value.SendSold(auctionUUid);
+            }
         }
 
         /// <summary>
@@ -136,8 +141,7 @@ namespace hypixel
         /// <param name="flip"></param>
         private void DeliverFlip(FlipInstance flip)
         {
-            MessageData message = CreateDataFromFlip(flip);
-            NotifyAll(message, Subs);
+            NotifyAll(flip, Subs);
             SlowFlips.Enqueue(flip);
             Flipps.Enqueue(flip);
             FlipIdLookup[flip.UId] = true;
@@ -151,26 +155,20 @@ namespace hypixel
         }
 
 
-        private static MessageData CreateDataFromFlip(FlipInstance flip)
-        {
-            return new MessageData("flip", JSON.Stringify(flip), 60);
-        }
 
-        private static void NotifyAll(MessageData message, ConcurrentDictionary<long, int> subscribers)
+        private static void NotifyAll(FlipInstance flip, ConcurrentDictionary<long, IFlipConection> subscribers)
         {
             foreach (var item in subscribers.Keys)
             {
-                var m = MessageData.Copy(message);
-                m.mId = subscribers[item];
                 try
                 {
-                    if (!SkyblockBackEnd.SendTo(m, item))
-                        subscribers.TryRemove(item, out int value);
+                    if (!subscribers[item].SendFlip(flip))
+                        subscribers.TryRemove(item, out IFlipConection value);
                 }
                 catch (Exception e)
                 {
                     Console.WriteLine($"Failed to send flip {e.Message} {e.StackTrace}");
-                    subscribers.TryRemove(item, out int value);
+                    subscribers.TryRemove(item, out IFlipConection value);
                 }
             }
         }
@@ -185,8 +183,7 @@ namespace hypixel
                 {
                     if (SoldAuctions.ContainsKey(flip.UId))
                         flip.Sold = true;
-                    var message = CreateDataFromFlip(flip);
-                    NotifyAll(message, SlowSubs);
+                    NotifyAll(flip, SlowSubs);
                     Console.Write("sf+" + SlowSubs.Count);
                     LoadBurst.Enqueue(flip);
                     if (LoadBurst.Count > 5)
@@ -210,18 +207,21 @@ namespace hypixel
 
         public Task ListentoUnavailableTopics()
         {
+            Console.WriteLine("listening to unavailibily topics");
             string[] topics = new string[] { Indexer.AuctionEndedTopic, Indexer.SoldAuctionTopic, Indexer.MissingAuctionsTopic };
             ConsumeBatch<SaveAuction>(topics, AuctionSold);
             return Task.CompletedTask;
         }
 
-        public Task ListenToNewFlips()
+        public async Task ListenToNewFlips()
         {
 
-            TryLoadFromCache();
+            await TryLoadFromCache();
             string[] topics = new string[] { ConsumeTopic };
+
+            Console.WriteLine("starting to listen for new auctions via topic " + ConsumeTopic);
             ConsumeBatch<FlipInstance>(topics, DeliverFlip);
-            return Task.CompletedTask;
+            Console.WriteLine("ended listening");
         }
 
         private void ConsumeBatch<T>(string[] topics, Action<T> work)
@@ -232,6 +232,7 @@ namespace hypixel
                 try
                 {
                     var batch = new List<TopicPartitionOffset>();
+                    Console.WriteLine("subscribed to " + string.Join(",", topics));
                     while (true)
                     {
                         try

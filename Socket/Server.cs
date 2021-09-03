@@ -21,6 +21,7 @@ using MessagePack;
 using System.Collections.Generic;
 using Prometheus;
 using System.Diagnostics;
+using Coflnet.Sky.Commands;
 
 namespace hypixel
 {
@@ -54,6 +55,7 @@ namespace hypixel
             server = new HttpServer(port);
 
             server.AddWebSocketService<SkyblockBackEnd>(urlPath);
+            server.AddWebSocketService<MinecraftSocket>("/modsocket");
             // do NOT timeout after 60 sec
             server.KeepClean = false;
             server.OnOptions += (sender, e) =>

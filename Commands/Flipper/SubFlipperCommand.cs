@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 
 namespace hypixel
@@ -9,18 +10,19 @@ namespace hypixel
             var con = (data as SocketMessageData).Connection;
             try
             {
-
+                con.SubFlipMsgId = (int)data.mId;
                 if (!data.User.HasPremium)
-                    FlipperService.Instance.AddNonConnection(con, (int)data.mId);
+                    FlipperService.Instance.AddNonConnection(con);
                 else
                 {
-                    FlipperService.Instance.AddConnection(con, (int)data.mId);
+                    Console.WriteLine("new premium con");
+                    FlipperService.Instance.AddConnection(con);
                     FlipperService.Instance.RemoveNonConnection(con);
                 }
             }
             catch (CoflnetException)
             {
-                FlipperService.Instance.AddNonConnection(con, (int)data.mId);
+                FlipperService.Instance.AddNonConnection(con);
             }
             return data.Ok();
         }

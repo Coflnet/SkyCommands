@@ -14,13 +14,14 @@ using Coflnet.Sky.Commands;
 
 namespace hypixel
 {
-    public class SkyblockBackEnd : WebSocketBehavior
+    public class SkyblockBackEnd : WebSocketBehavior, IFlipConection
     {
         public static Dictionary<string, Command> Commands = new Dictionary<string, Command>();
         private static ConcurrentDictionary<long, SkyblockBackEnd> Subscribers = new ConcurrentDictionary<long, SkyblockBackEnd>();
         public static int ConnectionCount => Subscribers.Count;
 
         public long Id;
+        public int SubFlipMsgId;
 
         private int _userId;
         /// <summary>
@@ -39,6 +40,8 @@ namespace hypixel
                 _userId = value;
             }
         }
+
+        long IFlipConection.Id => throw new NotImplementedException();
 
         private TimeLimiter limiter;
 
@@ -195,12 +198,13 @@ namespace hypixel
 
                     using (var scope = builder.StartActive(true))
                     {
-                            var span = scope.Span;
-                            data.Span = span;
+                        var span = scope.Span;
+                        data.Span = span;
                         try
                         {
                             await Commands[data.Type].Execute(data);
-                        } catch(Exception e)
+                        }
+                        catch (Exception e)
                         {
                             data.LogError(e, "");
                             throw;
@@ -329,6 +333,32 @@ namespace hypixel
         public void SendBack(MessageData data)
         {
             Send(MessagePackSerializer.ToJson(data));
+        }
+
+        public bool SendFlip(FlipInstance flip)
+        {
+            var data = new MessageData("flip", JSON.Stringify(flip), 60);
+            return TrySendData(data);
+        }
+
+        private bool TrySendData(MessageData data)
+        {
+            data.mId = SubFlipMsgId;
+            try
+            {
+                SendBack(data);
+            }
+            catch (Exception e)
+            {
+                dev.Logger.Instance.Error(e, "could not send back");
+                return false;
+            }
+            return true;
+        }
+
+        public bool SendSold(string uuid)
+        {
+            return TrySendData(new MessageData("sold", uuid));
         }
     }
 }
