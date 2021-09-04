@@ -24,6 +24,9 @@ namespace SkyCommands
 
             hypixel.Program.RunIsolatedForever(FlipperService.Instance.ListentoUnavailableTopics, "flip wait");
             hypixel.Program.RunIsolatedForever(FlipperService.Instance.ListenToNewFlips, "flip wait");
+            hypixel.Program.RunIsolatedForever(FlipperService.Instance.ListenForSettingsChange, "settings sync");
+
+            
             hypixel.Program.RunIsolatedForever(FlipperService.Instance.ProcessSlowQueue, "flip process slow", 10);
             CreateHostBuilder(args).Build().Run();
         }

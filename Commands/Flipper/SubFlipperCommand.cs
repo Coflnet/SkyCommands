@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Coflnet.Sky.Filter;
 
 namespace hypixel
 {
@@ -11,6 +12,13 @@ namespace hypixel
             try
             {
                 con.SubFlipMsgId = (int)data.mId;
+                con.Settings = data.GetAs<FlipSettings>();
+                Console.WriteLine(JSON.Stringify(con.Settings));
+
+                var lastSettings = con.LastSettingsChange;
+                lastSettings.Settings = con.Settings;
+                lastSettings.UserId = data.UserId;
+                FlipperService.Instance.UpdateSettings(lastSettings);
                 if (!data.User.HasPremium)
                     FlipperService.Instance.AddNonConnection(con);
                 else

@@ -1,4 +1,5 @@
 using System;
+using Coflnet.Sky.Filter;
 using hypixel;
 using Newtonsoft.Json;
 using WebSocketSharp;
@@ -11,6 +12,8 @@ namespace Coflnet.Sky.Commands
         public string Uuid;
 
         public long Id => Uuid.GetHashCode();
+
+        public FlipSettings Settings { get; set; }
 
         protected override void OnOpen()
         {
@@ -52,15 +55,43 @@ namespace Coflnet.Sky.Commands
 
         public bool SendFlip(FlipInstance flip)
         {
-            if (flip.MedianPrice - flip.LastKnownCost < 10_000)
-                SendMessage($"FLIP: {flip.Name} - Cost {flip.LastKnownCost} Median {flip.MedianPrice} ", "/viewauction " + flip.Uuid);
+            if (!Settings.MatchesSettings(flip))
+                return true;
+            if (flip.MedianPrice - flip.LastKnownCost < 10_000 && flip.Bin)
+                SendMessage(GetFlipMsg(flip), "/viewauction " + flip.Uuid);
             return true;
+        }
+
+        private string GetFlipMsg(FlipInstance flip)
+        {
+            return $"FLIP: {GetRarityColor(flip.Rarity)}{flip.Name} §f{flip.LastKnownCost} -> {flip.MedianPrice} §g[BUY]";
+        }
+
+        private string GetRarityColor(Tier rarity)
+        {
+            return rarity switch
+            {
+                Tier.COMMON => "§f",
+                Tier.EPIC => "§5",
+                Tier.UNCOMMON => "§a",
+                Tier.RARE => "§9",
+                Tier.SPECIAL => "§c",
+                Tier.SUPREME => "§4",
+                Tier.VERY_SPECIAL => "§4",
+                Tier.MYTHIC => "§d",
+                _ => ""
+            };
         }
 
         public bool SendSold(string uuid)
         {
             // don't send extra messages
             return true;
+        }
+
+        public void UpdateSettings(SettingsChange settings)
+        {
+            throw new NotImplementedException();
         }
 
         public class Response
