@@ -15,7 +15,7 @@ using Coflnet.Sky.Filter;
 
 namespace hypixel
 {
-    public class SkyblockBackEnd : WebSocketBehavior, IFlipConection
+    public class SkyblockBackEnd : WebSocketBehavior, IFlipConnection
     {
         public static Dictionary<string, Command> Commands = new Dictionary<string, Command>();
         private static ConcurrentDictionary<long, SkyblockBackEnd> Subscribers = new ConcurrentDictionary<long, SkyblockBackEnd>();

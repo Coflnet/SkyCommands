@@ -18,9 +18,9 @@ namespace hypixel
     {
         public static FlipperService Instance = new FlipperService();
 
-        private ConcurrentDictionary<long, IFlipConection> Subs = new ConcurrentDictionary<long, IFlipConection>();
-        private ConcurrentDictionary<long, IFlipConection> SlowSubs = new ConcurrentDictionary<long, IFlipConection>();
-        private ConcurrentDictionary<long, IFlipConection> SuperSubs = new ConcurrentDictionary<long, IFlipConection>();
+        private ConcurrentDictionary<long, IFlipConnection> Subs = new ConcurrentDictionary<long, IFlipConnection>();
+        private ConcurrentDictionary<long, IFlipConnection> SlowSubs = new ConcurrentDictionary<long, IFlipConnection>();
+        private ConcurrentDictionary<long, IFlipConnection> SuperSubs = new ConcurrentDictionary<long, IFlipConnection>();
         public ConcurrentQueue<FlipInstance> Flipps = new ConcurrentQueue<FlipInstance>();
         private ConcurrentQueue<FlipInstance> SlowFlips = new ConcurrentQueue<FlipInstance>();
         /// <summary>
@@ -67,14 +67,14 @@ namespace hypixel
 
         }
 
-        public void AddConnection(IFlipConection con)
+        public void AddConnection(IFlipConnection con)
         {
             Subs.AddOrUpdate(con.Id, cid => con, (cid, oldMId) => con);
             var toSendFlips = Flipps.Reverse().Take(5);
             SendFlipHistory(con, toSendFlips);
         }
 
-        public void AddNonConnection(IFlipConection con)
+        public void AddNonConnection(IFlipConnection con)
         {
             SlowSubs.AddOrUpdate(con.Id, cid => con, (cid, oldMId) => con);
             SendFlipHistory(con, LoadBurst, 0);
@@ -85,21 +85,21 @@ namespace hypixel
             });
         }
 
-        public void RemoveNonConnection(IFlipConection con)
+        public void RemoveNonConnection(IFlipConnection con)
         {
-            SlowSubs.TryRemove(con.Id, out IFlipConection value);
+            SlowSubs.TryRemove(con.Id, out IFlipConnection value);
         }
 
-        public void RemoveConnection(IFlipConection con)
+        public void RemoveConnection(IFlipConnection con)
         {
-            Subs.TryRemove(con.Id, out IFlipConection value);
+            Subs.TryRemove(con.Id, out IFlipConnection value);
             RemoveNonConnection(con);
         }
 
 
 
 
-        private static void SendFlipHistory(IFlipConection con, IEnumerable<FlipInstance> toSendFlips, int delay = 5000)
+        private static void SendFlipHistory(IFlipConnection con, IEnumerable<FlipInstance> toSendFlips, int delay = 5000)
         {
             Task.Run(async () =>
             {
@@ -170,19 +170,19 @@ namespace hypixel
 
 
 
-        private static void NotifyAll(FlipInstance flip, ConcurrentDictionary<long, IFlipConection> subscribers)
+        private static void NotifyAll(FlipInstance flip, ConcurrentDictionary<long, IFlipConnection> subscribers)
         {
             foreach (var item in subscribers.Keys)
             {
                 try
                 {
                     if (!subscribers[item].SendFlip(flip))
-                        subscribers.TryRemove(item, out IFlipConection value);
+                        subscribers.TryRemove(item, out IFlipConnection value);
                 }
                 catch (Exception e)
                 {
                     Console.WriteLine($"Failed to send flip {e.Message} {e.StackTrace}");
-                    subscribers.TryRemove(item, out IFlipConection value);
+                    subscribers.TryRemove(item, out IFlipConnection value);
                 }
             }
         }
@@ -252,7 +252,7 @@ namespace hypixel
         {
             foreach (var item in settings.ConIds)
             {
-                if (SlowSubs.TryGetValue(item, out IFlipConection con)
+                if (SlowSubs.TryGetValue(item, out IFlipConnection con)
                     || Subs.TryGetValue(item, out con)
                     || SuperSubs.TryGetValue(item, out con))
                 {

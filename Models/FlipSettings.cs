@@ -1,6 +1,5 @@
 
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.Serialization;
 using hypixel;
 
@@ -26,7 +25,9 @@ namespace Coflnet.Sky.Filter
         [DataMember(Name = "minVolume")]
         public int MinVolume;
 
-        
+        [DataMember(Name = "maxCost")]
+        public int MaxCost;
+
 
         private FlipFilter filter;
         private List<FlipFilter> blackListFilters;
@@ -38,9 +39,11 @@ namespace Coflnet.Sky.Filter
         /// <returns>true if it matches</returns>
         public bool MatchesSettings(FlipInstance flip)
         {
-            if(flip.MedianPrice - flip.LastKnownCost < MinProfit)
+            if (flip.MedianPrice - flip.LastKnownCost < MinProfit)
                 return false;
-            if(flip.Volume < MinVolume)
+            if (flip.Volume < MinVolume)
+                return false;
+            if (MaxCost != 0 && flip.LastKnownCost > MaxCost)
                 return false;
             if (this.Filters == null && BlackList == null)
                 return true;
@@ -71,41 +74,6 @@ namespace Coflnet.Sky.Filter
             if (filter == null)
                 filter = new FlipFilter(this.Filters);
             return filter.IsMatch(flip);
-        }
-    }
-
-    [DataContract]
-    public class ListEntry
-    {
-        [DataMember(Name = "tag")]
-        public string ItemTag;
-        [DataMember(Name = "filter")]
-        public Dictionary<string, string> filter;
-
-        private FlipFilter filterCache;
-
-        public bool MatchesSettings(FlipInstance flip)
-        {
-            if (filterCache == null)
-                filterCache = new FlipFilter(this.filter);
-            return filterCache.IsMatch(flip);
-        }
-    }
-
-    public class FlipFilter
-    {
-        private static FilterEngine FilterEngine = new FilterEngine();
-
-        private Dictionary<string, string> Filters;
-
-        public FlipFilter(Dictionary<string, string> filters)
-        {
-            Filters = filters;
-        }
-
-        public bool IsMatch(FlipInstance flip)
-        {
-            return FilterEngine.AddFilters(new SaveAuction[] { flip.Auction }.AsQueryable(), Filters).Any();
         }
     }
 }

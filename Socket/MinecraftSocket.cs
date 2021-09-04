@@ -7,7 +7,7 @@ using WebSocketSharp.Server;
 
 namespace Coflnet.Sky.Commands
 {
-    public class MinecraftSocket : WebSocketBehavior, IFlipConection
+    public class MinecraftSocket : WebSocketBehavior, IFlipConnection
     {
         public string Uuid;
 

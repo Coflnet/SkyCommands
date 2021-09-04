@@ -3,7 +3,7 @@ using hypixel;
 
 namespace Coflnet.Sky.Commands
 {
-    public interface IFlipConection
+    public interface IFlipConnection
     {
         /// <summary>
         /// Tries to send a flip, returns false if the connection can no longer send flips
