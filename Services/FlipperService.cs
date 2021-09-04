@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using Coflnet.Sky.Commands;
+using Coflnet.Sky.Filter;
 using Confluent.Kafka;
 
 namespace hypixel
@@ -17,9 +18,9 @@ namespace hypixel
     {
         public static FlipperService Instance = new FlipperService();
 
-
-        private ConcurrentDictionary<long, IFlipConection> Subs = new ConcurrentDictionary<long, IFlipConection>();
-        private ConcurrentDictionary<long, IFlipConection> SlowSubs = new ConcurrentDictionary<long, IFlipConection>();
+        private ConcurrentDictionary<long, IFlipConnection> Subs = new ConcurrentDictionary<long, IFlipConnection>();
+        private ConcurrentDictionary<long, IFlipConnection> SlowSubs = new ConcurrentDictionary<long, IFlipConnection>();
+        private ConcurrentDictionary<long, IFlipConnection> SuperSubs = new ConcurrentDictionary<long, IFlipConnection>();
         public ConcurrentQueue<FlipInstance> Flipps = new ConcurrentQueue<FlipInstance>();
         private ConcurrentQueue<FlipInstance> SlowFlips = new ConcurrentQueue<FlipInstance>();
         /// <summary>
@@ -27,6 +28,8 @@ namespace hypixel
         /// </summary>
         private ConcurrentDictionary<long, bool> FlipIdLookup = new ConcurrentDictionary<long, bool>();
         public static readonly string ConsumeTopic = SimplerConfig.Config.Instance["TOPICS:FLIP_CONSUME"];
+        public static readonly string SettingsTopic = SimplerConfig.Config.Instance["TOPICS:SETTINGS_CHANGE"];
+        private static ProducerConfig producerConfig = new ProducerConfig { BootstrapServers = SimplerConfig.Config.Instance["KAFKA_HOST"] };
 
         private const string FoundFlippsKey = "foundFlipps";
 
@@ -53,14 +56,25 @@ namespace hypixel
                 }
             }
         }
-        public void AddConnection(IFlipConection con)
+
+
+        internal Task<DeliveryResult<string, SettingsChange>> UpdateSettings(SettingsChange settings)
+        {
+            using (var p = new ProducerBuilder<string, SettingsChange>(producerConfig).SetValueSerializer(SerializerFactory.GetSerializer<SettingsChange>()).Build())
+            {
+                return p.ProduceAsync(SettingsTopic, new Message<string, SettingsChange> { Value = settings });
+            }
+
+        }
+
+        public void AddConnection(IFlipConnection con)
         {
             Subs.AddOrUpdate(con.Id, cid => con, (cid, oldMId) => con);
             var toSendFlips = Flipps.Reverse().Take(5);
             SendFlipHistory(con, toSendFlips);
         }
 
-        public void AddNonConnection(IFlipConection con)
+        public void AddNonConnection(IFlipConnection con)
         {
             SlowSubs.AddOrUpdate(con.Id, cid => con, (cid, oldMId) => con);
             SendFlipHistory(con, LoadBurst, 0);
@@ -71,21 +85,21 @@ namespace hypixel
             });
         }
 
-        public void RemoveNonConnection(IFlipConection con)
+        public void RemoveNonConnection(IFlipConnection con)
         {
-            SlowSubs.TryRemove(con.Id, out IFlipConection value);
+            SlowSubs.TryRemove(con.Id, out IFlipConnection value);
         }
 
-        public void RemoveConnection(IFlipConection con)
+        public void RemoveConnection(IFlipConnection con)
         {
-            Subs.TryRemove(con.Id, out IFlipConection value);
+            Subs.TryRemove(con.Id, out IFlipConnection value);
             RemoveNonConnection(con);
         }
 
 
 
 
-        private static void SendFlipHistory(IFlipConection con, IEnumerable<FlipInstance> toSendFlips, int delay = 5000)
+        private static void SendFlipHistory(IFlipConnection con, IEnumerable<FlipInstance> toSendFlips, int delay = 5000)
         {
             Task.Run(async () =>
             {
@@ -156,19 +170,19 @@ namespace hypixel
 
 
 
-        private static void NotifyAll(FlipInstance flip, ConcurrentDictionary<long, IFlipConection> subscribers)
+        private static void NotifyAll(FlipInstance flip, ConcurrentDictionary<long, IFlipConnection> subscribers)
         {
             foreach (var item in subscribers.Keys)
             {
                 try
                 {
                     if (!subscribers[item].SendFlip(flip))
-                        subscribers.TryRemove(item, out IFlipConection value);
+                        subscribers.TryRemove(item, out IFlipConnection value);
                 }
                 catch (Exception e)
                 {
                     Console.WriteLine($"Failed to send flip {e.Message} {e.StackTrace}");
-                    subscribers.TryRemove(item, out IFlipConection value);
+                    subscribers.TryRemove(item, out IFlipConnection value);
                 }
             }
         }
@@ -184,7 +198,8 @@ namespace hypixel
                     if (SoldAuctions.ContainsKey(flip.UId))
                         flip.Sold = true;
                     NotifyAll(flip, SlowSubs);
-                    Console.Write("sf+" + SlowSubs.Count);
+                    if (flip.Uuid[0] == 'a')
+                        Console.Write("sf+" + SlowSubs.Count);
                     LoadBurst.Enqueue(flip);
                     if (LoadBurst.Count > 5)
                         LoadBurst.Dequeue();
@@ -222,6 +237,33 @@ namespace hypixel
             Console.WriteLine("starting to listen for new auctions via topic " + ConsumeTopic);
             ConsumeBatch<FlipInstance>(topics, DeliverFlip);
             Console.WriteLine("ended listening");
+        }
+
+        public Task ListenForSettingsChange()
+        {
+            string[] topics = new string[] { SettingsTopic };
+
+            Console.WriteLine("starting to listen for config changes topic " + SettingsTopic);
+            ConsumeBatch<SettingsChange>(topics, UpdateSettingsInternal);
+            return Task.CompletedTask;
+        }
+
+        private void UpdateSettingsInternal(SettingsChange settings)
+        {
+            foreach (var item in settings.ConIds)
+            {
+                if (SlowSubs.TryGetValue(item, out IFlipConnection con)
+                    || Subs.TryGetValue(item, out con)
+                    || SuperSubs.TryGetValue(item, out con))
+                {
+                    con.UpdateSettings(settings);
+                }
+            }
+            foreach (var item in SkyblockBackEnd.GetConnectionsOfUser(settings.UserId))
+            {
+                item.UpdateSettings(settings);
+            }
+
         }
 
         private void ConsumeBatch<T>(string[] topics, Action<T> work)
@@ -289,6 +331,21 @@ namespace hypixel
         }
     }
 
+
+    [DataContract]
+    public class SettingsChange
+    {
+        [DataMember(Name = "settings")]
+        public FlipSettings Settings = new FlipSettings();
+        [DataMember(Name = "userId")]
+        public int UserId;
+        [DataMember(Name = "mcIds")]
+        public List<string> McIds = new List<string>();
+
+        [DataMember(Name = "conIds")]
+        public List<long> ConIds = new List<long>();
+    }
+
     [DataContract]
     public class FlipInstance
     {
@@ -319,6 +376,8 @@ namespace hypixel
 
         [DataMember(Name = "lowestBin")]
         public long? LowestBin;
+        [DataMember(Name = "auction")]
+        public SaveAuction Auction;
         [IgnoreDataMember]
         public long UId;
     }

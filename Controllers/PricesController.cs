@@ -32,7 +32,7 @@ namespace Coflnet.Hypixel.Controller
         /// Gets the lowest bin by item type
         /// </summary>
         /// <param name="itemTag">The tag of the item to search for bin</param>
-        /// <param name="tier">The tier aka rarity of the item. Allows to filter pets and recomulated items</param>
+        /// <param name="tier">The tier aka rarity of the item. Allows to filter pets and recombobulated items</param>
         /// <returns></returns>
         [Route("item/price/{itemTag}/bin")]
         [HttpGet]

@@ -11,16 +11,17 @@ using Newtonsoft.Json;
 using RateLimiter;
 using ComposableAsync;
 using Coflnet.Sky.Commands;
+using Coflnet.Sky.Filter;
 
 namespace hypixel
 {
-    public class SkyblockBackEnd : WebSocketBehavior, IFlipConection
+    public class SkyblockBackEnd : WebSocketBehavior, IFlipConnection
     {
         public static Dictionary<string, Command> Commands = new Dictionary<string, Command>();
         private static ConcurrentDictionary<long, SkyblockBackEnd> Subscribers = new ConcurrentDictionary<long, SkyblockBackEnd>();
         public static int ConnectionCount => Subscribers.Count;
 
-        public long Id;
+        public long Id { get; set; }
         public int SubFlipMsgId;
 
         private int _userId;
@@ -41,7 +42,13 @@ namespace hypixel
             }
         }
 
-        long IFlipConection.Id => throw new NotImplementedException();
+        public FlipSettings Settings { get; internal set; }
+
+        /// <summary>
+        /// The last or default settings change captured for this user/connection
+        /// </summary>
+        /// <returns></returns>
+        public SettingsChange LastSettingsChange = new SettingsChange();
 
         private TimeLimiter limiter;
 
@@ -107,6 +114,7 @@ namespace hypixel
             Commands.Add("unsubFlip", new UnsubFlipperCommand());
             Commands.Add("getFlips", new RecentFlipsCommand());
             Commands.Add("flipBased", new BasedOnCommand());
+            Commands.Add("authCon", new AuthorizeConnectionCommand());
 
             // sync commands
             Commands.Add("playerSync", new PlayerSyncCommand());
@@ -337,6 +345,8 @@ namespace hypixel
 
         public bool SendFlip(FlipInstance flip)
         {
+            if (!Settings.MatchesSettings(flip))
+                return true;
             var data = new MessageData("flip", JSON.Stringify(flip), 60);
             return TrySendData(data);
         }
@@ -359,6 +369,21 @@ namespace hypixel
         public bool SendSold(string uuid)
         {
             return TrySendData(new MessageData("sold", uuid));
+        }
+
+        public void UpdateSettings(SettingsChange settings)
+        {
+            this.LastSettingsChange = settings;
+            SendBack(new MessageData("settingsUpdate",JsonConvert.SerializeObject(settings.Settings)));
+        }
+
+        public static IEnumerable<SkyblockBackEnd> GetConnectionsOfUser(long userId)
+        {
+            foreach (var item in Subscribers)
+            {
+                if(item.Value.UserId == userId)
+                    yield return item.Value;
+            }
         }
     }
 }
