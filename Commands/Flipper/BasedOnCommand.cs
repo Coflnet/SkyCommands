@@ -39,7 +39,8 @@ namespace hypixel
                             {
                                 uuid = a.Uuid,
                                 highestBid = a.HighestBidAmount,
-                                end = a.End
+                                end = a.End,
+                                ItemName = a.ItemName
                             }),
                             A_HOUR));
             }
@@ -53,6 +54,8 @@ namespace hypixel
             public long highestBid;
             [DataMember(Name = "end")]
             public System.DateTime end;
+            [DataMember(Name = "name")]
+            public string ItemName { get; set; }
         }
     }
 }
