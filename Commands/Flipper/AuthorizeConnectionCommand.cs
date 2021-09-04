@@ -14,6 +14,7 @@ namespace hypixel
             lastSettings.ConIds.Add(data.GetAs<long>());
             lastSettings.UserId = data.UserId;
             await FlipperService.Instance.UpdateSettings(lastSettings);
+            await data.Ok();
         }
     }
 }
