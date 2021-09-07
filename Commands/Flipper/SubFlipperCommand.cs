@@ -12,7 +12,14 @@ namespace hypixel
             try
             {
                 con.SubFlipMsgId = (int)data.mId;
-                con.Settings = data.GetAs<FlipSettings>();
+                try
+                {
+                    con.Settings = data.GetAs<FlipSettings>();
+                } catch(Exception)
+                {
+                    // could not get it continue with default
+                    con.Settings = new FlipSettings();
+                }
                 Console.WriteLine(JSON.Stringify(con.Settings));
 
                 var lastSettings = con.LastSettingsChange;

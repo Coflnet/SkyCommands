@@ -108,8 +108,7 @@ namespace hypixel
             server.OnPost += async (sender, e) =>
             {
 
-                if (e.Request.RawUrl == "/stripe")
-                    await new StripeRequests().ProcessStripe(e);
+               
                 //if (e.Request.RawUrl.StartsWith("/command/"))
                 //    await HandleCommand(e.Request, e.Response);
 
