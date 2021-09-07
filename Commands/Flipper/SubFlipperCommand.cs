@@ -6,7 +6,7 @@ namespace hypixel
 {
     public class SubFlipperCommand : Command
     {
-        public override Task Execute(MessageData data)
+        public override async Task Execute(MessageData data)
         {
             var con = (data as SocketMessageData).Connection;
             try
@@ -15,6 +15,8 @@ namespace hypixel
                 try
                 {
                     con.Settings = data.GetAs<FlipSettings>();
+                    if(con.Settings == null)
+                        con.Settings = new FlipSettings();
                 } catch(Exception)
                 {
                     // could not get it continue with default
@@ -25,7 +27,7 @@ namespace hypixel
                 var lastSettings = con.LastSettingsChange;
                 lastSettings.Settings = con.Settings;
                 lastSettings.UserId = data.UserId;
-                FlipperService.Instance.UpdateSettings(lastSettings);
+                await FlipperService.Instance.UpdateSettings(lastSettings);
                 if (!data.User.HasPremium)
                     FlipperService.Instance.AddNonConnection(con);
                 else
@@ -39,7 +41,7 @@ namespace hypixel
             {
                 FlipperService.Instance.AddNonConnection(con);
             }
-            return data.Ok();
+            await  data.Ok();
         }
     }
 }

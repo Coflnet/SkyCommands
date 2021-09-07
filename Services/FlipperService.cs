@@ -58,11 +58,11 @@ namespace hypixel
         }
 
 
-        internal Task<DeliveryResult<string, SettingsChange>> UpdateSettings(SettingsChange settings)
+        internal async Task<DeliveryResult<string, SettingsChange>> UpdateSettings(SettingsChange settings)
         {
             using (var p = new ProducerBuilder<string, SettingsChange>(producerConfig).SetValueSerializer(SerializerFactory.GetSerializer<SettingsChange>()).Build())
             {
-                return p.ProduceAsync(SettingsTopic, new Message<string, SettingsChange> { Value = settings });
+                return await p.ProduceAsync(SettingsTopic, new Message<string, SettingsChange> { Value = settings });
             }
 
         }
