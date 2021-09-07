@@ -18,7 +18,7 @@ namespace Coflnet.Sky.Filter
 
         public bool IsMatch(FlipInstance flip)
         {
-            return FilterEngine.AddFilters(new SaveAuction[] { flip.Auction }.AsQueryable(), Filters).Any();
+            return Filters != null && FilterEngine.AddFilters(new SaveAuction[] { flip.Auction }.AsQueryable(), Filters).Any();
         }
     }
 }
