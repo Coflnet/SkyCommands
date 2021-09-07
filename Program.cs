@@ -13,20 +13,23 @@ namespace SkyCommands
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             Console.WriteLine("sky-commands");
             var FilterEngine = new FilterEngine();
             hypixel.ItemPrices.AddFilters = FilterEngine.AddFilters;
             var server = new Server();
-            Task.Run(() => server.Start()).ConfigureAwait(false);
-            ItemDetails.Instance.LoadLookup();
+            var itemLoad = ItemDetails.Instance.LoadLookup();
+            var serverTask = Task.Run(() => server.Start()).ConfigureAwait(false);
 
             hypixel.Program.RunIsolatedForever(FlipperService.Instance.ListentoUnavailableTopics, "flip wait");
             hypixel.Program.RunIsolatedForever(FlipperService.Instance.ListenToNewFlips, "flip wait");
             hypixel.Program.RunIsolatedForever(FlipperService.Instance.ListenForSettingsChange, "settings sync");
 
-            
+            // hook up cache refreshing
+            CacheService.Instance.OnCacheRefresh += Server.ExecuteCommandHeadless;
+
+            await itemLoad;
             hypixel.Program.RunIsolatedForever(FlipperService.Instance.ProcessSlowQueue, "flip process slow", 10);
             CreateHostBuilder(args).Build().Run();
         }

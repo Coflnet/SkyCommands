@@ -1,6 +1,6 @@
 FROM mcr.microsoft.com/dotnet/sdk:5.0 as build
 WORKDIR /build
-RUN echo "new rev"
+RUN echo "next rev"
 RUN git clone --depth=1 https://github.com/Ekwav/websocket-sharp
 RUN git clone --depth=1 -b separation https://github.com/Coflnet/HypixelSkyblock.git dev
 RUN git clone --depth=1 https://github.com/Coflnet/SkyFilter.git
