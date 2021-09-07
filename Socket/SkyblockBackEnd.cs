@@ -345,7 +345,7 @@ namespace hypixel
 
         public bool SendFlip(FlipInstance flip)
         {
-            if (!Settings.MatchesSettings(flip))
+            if (!(Settings?.MatchesSettings(flip) ?? false))
                 return true;
             var data = new MessageData("flip", JSON.Stringify(flip), 60);
             return TrySendData(data);
