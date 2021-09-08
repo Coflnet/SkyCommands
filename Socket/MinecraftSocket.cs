@@ -55,7 +55,7 @@ namespace Coflnet.Sky.Commands
 
         public bool SendFlip(FlipInstance flip)
         {
-            if (!Settings.MatchesSettings(flip))
+            if (Settings == null || !Settings.MatchesSettings(flip))
                 return true;
             if (flip.MedianPrice - flip.LastKnownCost < 10_000 && flip.Bin)
                 SendMessage(GetFlipMsg(flip), "/viewauction " + flip.Uuid);
