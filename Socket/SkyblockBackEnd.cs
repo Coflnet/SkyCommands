@@ -381,7 +381,8 @@ namespace hypixel
         {
             foreach (var item in Subscribers)
             {
-                if(item.Value.UserId == userId)
+                var uId = item.Value._userId;
+                if(uId != 0 && uId == userId)
                     yield return item.Value;
             }
         }

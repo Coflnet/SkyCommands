@@ -27,7 +27,7 @@ namespace hypixel
         /// Wherether or not a given <see cref="SaveAuction.UId"/> was a flip or not
         /// </summary>
         private ConcurrentDictionary<long, bool> FlipIdLookup = new ConcurrentDictionary<long, bool>();
-        public static readonly string ConsumeTopic = SimplerConfig.Config.Instance["TOPICS:FLIP_CONSUME"];
+        public static readonly string ConsumeTopic = SimplerConfig.Config.Instance["TOPICS:FLIP"];
         public static readonly string SettingsTopic = SimplerConfig.Config.Instance["TOPICS:SETTINGS_CHANGE"];
         private static ProducerConfig producerConfig = new ProducerConfig { BootstrapServers = SimplerConfig.Config.Instance["KAFKA_HOST"] };
 
