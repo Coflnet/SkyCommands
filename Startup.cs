@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using hypixel;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -11,6 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using Prometheus;
 
 namespace SkyCommands
 {
@@ -32,6 +34,7 @@ namespace SkyCommands
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "SkyCommands", Version = "v1" });
             });
+            services.AddJaeger();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -52,6 +55,7 @@ namespace SkyCommands
 
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapMetrics();
                 endpoints.MapControllers();
             });
         }
