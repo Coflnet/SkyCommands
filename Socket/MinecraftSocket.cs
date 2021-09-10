@@ -27,6 +27,9 @@ namespace Coflnet.Sky.Commands
             var key = new Random().Next();
             base.OnOpen();
             SendMessage("Please click this [LINK] to login", $"https://sky.coflnet.com/conMc?uuid={Uuid}&secret={key % 100000}");
+            // -----------------------------
+            // THIS SENDS PREMIUM FLIPS
+            // -----------------------------
             FlipperService.Instance.AddConnection(this);
         }
 

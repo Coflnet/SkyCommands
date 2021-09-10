@@ -33,6 +33,12 @@ namespace hypixel
 
         private const string FoundFlippsKey = "foundFlipps";
 
+        static Prometheus.Histogram runtroughTime = Prometheus.Metrics.CreateHistogram("auctionToFlipSeconds", "Represents the time taken from loading the auction to sendingthe flip. (should be close to 0)",
+            new Prometheus.HistogramConfiguration()
+            {
+                Buckets = Prometheus.Histogram.LinearBuckets(start: 0, width: 2, count: 10)
+            });
+
         /// <summary>
         /// Special load burst queue that will send out 5 flips at load
         /// </summary>
@@ -148,6 +154,8 @@ namespace hypixel
             SoldAuctions[uid] = DateTime.Now;
         }
 
+
+
         /// <summary>
         /// Sends out new flips based on tier.
         /// (active on the light client)
@@ -155,6 +163,7 @@ namespace hypixel
         /// <param name="flip"></param>
         private void DeliverFlip(FlipInstance flip)
         {
+            
             NotifyAll(flip, Subs);
             SlowFlips.Enqueue(flip);
             Flipps.Enqueue(flip);
@@ -172,6 +181,7 @@ namespace hypixel
 
         private static void NotifyAll(FlipInstance flip, ConcurrentDictionary<long, IFlipConnection> subscribers)
         {
+            runtroughTime.Observe((DateTime.Now - flip.Auction.FindTime).TotalSeconds);
             foreach (var item in subscribers.Keys)
             {
                 try
@@ -266,7 +276,7 @@ namespace hypixel
 
         }
 
-        private void ConsumeBatch<T>(string[] topics, Action<T> work)
+        private void ConsumeBatch<T>(string[] topics, Action<T> work, int batchSize = 10)
         {
             using (var c = new ConsumerBuilder<Ignore, T>(consumerConf).SetValueDeserializer(SerializerFactory.GetDeserializer<T>()).Build())
             {
@@ -291,7 +301,7 @@ namespace hypixel
                         {
                             dev.Logger.Instance.Error(e, "flipper consume batch " + topics[0]);
                         }
-                        if (batch.Count > 10)
+                        if (batch.Count > batchSize)
                         {
                             // tell kafka that we stored the batch
                             c.Commit(batch);
