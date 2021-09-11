@@ -33,7 +33,7 @@ namespace hypixel
 
         private const string FoundFlippsKey = "foundFlipps";
 
-        static Prometheus.Histogram runtroughTime = Prometheus.Metrics.CreateHistogram("auctionToFlipSeconds", "Represents the time taken from loading the auction to sendingthe flip. (should be close to 0)",
+        static Prometheus.Histogram runtroughTime = Prometheus.Metrics.CreateHistogram("sky_commands_auction_to_flip_seconds", "Represents the time in seconds taken from loading the auction to sendingthe flip. (should be close to 0)",
             new Prometheus.HistogramConfiguration()
             {
                 Buckets = Prometheus.Histogram.LinearBuckets(start: 0, width: 2, count: 10)
@@ -388,7 +388,7 @@ namespace hypixel
         public long? LowestBin;
         [DataMember(Name = "auction")]
         public SaveAuction Auction;
-        [IgnoreDataMember]
+        [DataMember(Name = "uId")]
         public long UId;
     }
 }
