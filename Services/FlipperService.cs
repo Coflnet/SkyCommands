@@ -388,7 +388,7 @@ namespace hypixel
         public long? LowestBin;
         [DataMember(Name = "auction")]
         public SaveAuction Auction;
-        [DataMember(Name = "uId")]
-        public long UId;
+        [IgnoreDataMember]
+        public long UId => AuctionService.Instance.GetId(this.Uuid);
     }
 }
