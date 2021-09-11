@@ -45,26 +45,22 @@ namespace Coflnet.Sky.Filter
                 return false;
             if (MaxCost != 0 && flip.LastKnownCost > MaxCost)
                 return false;
-            if (this.Filters == null && BlackList == null)
-                return true;
             if (flip.Auction == null)
             {
-                System.Console.WriteLine("flip has no auction");
                 return false;
             }
 
             if (WhiteList != null)
                 foreach (var item in WhiteList)
                 {
-                    if (flip.Tag == item.ItemTag && (item.filter != null || item.MatchesSettings(flip)))
+                    if (flip.Tag == item.ItemTag || (item.filter != null && item.MatchesSettings(flip)))
                         return true;
                 }
-
             if (BlackList != null)
             {
                 foreach (var item in BlackList)
                 {
-                    if (flip.Tag == item.ItemTag)
+                    if (flip.Tag != null && flip.Tag == item.ItemTag)
                         return false;
                     if (item.filter != null && item.MatchesSettings(flip))
                         return false;

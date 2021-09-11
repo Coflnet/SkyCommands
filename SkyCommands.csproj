@@ -10,6 +10,15 @@
     <ProjectReference Include="../websocket-sharp/websocket-sharp/websocket-sharp.csproj" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(Configuration)' == 'Release'">
+    <Compile Remove="**\*.Tests.cs" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(Configuration)' != 'Release'">
+    <PackageReference Include="nunit" Version="3.13.2" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.0.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.11.0" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="AspNetCoreRateLimit" Version="4.0.1" />
     <PackageReference Include="AspNetCoreRateLimit.Redis" Version="1.0.0" />
@@ -34,7 +43,6 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="3.1.18" />
     <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="3.1.18" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="3.1.18" />
-    <PackageReference Include="Microsoft.TestPlatform.TestHost" Version="16.8.3" />
     <PackageReference Include="MySql.Data.EntityFrameworkCore" Version="8.0.22" />
     <!--PackageReference Include="Newtonsoft.Json" Version="12.0.0.1" /-->
     <PackageReference Include="NUnit" Version="3.12.0" />
@@ -52,10 +60,6 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.1.5" />
     <PackageReference Include="Swashbuckle.AspNetCore.Newtonsoft" Version="6.1.5" />
     <PackageReference Include="System.Runtime.Caching" Version="5.0.0" />
-
-
-    <PackageReference Include="NUnit3TestAdapter" Version="3.16.1" />
-    <PackageReference Include="NUnit" Version="3.11.0" />
   </ItemGroup>
 
 </Project>
