@@ -45,9 +45,9 @@ namespace Coflnet.Sky.Commands
             FlipperService.Instance.RemoveConnection(this);
         }
 
-        public void SendMessage(string text, string clickAction)
+        public void SendMessage(string text, string clickAction, string hoverText = null)
         {
-            this.Send(Response.Create("writeToChat", new { text, onClick = clickAction }));
+            this.Send(Response.Create("writeToChat", new { text, onClick = clickAction, hover = hoverText }));
         }
 
         public void Send(Response response)
@@ -61,7 +61,7 @@ namespace Coflnet.Sky.Commands
             if (Settings != null && !Settings.MatchesSettings(flip))
                 return true;
             if (flip.MedianPrice - flip.LastKnownCost < 20_000 && flip.Bin)
-                SendMessage(GetFlipMsg(flip), "/viewauction " + flip.Uuid);
+                SendMessage(GetFlipMsg(flip), "/viewauction " + flip.Uuid, string.Join('\n',"・" + flip.Interesting));
             return true;
         }
 

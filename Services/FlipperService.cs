@@ -36,7 +36,7 @@ namespace hypixel
         static Prometheus.Histogram runtroughTime = Prometheus.Metrics.CreateHistogram("sky_commands_auction_to_flip_seconds", "Represents the time in seconds taken from loading the auction to sendingthe flip. (should be close to 0)",
             new Prometheus.HistogramConfiguration()
             {
-                Buckets = Prometheus.Histogram.LinearBuckets(start: 0, width: 2, count: 10)
+                Buckets = Prometheus.Histogram.LinearBuckets(start: 1, width: 2, count: 10)
             });
 
         /// <summary>
