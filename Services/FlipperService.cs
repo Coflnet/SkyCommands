@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Coflnet.Sky.Commands;
 using Coflnet.Sky.Filter;
 using Confluent.Kafka;
+using OpenTracing.Propagation;
 
 namespace hypixel
 {
@@ -163,6 +164,10 @@ namespace hypixel
         /// <param name="flip"></param>
         private void DeliverFlip(FlipInstance flip)
         {
+            var tracer = OpenTracing.Util.GlobalTracer.Instance;
+            var span = OpenTracing.Util.GlobalTracer.Instance.BuildSpan("SendFlip")
+                    .AsChildOf(tracer.Extract(BuiltinFormats.TextMap, flip.Auction.TraceContext));
+            using var scope = span.StartActive();
             
             NotifyAll(flip, Subs);
             SlowFlips.Enqueue(flip);

@@ -40,10 +40,10 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="3.1.18" />
-    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="3.1.18" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="3.1.18" />
-    <PackageReference Include="MySql.Data.EntityFrameworkCore" Version="8.0.22" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="5.0.9" />
+    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="5.0.0" />
+    <PackageReference Include="MySql.EntityFrameworkCore" Version="5.0.5" />
     <!--PackageReference Include="Newtonsoft.Json" Version="12.0.0.1" /-->
     <PackageReference Include="NUnit" Version="3.12.0" />
     <PackageReference Include="OpenTracing.Contrib.NetCore" Version="0.7.1" />
