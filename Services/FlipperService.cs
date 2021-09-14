@@ -134,13 +134,22 @@ namespace hypixel
 
         private void NotifySubsInactiveAuction(string auctionUUid)
         {
+            var inacive = new List<long>();
             foreach (var item in Subs)
             {
-                item.Value.SendSold(auctionUUid);
+                if(!item.Value.SendSold(auctionUUid))
+                    inacive.Add(item.Key);
             }
             foreach (var item in SlowSubs)
             {
-                item.Value.SendSold(auctionUUid);
+                if(!item.Value.SendSold(auctionUUid))
+                    inacive.Add(item.Key);
+            }
+
+            foreach (var item in inacive)
+            {
+                SlowSubs.TryRemove(item,out IFlipConnection con);
+                Subs.TryRemove(item,out con);
             }
         }
 
