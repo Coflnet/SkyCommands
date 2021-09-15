@@ -10,6 +10,7 @@ namespace Coflnet.Hypixel.Controller
     /// </summary>
     [ApiController]
     [Route("api/flip")]
+    [ResponseCache(Duration = 120, Location = ResponseCacheLocation.Any, NoStore = false)]
     public class FlipController : ControllerBase
     {
         private IConfiguration config;

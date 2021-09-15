@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
+using Coflnet.Sky.Filter;
 using hypixel;
 using Microsoft.AspNetCore.Mvc;
 
@@ -46,10 +47,24 @@ namespace Coflnet.Hypixel.Controller
         /// <returns></returns>
         [Route("item/price/{itemTag}/bin")]
         [HttpGet]
+        [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Any, NoStore = false)]
         public async Task<ActionResult<BinResponse>> GetLowestBin(string itemTag, [FromQuery] IDictionary<string, string> query)
         {
             var result = await ItemPrices.GetLowestBin(itemTag, new Dictionary<string, string>(query));
             return Ok(new BinResponse(result.FirstOrDefault()?.Price ?? 0, result.FirstOrDefault()?.Uuid, result.LastOrDefault()?.Price ?? 0));
+        }
+
+        /// <summary>
+        /// Returns all available filters with all available options
+        /// </summary>
+        /// <returns></returns>
+        [Route("filter/options")]
+        [HttpGet]
+        [ResponseCache(Duration = 3600*6, Location = ResponseCacheLocation.Any, NoStore = false)]
+        public List<FilterOptions> GetFilterOptions()
+        {
+            var fe = new Sky.Filter.FilterEngine();
+            return fe.AvailableFilters.Select(f => new FilterOptions(f)).ToList();
         }
 
         /// <summary>

@@ -32,6 +32,7 @@ namespace hypixel
             var id = ItemDetails.Instance.GetItemIdForName(itemTag);
             var minTime = DateTime.Now.Subtract(TimeSpan.FromDays(1));
             var mainSelect = context.Auctions.Where(a => a.ItemId == id && a.End < DateTime.Now && a.End > minTime && a.HighestBidAmount > 0);
+            filter["ItemId"] = id.ToString();
             var auctions = (await FilterEngine.AddFilters(mainSelect, filter)
                             .Select(a => a.HighestBidAmount).ToListAsync()).OrderByDescending(p => p).ToList();
             var mode = auctions.GroupBy(a => a).OrderByDescending(a => a.Count()).FirstOrDefault();

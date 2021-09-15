@@ -11,6 +11,7 @@ namespace Coflnet.Hypixel.Controller
     /// </summary>
     [ApiController]
     [Route("api")]
+    [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Any, NoStore = false)]
     public class ApiController : ControllerBase
     {
         /// <summary>

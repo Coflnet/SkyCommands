@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using AspNetCoreRateLimit;
+using AspNetCoreRateLimit.Redis;
 using hypixel;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -15,6 +17,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Prometheus;
+using StackExchange.Redis;
 
 namespace SkyCommands
 {
@@ -30,7 +33,7 @@ namespace SkyCommands
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-
+            var redisCon = Configuration["REDIS_HOST"];
             services.AddControllers().AddNewtonsoftJson();
             services.AddSwaggerGen(c =>
             {
@@ -43,6 +46,25 @@ namespace SkyCommands
             services.AddJaeger();
             services.AddScoped<PricesService>();
             services.AddDbContext<HypixelContext>();
+
+
+            services.AddSwaggerGenNewtonsoftSupport();
+            services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = redisCon;
+                options.InstanceName = "SampleInstance";
+            });
+            services.AddResponseCaching();
+            var redisOptions = ConfigurationOptions.Parse(redisCon);
+            services.AddSingleton<IConnectionMultiplexer>(provider => ConnectionMultiplexer.Connect(redisOptions));
+
+            // Rate limiting 
+            services.Configure<IpRateLimitOptions>(Configuration.GetSection("IpRateLimiting"));
+            services.Configure<IpRateLimitPolicies>(Configuration.GetSection("IpRateLimitPolicies"));
+            services.AddRedisRateLimiting();
+            services.AddSingleton<IIpPolicyStore, DistributedCacheIpPolicyStore>();
+            services.AddSingleton<IRateLimitCounterStore, DistributedCacheRateLimitCounterStore>();
+            services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
