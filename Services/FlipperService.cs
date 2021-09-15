@@ -137,19 +137,19 @@ namespace hypixel
             var inacive = new List<long>();
             foreach (var item in Subs)
             {
-                if(!item.Value.SendSold(auctionUUid))
+                if (!item.Value.SendSold(auctionUUid))
                     inacive.Add(item.Key);
             }
             foreach (var item in SlowSubs)
             {
-                if(!item.Value.SendSold(auctionUUid))
+                if (!item.Value.SendSold(auctionUUid))
                     inacive.Add(item.Key);
             }
 
             foreach (var item in inacive)
             {
-                SlowSubs.TryRemove(item,out IFlipConnection con);
-                Subs.TryRemove(item,out con);
+                SlowSubs.TryRemove(item, out IFlipConnection con);
+                Subs.TryRemove(item, out con);
             }
         }
 
@@ -177,7 +177,7 @@ namespace hypixel
             var span = OpenTracing.Util.GlobalTracer.Instance.BuildSpan("SendFlip")
                     .AsChildOf(tracer.Extract(BuiltinFormats.TextMap, flip.Auction.TraceContext));
             using var scope = span.StartActive();
-            
+
             NotifyAll(flip, Subs);
             SlowFlips.Enqueue(flip);
             Flipps.Enqueue(flip);

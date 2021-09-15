@@ -1,7 +1,9 @@
 
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using hypixel;
 using Microsoft.AspNetCore.Mvc;
@@ -13,51 +15,63 @@ namespace Coflnet.Hypixel.Controller
     /// </summary>
     [ApiController]
     [Route("api")]
+    [ResponseCache(Duration = 120, Location = ResponseCacheLocation.Any, NoStore = false)]
     public class PricesController : ControllerBase
     {
+        private PricesService priceService;
+
+        public PricesController(PricesService pricesService)
+        {
+            priceService = pricesService;
+        }
         /// <summary>
         /// Aggregated sumary of item prices for the last day
         /// </summary>
         /// <param name="itemTag">The item tag you want prices for</param>
+        /// <param name="query">Filter query</param>
         /// <returns></returns>
         [Route("item/price/{itemTag}")]
         [HttpGet]
-        public async Task<ActionResult<PriceSumaryCommand.Result>> GetSumary(string itemTag)
+        public Task<PriceSumary> GetSumary(string itemTag, [FromQuery] IDictionary<string, string> query)
         {
-            var result = await Server.ExecuteCommandWithCache<string, PriceSumaryCommand.Result>("priceSum", itemTag);
-            return Ok(result);
+            return priceService.GetSumary(itemTag, new Dictionary<string, string>(query));
         }
 
         /// <summary>
         /// Gets the lowest bin by item type
         /// </summary>
         /// <param name="itemTag">The tag of the item to search for bin</param>
+        /// <param name="query"></param>
         /// <param name="tier">The tier aka rarity of the item. Allows to filter pets and recombobulated items</param>
         /// <returns></returns>
         [Route("item/price/{itemTag}/bin")]
         [HttpGet]
-        public async Task<ActionResult<BinResponse>> GetLowestBin(string itemTag, [FromQuery] Tier? tier)
+        public async Task<ActionResult<BinResponse>> GetLowestBin(string itemTag, [FromQuery] IDictionary<string, string> query)
         {
-            var result = await ItemPrices.GetLowestBin(itemTag, tier ?? Tier.UNCOMMON);
+            var result = await ItemPrices.GetLowestBin(itemTag, new Dictionary<string, string>(query));
             return Ok(new BinResponse(result.FirstOrDefault()?.Price ?? 0, result.FirstOrDefault()?.Uuid, result.LastOrDefault()?.Price ?? 0));
         }
 
         /// <summary>
         /// Lowest bin response
         /// </summary>
+        [DataContract]
         public class BinResponse
         {
             /// <summary>
             /// The lowest bin price
             /// </summary>
+            [DataMember(Name = "lowest")]
             public long Lowest;
             /// <summary>
             /// The lowest bin auction uuid
             /// </summary>
+            [DataMember(Name = "uuid")]
             public string Uuid;
             /// <summary>
             /// The price of the second lowest bin
             /// </summary>
+            [DataMember(Name = "secondLowest")]
             public long SecondLowest;
 
             /// <summary>
