@@ -42,12 +42,30 @@ namespace Coflnet.Hypixel.Controller
             return Ok(new BinResponse(result.FirstOrDefault()?.Price ?? 0, result.FirstOrDefault()?.Uuid, result.LastOrDefault()?.Price ?? 0));
         }
 
+        /// <summary>
+        /// Lowest bin response
+        /// </summary>
         public class BinResponse
         {
+            /// <summary>
+            /// The lowest bin price
+            /// </summary>
             public long Lowest;
+            /// <summary>
+            /// The lowest bin auction uuid
+            /// </summary>
             public string Uuid;
+            /// <summary>
+            /// The price of the second lowest bin
+            /// </summary>
             public long SecondLowest;
 
+            /// <summary>
+            /// Creates a new instance of <see cref="BinResponse"/>
+            /// </summary>
+            /// <param name="lowest"></param>
+            /// <param name="uuid"></param>
+            /// <param name="secondLowest"></param>
             public BinResponse(long lowest, string uuid, long secondLowest)
             {
                 Lowest = lowest;

@@ -41,7 +41,7 @@ namespace hypixel
             {
                 FlipperService.Instance.AddNonConnection(con);
             }
-            await  data.Ok();
+            await data.Ok();
         }
     }
 }
