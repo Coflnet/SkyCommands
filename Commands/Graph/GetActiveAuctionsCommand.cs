@@ -14,9 +14,9 @@ namespace hypixel
             if(details.Limit < count && details.Limit > 0)
                 count = details.Limit;
 
-            var res = await ItemPrices.Instance.GetActiveAuctions(details);
+            var res = await ItemPrices.Instance.GetActiveAuctions(details, count);
 
-            await data.SendBack(data.Create("activeAuctions", res, A_MINUTE * 2));
+            await data.SendBack(data.Create("activeAuctions", res, A_MINUTE * 3));
         }
     }
 }
