@@ -11,7 +11,7 @@ namespace hypixel
     public class BasedOnCommand : Command
     {
 
-        static RestClient SkyFlipperHost = new RestClient(SimplerConfig.Config.Instance["SKYFLIPPER_HOST"]);
+        static RestClient SkyFlipperHost = new RestClient("http://"+SimplerConfig.Config.Instance["SKYFLIPPER_HOST"]);
         public override async Task Execute(MessageData data)
         {
             var uuid = data.GetAs<string>();
