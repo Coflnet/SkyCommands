@@ -287,7 +287,7 @@ namespace hypixel
             {
                 item.UpdateSettings(settings);
             }
-
+            Console.WriteLine("Updated settings for " + settings.UserId);
         }
 
         private void ConsumeBatch<T>(string[] topics, Action<T> work, int batchSize = 10)

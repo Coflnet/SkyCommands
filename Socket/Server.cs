@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 using System.Text;
 using System.Threading;
 using Coflnet;
@@ -10,7 +9,6 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.Primitives;
-using WebSocketSharp.Net;
 using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -21,6 +19,7 @@ using MessagePack;
 using Prometheus;
 using System.Diagnostics;
 using Coflnet.Sky.Commands;
+using OpenTracing.Propagation;
 
 namespace hypixel
 {
@@ -78,8 +77,10 @@ namespace hypixel
                     try
                     {
                         var tracer = OpenTracing.Util.GlobalTracer.Instance;
-                        var builder = tracer.BuildSpan("GET:"+e.Request.RawUrl.Trim('/').Split('/','?').FirstOrDefault())
-                                    .WithTag("route",e.Request.RawUrl);
+                        var builder = tracer.BuildSpan("GET:" + e.Request.RawUrl.Trim('/').Split('/', '?').FirstOrDefault())
+                                    .WithTag("route", e.Request.RawUrl)
+                                    .AsChildOf(tracer.Extract(BuiltinFormats.HttpHeaders,new HeaderMap(e.Request.Headers)));
+
                         using (var scope = builder.StartActive(true))
                         {
                             var span = scope.Span;
@@ -107,12 +108,13 @@ namespace hypixel
             server.OnPost += async (sender, e) =>
             {
 
-               
+
                 //if (e.Request.RawUrl.StartsWith("/command/"))
                 //    await HandleCommand(e.Request, e.Response);
 
             };
-            server.Log.Output = (a,b)=>{
+            server.Log.Output = (a, b) =>
+            {
                 Console.Write("socket error " + a.Message + b);
             };
             server.Start();
@@ -122,7 +124,7 @@ namespace hypixel
             server.Stop();
         }
 
-        
+
 
         private static RestClient aspNet;
         private static string ProdFrontend;
@@ -130,7 +132,7 @@ namespace hypixel
 
         static Server()
         {
-            try 
+            try
             {
                 aspNet = new RestClient("http://localhost:80");
                 ProdFrontend = SimplerConfig.Config.Instance["FRONTEND_PROD"];
@@ -138,9 +140,9 @@ namespace hypixel
 
                 CoreServer.Instance = new CommandCoreServer();
             }
-            catch(Exception e)
+            catch (Exception e)
             {
-                dev.Logger.Instance.Error(e,"instantiating Server");
+                dev.Logger.Instance.Error(e, "instantiating Server");
             }
         }
 
@@ -531,60 +533,6 @@ namespace hypixel
         public void Stop()
         {
             server.Stop();
-        }
-    }
-
-    public static class ResponseExtentions
-    {
-        public static async Task WritePartial(
-            this HttpListenerResponse response, string stringContent
-        )
-        {
-            if (response == null)
-                throw new ArgumentNullException("response");
-
-            if (stringContent == null)
-                throw new ArgumentNullException("content");
-
-            var content = Encoding.UTF8.GetBytes(stringContent);
-
-            var len = content.LongLength;
-            if (len == 0)
-            {
-                return;
-            }
-
-            var output = response.OutputStream;
-
-            if (len <= Int32.MaxValue)
-                await output.WriteAsync(content, 0, (int)len);
-            else
-                output.WriteBytes(content, 1024);
-        }
-        public static async Task WriteEnd(
-            this RequestContext response, string stringContent
-        )
-        {
-            await response.WriteAsync(stringContent + "</body></html>");
-            //response.Close();
-
-        }
-
-        internal static void WriteBytes(
-            this Stream stream, byte[] bytes, int bufferLength
-            )
-        {
-            using (var src = new MemoryStream(bytes))
-                src.CopyTo(stream, bufferLength);
-        }
-
-
-        public static string RedirectSkyblock(this RequestContext res, string parameter = null, string type = null, string seoTerm = null)
-        {
-            var url = $"https://sky.coflnet.com" + (type == null ? "" : $"/{type}") + (parameter == null ? "" : $"/{parameter}") + (seoTerm == null ? "" : $"/{seoTerm}");
-            res.Redirect(url);
-            //res.Close();
-            return url;
         }
     }
 }
