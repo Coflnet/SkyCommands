@@ -32,7 +32,7 @@ namespace hypixel
                     }).ToList(), 120));
                 }*/
 
-                var response = await SkyFlipperHost.ExecuteAsync(new RestRequest("flip/{uuid}/based").AddParameter("uuid",uuid));// Flipper.FlipperEngine.Instance.GetRelevantAuctionsCache(auction, context);
+                var response = await SkyFlipperHost.ExecuteAsync(new RestRequest("flip/{uuid}/based").AddParameter("uuid",uuid, ParameterType.UrlSegment));// Flipper.FlipperEngine.Instance.GetRelevantAuctionsCache(auction, context);
                 var result = JsonConvert.DeserializeObject<List<SaveAuction>>(response.Content);
                 await data.SendBack(data.Create("basedOnResp", result
                             .Select(a => new Response()
