@@ -18,7 +18,6 @@ using System.Collections.Concurrent;
 using RateLimiter;
 using Microsoft.EntityFrameworkCore;
 using MessagePack;
-using System.Collections.Generic;
 using Prometheus;
 using System.Diagnostics;
 using Coflnet.Sky.Commands;
@@ -123,63 +122,7 @@ namespace hypixel
             server.Stop();
         }
 
-        public class WebsocketRequestContext : RequestContext
-        {
-            public HttpRequestEventArgs original;
-
-            public WebsocketRequestContext(HttpRequestEventArgs original, OpenTracing.ISpan span)
-            {
-                this.original = original;
-                this.original.Response.SendChunked = true;
-                this.Span = span;
-            }
-
-            public override string HostName => original.Request.UserHostName;
-
-            public override IDictionary<string, string> QueryString => (IDictionary<string, string>)original.Request.QueryString;
-
-            public override string path => original.Request.RawUrl;
-
-            public override string UserAgent => original.Request?.UserAgent;
-
-            public override void AddHeader(string name, string value)
-            {
-                original.Response.AppendHeader(name, value);
-            }
-
-            public override void Redirect(string uri)
-            {
-                original.Response.Redirect(uri);
-
-            }
-
-            public override void SetContentType(string type)
-            {
-                original.Response.ContentType = type;
-            }
-
-            public override void SetStatusCode(int code)
-            {
-                original.Response.StatusCode = code;
-            }
-
-            public override Task WriteAsync(string data)
-            {
-                return original.Response.WritePartial(data);
-            }
-
-            public override void WriteAsync(byte[] data)
-            {
-                original.Response.WriteContent(data);
-            }
-
-            public override void ForceSend(bool finish = false)
-            {
-                original.Response.OutputStream.Flush();
-                if (finish)
-                    original.Response.Close();
-            }
-        }
+        
 
         private static RestClient aspNet;
         private static string ProdFrontend;
@@ -192,10 +135,20 @@ namespace hypixel
                 aspNet = new RestClient("http://localhost:80");
                 ProdFrontend = SimplerConfig.Config.Instance["FRONTEND_PROD"];
                 StagingFrontend = SimplerConfig.Config.Instance["FRONTEND_STAGING"];
+
+                CoreServer.Instance = new CommandCoreServer();
             }
             catch(Exception e)
             {
                 dev.Logger.Instance.Error(e,"instantiating Server");
+            }
+        }
+
+        public class CommandCoreServer : CoreServer
+        {
+            public override Task<TRes> ExecuteCommandWithCacheInternal<TReq, TRes>(string command, TReq reqdata)
+            {
+                return Server.ExecuteCommandWithCache<TReq, TRes>(command, reqdata);
             }
         }
 

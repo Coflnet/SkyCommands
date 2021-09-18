@@ -47,7 +47,7 @@ namespace hypixel
             var userAgent = "";
             if (data is HttpMessageData httpData)
             {
-                if (httpData.context is Server.WebsocketRequestContext context)
+                if (httpData.context is WebsocketRequestContext context)
                 {
                     userAgent = context.UserAgent;
                 }
