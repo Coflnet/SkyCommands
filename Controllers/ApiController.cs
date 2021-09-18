@@ -41,43 +41,6 @@ namespace Coflnet.Hypixel.Controller
         }
 
 
-        /// <summary>
-        /// The last 10 auctions a player bid on
-        /// </summary>
-        /// <param name="playerUuid">The uuid of the player</param>
-        /// <returns></returns>
-        [Route("player/{playerUuid}/bids")]
-        [HttpGet]
-        public async Task<ActionResult<List<PlayerBidsCommand.BidResult>>> GetPlayerBids(string playerUuid)
-        {
-            var result = await Server.ExecuteCommandWithCache<PaginatedRequestCommand<PlayerBidsCommand.BidResult>.Request, List<PlayerBidsCommand.BidResult>>(
-                "playerBids", new PaginatedRequestCommand<PlayerBidsCommand.BidResult>.Request()
-                {
-                    Amount = 10,
-                    Offset = 0,
-                    Uuid = playerUuid
-                });
-            return Ok(result);
-        }
-
-        /// <summary>
-        /// The last 10 auctions a player created
-        /// </summary>
-        /// <param name="playerUuid">The uuid of the player</param>
-        /// <returns></returns>
-        [Route("player/{playerUuid}/auctions")]
-        [HttpGet]
-        public async Task<ActionResult<List<AuctionResult>>> GetPlayerAuctions(string playerUuid)
-        {
-            var result = await Server.ExecuteCommandWithCache<PaginatedRequestCommand<AuctionResult>.Request, List<AuctionResult>>(
-                "playerAuctions", new PaginatedRequestCommand<AuctionResult>.Request()
-                {
-                    Amount = 10,
-                    Offset = 0,
-                    Uuid = playerUuid
-                });
-            return Ok(result);
-        }
     }
 }
 
