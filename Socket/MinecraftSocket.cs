@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Coflnet.Sky.Filter;
 using hypixel;
 using Newtonsoft.Json;
@@ -11,9 +12,13 @@ namespace Coflnet.Sky.Commands
     {
         public string Uuid;
 
-        public long Id => Uuid.GetHashCode();
+        public long Id => (Uuid + connectionId).GetHashCode();
+
+        protected string connectionId;
 
         public FlipSettings Settings { get; set; }
+
+        private static FlipSettings DEFAULT_SETTINGS = new FlipSettings() { MinProfit = 10000, MinVolume = 50 };
 
         protected override void OnOpen()
         {
@@ -21,16 +26,18 @@ namespace Coflnet.Sky.Commands
             Console.WriteLine(Context.RequestUri.Query);
             if (args["uuid"] == null)
                 Send(Response.Create("error", "the connection query string needs to include uuid"));
+            if (args["conId"] != null)
+                connectionId = args["conId"];
 
             Uuid = args["uuid"];
             Console.WriteLine(Uuid);
             var key = new Random().Next();
             base.OnOpen();
-            SendMessage("Please click this [LINK] to login", $"https://sky.coflnet.com/conMc?uuid={Uuid}&secret={key % 100000}");
-            // -----------------------------
-            // THIS SENDS PREMIUM FLIPS
-            // -----------------------------
-            FlipperService.Instance.AddConnection(this);
+            SendMessage("§6C§1oflnet§8: §lPlease click this [LINK] to login and configure your flip filters §8(you won't receive real time flips until you do)", $"https://sky-commands.coflnet.com/authmod?uuid={Uuid}&conId={Id}");
+            if (Settings == null)
+                Settings = DEFAULT_SETTINGS;
+            FlipperService.Instance.AddNonConnection(this);
+            SendMessage("§6C§1oflnet§8: §fNOTE $7This is a development preview", $"https://discord.gg/wvKXfTgCfb");
         }
 
         protected override void OnMessage(MessageEventArgs e)
@@ -58,10 +65,8 @@ namespace Coflnet.Sky.Commands
 
         public bool SendFlip(FlipInstance flip)
         {
-            if (Settings != null && !Settings.MatchesSettings(flip))
-                return true;
-            if (flip.MedianPrice - flip.LastKnownCost < 20_000 && flip.Bin)
-                SendMessage(GetFlipMsg(flip), "/viewauction " + flip.Uuid, string.Join('\n',"・" + flip.Interesting));
+            if (Settings != null && Settings.MatchesSettings(flip) && !flip.Sold)
+                SendMessage(GetFlipMsg(flip), "/viewauction " + flip.Uuid, string.Join('\n', flip.Interesting.Select(s => "・" + s)));
             return true;
         }
 
@@ -94,7 +99,16 @@ namespace Coflnet.Sky.Commands
 
         public void UpdateSettings(SettingsChange settings)
         {
-            throw new NotImplementedException();
+            if(this.Settings == DEFAULT_SETTINGS)
+                SendMessage($"Authorized connection you can now control settings via the website", "/say whoop");
+            else
+                SendMessage($"settings changed", "/say whoop");
+            Settings = settings.Settings;
+
+            if (settings.Tier.HasFlag(AccountTier.PREMIUM))
+                FlipperService.Instance.AddConnection(this);
+            else
+                FlipperService.Instance.AddNonConnection(this);
         }
 
         public class Response

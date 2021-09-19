@@ -15,19 +15,18 @@ namespace hypixel
                 try
                 {
                     con.Settings = data.GetAs<FlipSettings>();
-                    if(con.Settings == null)
+                    if (con.Settings == null)
                         con.Settings = new FlipSettings();
-                } catch(Exception)
+                }
+                catch (Exception)
                 {
                     // could not get it continue with default
                     con.Settings = new FlipSettings();
                 }
-                Console.WriteLine(JSON.Stringify(con.Settings));
 
                 var lastSettings = con.LastSettingsChange;
                 lastSettings.Settings = con.Settings;
                 lastSettings.UserId = data.UserId;
-                await FlipperService.Instance.UpdateSettings(lastSettings);
                 if (!data.User.HasPremium)
                     FlipperService.Instance.AddNonConnection(con);
                 else
@@ -35,7 +34,10 @@ namespace hypixel
                     Console.WriteLine("new premium con");
                     FlipperService.Instance.AddConnection(con);
                     FlipperService.Instance.RemoveNonConnection(con);
+
+                    lastSettings.Tier = AccountTier.PREMIUM;
                 }
+                await FlipperService.Instance.UpdateSettings(lastSettings);
             }
             catch (CoflnetException)
             {

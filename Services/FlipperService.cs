@@ -287,7 +287,7 @@ namespace hypixel
             {
                 item.UpdateSettings(settings);
             }
-            Console.WriteLine("Updated settings for " + settings.UserId);
+            Console.WriteLine("settings update: " + JSON.Stringify(settings));
         }
 
         private void ConsumeBatch<T>(string[] topics, Action<T> work, int batchSize = 10)
@@ -368,6 +368,20 @@ namespace hypixel
 
         [DataMember(Name = "conIds")]
         public List<long> ConIds = new List<long>();
+
+
+        [DataMember(Name = "tier")]
+        public AccountTier Tier;
+
+
+    }
+
+    public enum AccountTier
+    {
+        NONE,
+        PREMIUM,
+        PREMIUM_PLUS,
+        SUPER_PREMIUM = 4
     }
 
     [DataContract]

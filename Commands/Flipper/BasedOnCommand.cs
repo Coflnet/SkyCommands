@@ -20,17 +20,7 @@ namespace hypixel
             {
                 var auction = AuctionService.Instance.GetAuction(uuid);
                 if (auction == null)
-                    throw new CoflnetException("auction_unkown", "not found");
-                    /*
-                if (FlipperService.Instance.relevantAuctionIds.TryGetValue(auction.UId, out List<long> ids))
-                {
-                    return data.SendBack(data.Create("basedOnResp", context.Auctions.Where(a => ids.Contains(a.UId)).Select(a => new Response()
-                    {
-                        uuid = a.Uuid,
-                        highestBid = a.HighestBidAmount,
-                        end = a.End
-                    }).ToList(), 120));
-                }*/
+                    throw new CoflnetException("auction_unkown", "Auction not found yet, please try again in a few seconds");
 
                 var response = await SkyFlipperHost.ExecuteAsync(new RestRequest("flip/{uuid}/based").AddParameter("uuid",uuid, ParameterType.UrlSegment));// Flipper.FlipperEngine.Instance.GetRelevantAuctionsCache(auction, context);
                 var result = JsonConvert.DeserializeObject<List<SaveAuction>>(response.Content);
