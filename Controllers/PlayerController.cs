@@ -10,20 +10,22 @@ namespace Coflnet.Hypixel.Controller
     [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Any, NoStore = false)]
     public class PlayerController : ControllerBase
     {
+        const int pageSize = 10;
         /// <summary>
         /// The last 10 auctions a player bid on
         /// </summary>
         /// <param name="playerUuid">The uuid of the player</param>
+        /// <param name="page">Page of auctions (another 10)</param>
         /// <returns></returns>
         [Route("{playerUuid}/bids")]
         [HttpGet]
-        public async Task<List<PlayerBidsCommand.BidResult>> GetPlayerBids(string playerUuid)
+        public async Task<List<PlayerBidsCommand.BidResult>> GetPlayerBids(string playerUuid, int page = 0)
         {
             var result = await Server.ExecuteCommandWithCache<PaginatedRequestCommand<PlayerBidsCommand.BidResult>.Request, List<PlayerBidsCommand.BidResult>>(
                 "playerBids", new PaginatedRequestCommand<PlayerBidsCommand.BidResult>.Request()
                 {
-                    Amount = 10,
-                    Offset = 0,
+                    Amount = pageSize,
+                    Offset = pageSize * page,
                     Uuid = playerUuid
                 });
             return result;
@@ -33,16 +35,17 @@ namespace Coflnet.Hypixel.Controller
         /// The last 10 auctions a player created
         /// </summary>
         /// <param name="playerUuid">The uuid of the player</param>
+        /// <param name="page">Page of auctions (another 10)</param>
         /// <returns></returns>
         [Route("{playerUuid}/auctions")]
         [HttpGet]
-        public async Task<List<AuctionResult>> GetPlayerAuctions(string playerUuid)
+        public async Task<List<AuctionResult>> GetPlayerAuctions(string playerUuid, int page = 0)
         {
             var result = await Server.ExecuteCommandWithCache<PaginatedRequestCommand<AuctionResult>.Request, List<AuctionResult>>(
                 "playerAuctions", new PaginatedRequestCommand<AuctionResult>.Request()
                 {
-                    Amount = 10,
-                    Offset = 0,
+                    Amount = pageSize,
+                    Offset = pageSize * page,
                     Uuid = playerUuid
                 });
             return result;

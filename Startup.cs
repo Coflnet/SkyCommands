@@ -49,6 +49,7 @@ namespace SkyCommands
             });
             services.AddJaeger();
             services.AddScoped<PricesService>();
+            services.AddSingleton<AuctionService>();
             services.AddDbContext<HypixelContext>();
 
 

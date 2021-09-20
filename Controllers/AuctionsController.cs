@@ -45,19 +45,22 @@ namespace Coflnet.Hypixel.Controller
         /// Get the 10 (or how many are available) lowest bins
         /// </summary>
         /// <param name="itemTag">The itemTag to get bins for</param>
+        /// <param name="page">What page to return</param>
         /// <returns></returns>
         [Route("auctions/tag/{itemTag}/active/bin")]
         [HttpGet]
         [ResponseCache(Duration = 120, Location = ResponseCacheLocation.Any, NoStore = false)]
-        public async Task<ActionResult<List<SaveAuction>>> GetLowestBins(string itemTag)
+        public async Task<ActionResult<List<SaveAuction>>> GetLowestBins(string itemTag, int page = 0)
         {
             var itemId = ItemDetails.Instance.GetItemIdForName(itemTag);
+            var pageSize = 10;
             var result = await context.Auctions
                         .Where(a=>a.ItemId == itemId && a.End > DateTime.Now && a.HighestBidAmount == 0 && a.Bin)
                         .Include(a => a.Enchantments)
                         .Include(a => a.NbtData)
                         .OrderBy(a=>a.StartingBid)
-                        .Take(10).ToListAsync();
+                        .Skip(page * pageSize)
+                        .Take(pageSize).ToListAsync();
 
             return Ok(result);
         }
