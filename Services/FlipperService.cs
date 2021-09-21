@@ -77,8 +77,8 @@ namespace hypixel
         public void AddConnection(IFlipConnection con)
         {
             Subs.AddOrUpdate(con.Id, cid => con, (cid, oldMId) => con);
-            var toSendFlips = Flipps.Reverse().Take(5);
-            SendFlipHistory(con, toSendFlips);
+            var toSendFlips = Flipps.Reverse().Take(25);
+            SendFlipHistory(con, toSendFlips, 0);
         }
 
         public void AddNonConnection(IFlipConnection con)

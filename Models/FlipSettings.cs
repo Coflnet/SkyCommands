@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using hypixel;
+using Newtonsoft.Json;
 
 namespace Coflnet.Sky.Filter
 {
@@ -47,13 +48,11 @@ namespace Coflnet.Sky.Filter
                 return false;
             if (flip.Auction == null)
                 return false;
-            if(BasedOnLBin && !flip.Bin)
-                return false;
 
             if (WhiteList != null)
                 foreach (var item in WhiteList)
                 {
-                    if (flip.Tag == item.ItemTag || (item.filter != null && item.MatchesSettings(flip)))
+                    if (item.ItemTag != null && flip.Tag == item.ItemTag || (item.filter != null && item.MatchesSettings(flip)))
                         return true;
                 }
             if (BlackList != null)
