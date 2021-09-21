@@ -45,7 +45,7 @@ namespace Coflnet.Sky.Commands
             base.OnMessage(e);
             Console.WriteLine("received message from mcmod " + e.Data);
             var a = JsonConvert.DeserializeObject<Response>(e.Data);
-            SendMessage("received " + a.type + " with " + a.type, "");
+            SendMessage("received " + a.type + " with " + a.data, "");
         }
 
         protected override void OnClose(CloseEventArgs e)
