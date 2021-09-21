@@ -46,9 +46,9 @@ namespace Coflnet.Sky.Filter
             if (MaxCost != 0 && flip.LastKnownCost > MaxCost)
                 return false;
             if (flip.Auction == null)
-            {
                 return false;
-            }
+            if(BasedOnLBin && !flip.Bin)
+                return false;
 
             if (WhiteList != null)
                 foreach (var item in WhiteList)
