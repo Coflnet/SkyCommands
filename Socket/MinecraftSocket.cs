@@ -19,7 +19,7 @@ namespace Coflnet.Sky.Commands
 
         public FlipSettings Settings { get; set; }
 
-        private static FlipSettings DEFAULT_SETTINGS = new FlipSettings() { MinProfit = 10000, MinVolume = 50 };
+        private static FlipSettings DEFAULT_SETTINGS = new FlipSettings() { MinProfit = 200000, MinVolume = 50 };
 
         protected override void OnOpen()
         {
@@ -50,7 +50,6 @@ namespace Coflnet.Sky.Commands
                         return;
                     SendMessage("do /cofl stop to stop receiving this (or click this)","/cofl stop");
                 }
-
             });
         }
 
@@ -59,7 +58,7 @@ namespace Coflnet.Sky.Commands
             base.OnMessage(e);
             Console.WriteLine("received message from mcmod " + e.Data);
             var a = JsonConvert.DeserializeObject<Response>(e.Data);
-            SendMessage("received " + a.type + " with " + a.data, "");
+            SendMessage("executed " + a.data, "");
         }
 
         protected override void OnClose(CloseEventArgs e)
