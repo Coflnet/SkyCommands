@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Coflnet.Sky.Filter;
 using hypixel;
 using Newtonsoft.Json;
@@ -33,11 +34,24 @@ namespace Coflnet.Sky.Commands
             Console.WriteLine(Uuid);
             var key = new Random().Next();
             base.OnOpen();
-            SendMessage("§6C§1oflnet§8: §lPlease click this [LINK] to login and configure your flip filters §8(you won't receive real time flips until you do)", $"https://sky-commands.coflnet.com/authmod?uuid={Uuid}&conId={Id}");
+            
             if (Settings == null)
                 Settings = DEFAULT_SETTINGS;
             FlipperService.Instance.AddNonConnection(this);
             SendMessage("§6C§1oflnet§8: §fNOTE $7This is a development preview", $"https://discord.gg/wvKXfTgCfb");
+            System.Threading.Tasks.Task.Run(async () =>
+            {
+                while (true)
+                {
+                    SendMessage("§6C§1oflnet§8: §lPlease click this [LINK] to login and configure your flip filters §8(you won't receive real time flips until you do)", $"https://sky-commands.coflnet.com/authmod?uuid={Uuid}&conId={Id}");
+                    await Task.Delay(TimeSpan.FromSeconds(60));
+                    
+                    if(Settings != DEFAULT_SETTINGS)
+                        return;
+                    SendMessage("do /cofl stop to stop receiving this (or click this)","/cofl stop");
+                }
+
+            });
         }
 
         protected override void OnMessage(MessageEventArgs e)
@@ -74,7 +88,7 @@ namespace Coflnet.Sky.Commands
 
         private string GetFlipMsg(FlipInstance flip)
         {
-            return $"FLIP: {GetRarityColor(flip.Rarity)}{flip.Name} §f{flip.LastKnownCost} -> {flip.MedianPrice} §g[BUY]";
+            return $"FLIP: {GetRarityColor(flip.Rarity)}{flip.Name} §f{string.Format("{0:n0}", flip.LastKnownCost)} -> {string.Format("{0:n0}", flip.MedianPrice)} §g[BUY]";
         }
 
         private string GetRarityColor(Tier rarity)
@@ -101,7 +115,7 @@ namespace Coflnet.Sky.Commands
 
         public void UpdateSettings(SettingsChange settings)
         {
-            if(this.Settings == DEFAULT_SETTINGS)
+            if (this.Settings == DEFAULT_SETTINGS)
                 SendMessage($"Authorized connection you can now control settings via the website", "/say whoop");
             else
                 SendMessage($"settings changed", "/say whoop");
