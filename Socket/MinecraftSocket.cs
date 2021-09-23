@@ -20,7 +20,7 @@ namespace Coflnet.Sky.Commands
         public FlipSettings Settings { get; set; }
         public string Version { get; private set; }
 
-        private static FlipSettings DEFAULT_SETTINGS = new FlipSettings() { MinProfit = 200000, MinVolume = 50 };
+        private static FlipSettings DEFAULT_SETTINGS = new FlipSettings() { MinProfit = 100000, MinVolume = 50 };
 
         protected override void OnOpen()
         {
@@ -42,7 +42,7 @@ namespace Coflnet.Sky.Commands
             if (Settings == null)
                 Settings = DEFAULT_SETTINGS;
             FlipperService.Instance.AddNonConnection(this);
-            SendMessage("§6C§1oflnet§8: §fNOTE $7This is a development preview, it is NOT stable/bugfree", $"https://discord.gg/wvKXfTgCfb");
+            SendMessage("§6C§1oflnet§8: §fNOTE §7This is a development preview, it is NOT stable/bugfree", $"https://discord.gg/wvKXfTgCfb");
             System.Threading.Tasks.Task.Run(async () =>
             {
                 while (true)
@@ -105,6 +105,7 @@ namespace Coflnet.Sky.Commands
                 Tier.SPECIAL => "§c",
                 Tier.SUPREME => "§4",
                 Tier.VERY_SPECIAL => "§4",
+                Tier.LEGENDARY => "§6",
                 Tier.MYTHIC => "§d",
                 _ => ""
             };
