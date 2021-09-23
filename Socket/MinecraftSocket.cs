@@ -18,6 +18,7 @@ namespace Coflnet.Sky.Commands
         protected string connectionId;
 
         public FlipSettings Settings { get; set; }
+        public string Version { get; private set; }
 
         private static FlipSettings DEFAULT_SETTINGS = new FlipSettings() { MinProfit = 200000, MinVolume = 50 };
 
@@ -28,27 +29,30 @@ namespace Coflnet.Sky.Commands
             if (args["uuid"] == null)
                 Send(Response.Create("error", "the connection query string needs to include uuid"));
             if (args["conId"] != null)
-                connectionId = args["conId"];
+                connectionId = args["conId"].Truncate(60);
+            if (args["version"] != null)
+                Version = args["version"].Truncate(10);
 
             Uuid = args["uuid"];
+            Console.Write($"Version: {Version} ");
             Console.WriteLine(Uuid);
             var key = new Random().Next();
             base.OnOpen();
-            
+
             if (Settings == null)
                 Settings = DEFAULT_SETTINGS;
             FlipperService.Instance.AddNonConnection(this);
-            SendMessage("§6C§1oflnet§8: §fNOTE $7This is a development preview", $"https://discord.gg/wvKXfTgCfb");
+            SendMessage("§6C§1oflnet§8: §fNOTE $7This is a development preview, it is NOT stable/bugfree", $"https://discord.gg/wvKXfTgCfb");
             System.Threading.Tasks.Task.Run(async () =>
             {
                 while (true)
                 {
                     SendMessage("§6C§1oflnet§8: §lPlease click this [LINK] to login and configure your flip filters §8(you won't receive real time flips until you do)", $"https://sky-commands.coflnet.com/authmod?uuid={Uuid}&conId={Id}");
                     await Task.Delay(TimeSpan.FromSeconds(60));
-                    
-                    if(Settings != DEFAULT_SETTINGS)
+
+                    if (Settings != DEFAULT_SETTINGS)
                         return;
-                    SendMessage("do /cofl stop to stop receiving this (or click this)","/cofl stop");
+                    SendMessage("do /cofl stop to stop receiving this (or click this message)", "/cofl stop");
                 }
             });
         }
@@ -115,7 +119,14 @@ namespace Coflnet.Sky.Commands
         public void UpdateSettings(SettingsChange settings)
         {
             if (this.Settings == DEFAULT_SETTINGS)
+            {
                 SendMessage($"Authorized connection you can now control settings via the website", "/say whoop");
+                Task.Run(async () =>
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(20));
+                    SendMessage($"Remember: the format of the flips is: §dITEM NAME §fCOST -> MEDIAN", "/say whoop");
+                });
+            }
             else
                 SendMessage($"settings changed", "/say whoop");
             Settings = settings.Settings;
