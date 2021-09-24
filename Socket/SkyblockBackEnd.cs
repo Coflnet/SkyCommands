@@ -373,7 +373,7 @@ namespace hypixel
         public void UpdateSettings(SettingsChange settings)
         {
             this.LastSettingsChange = settings;
-            if(!TrySendData(new MessageData("settingsUpdate", JsonConvert.SerializeObject(settings.Settings)))
+            if(!TrySendData(new MessageData("settingsUpdate", JsonConvert.SerializeObject(settings.Settings))))
                 FlipperService.Instance.RemoveConnection(this);
         }
 
