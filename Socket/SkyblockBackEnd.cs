@@ -373,7 +373,8 @@ namespace hypixel
         public void UpdateSettings(SettingsChange settings)
         {
             this.LastSettingsChange = settings;
-            SendBack(new MessageData("settingsUpdate",JsonConvert.SerializeObject(settings.Settings)));
+            if(!TrySendData(new MessageData("settingsUpdate", JsonConvert.SerializeObject(settings.Settings)))
+                FlipperService.Instance.RemoveConnection(this);
         }
 
         public static IEnumerable<SkyblockBackEnd> GetConnectionsOfUser(long userId)
@@ -381,7 +382,7 @@ namespace hypixel
             foreach (var item in Subscribers)
             {
                 var uId = item.Value._userId;
-                if(uId != 0 && uId == userId)
+                if (uId != 0 && uId == userId)
                     yield return item.Value;
             }
         }
