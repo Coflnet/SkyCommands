@@ -79,6 +79,7 @@ namespace hypixel
             Subs.AddOrUpdate(con.Id, cid => con, (cid, oldMId) => con);
             var toSendFlips = Flipps.Reverse().Take(25);
             SendFlipHistory(con, toSendFlips, 0);
+            RemoveNonConnection(con);
         }
 
         public void AddNonConnection(IFlipConnection con)
@@ -92,7 +93,7 @@ namespace hypixel
             });
         }
 
-        public void RemoveNonConnection(IFlipConnection con)
+        private void RemoveNonConnection(IFlipConnection con)
         {
             SlowSubs.TryRemove(con.Id, out IFlipConnection value);
         }

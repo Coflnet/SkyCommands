@@ -33,7 +33,6 @@ namespace hypixel
                 {
                     Console.WriteLine("new premium con");
                     FlipperService.Instance.AddConnection(con);
-                    FlipperService.Instance.RemoveNonConnection(con);
 
                     lastSettings.Tier = AccountTier.PREMIUM;
                 }
