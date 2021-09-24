@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Coflnet.Sky.Filter;
 using hypixel;
 using Newtonsoft.Json;
+using OpenTracing.Util;
 using WebSocketSharp;
 using WebSocketSharp.Server;
 
@@ -19,11 +20,15 @@ namespace Coflnet.Sky.Commands
 
         public FlipSettings Settings { get; set; }
         public string Version { get; private set; }
+        OpenTracing.ITracer tracer = GlobalTracer.Instance;
+        OpenTracing.ISpan conSpan;
+
 
         private static FlipSettings DEFAULT_SETTINGS = new FlipSettings() { MinProfit = 100000, MinVolume = 50 };
 
         protected override void OnOpen()
         {
+            conSpan = tracer.BuildSpan("mcConnection").Start();
             var args = System.Web.HttpUtility.ParseQueryString(Context.RequestUri.Query);
             Console.WriteLine(Context.RequestUri.Query);
             if (args["uuid"] == null)
@@ -33,7 +38,9 @@ namespace Coflnet.Sky.Commands
             if (args["version"] != null)
                 Version = args["version"].Truncate(10);
 
+
             Uuid = args["uuid"];
+            conSpan.SetTag("uuid",Uuid);
             Console.Write($"Version: {Version} ");
             Console.WriteLine(Uuid);
             var key = new Random().Next();
@@ -59,9 +66,11 @@ namespace Coflnet.Sky.Commands
 
         protected override void OnMessage(MessageEventArgs e)
         {
+            using var span = tracer.BuildSpan("modCommand").AsChildOf(conSpan.Context).StartActive();
             base.OnMessage(e);
             Console.WriteLine("received message from mcmod " + e.Data);
             var a = JsonConvert.DeserializeObject<Response>(e.Data);
+            span.Span.SetTag("type",a.type);
             SendMessage("executed " + a.data, "");
         }
 
@@ -69,12 +78,14 @@ namespace Coflnet.Sky.Commands
         {
             base.OnClose(e);
             FlipperService.Instance.RemoveConnection(this);
+            conSpan.Finish();
         }
 
-        public void SendMessage(string text, string clickAction, string hoverText = null)
+        public void SendMessage(string text, string clickAction = null, string hoverText = null)
         {
             try
             {
+                using var span = tracer.BuildSpan("modSend").AsChildOf(conSpan.Context).StartActive();
                 this.Send(Response.Create("writeToChat", new { text, onClick = clickAction, hover = hoverText }));
             }
             catch (Exception e)
@@ -129,15 +140,16 @@ namespace Coflnet.Sky.Commands
         {
             if (this.Settings == DEFAULT_SETTINGS)
             {
-                SendMessage($"Authorized connection you can now control settings via the website", "/say whoop");
+                using var span = tracer.BuildSpan("modAuthorized").AsChildOf(conSpan.Context).StartActive();
+                SendMessage($"Authorized connection you can now control settings via the website");
                 Task.Run(async () =>
                 {
                     await Task.Delay(TimeSpan.FromSeconds(20));
-                    SendMessage($"Remember: the format of the flips is: §dITEM NAME §fCOST -> MEDIAN", "/say whoop");
+                    SendMessage($"Remember: the format of the flips is: §dITEM NAME §fCOST -> MEDIAN");
                 });
             }
             else
-                SendMessage($"settings changed", "/say whoop");
+                SendMessage($"settings changed");
             Settings = settings.Settings;
 
             if (settings.Tier.HasFlag(AccountTier.PREMIUM))
