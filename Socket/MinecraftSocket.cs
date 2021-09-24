@@ -115,7 +115,7 @@ namespace Coflnet.Sky.Commands
 
         private string GetFlipMsg(FlipInstance flip)
         {
-            return $"FLIP: {GetRarityColor(flip.Rarity)}{flip.Name} §f{string.Format("{0:n0}", flip.LastKnownCost)} -> {string.Format("{0:n0}", flip.MedianPrice)} §g[BUY]";
+            return $"FLIP: {GetRarityColor(flip.Rarity)}{flip.Name} §f{FormatPrice(flip.LastKnownCost)} -> {FormatPrice(flip.MedianPrice)} §g[BUY]";
         }
 
         private string GetRarityColor(Tier rarity)
@@ -133,6 +133,10 @@ namespace Coflnet.Sky.Commands
                 Tier.MYTHIC => "§d",
                 _ => ""
             };
+        }
+        private static string FormatPrice(long price)
+        {
+            return string.Format("{0:n0}", price);
         }
 
         public bool SendSold(string uuid)
@@ -154,13 +158,25 @@ namespace Coflnet.Sky.Commands
                 });
             }
             else
-                SendMessage($"settings changed");
+                SendMessage($"setting changed " + FindWhatsNew(this.Settings,settings.Settings));
             Settings = settings.Settings;
 
             if (settings.Tier.HasFlag(AccountTier.PREMIUM))
                 FlipperService.Instance.AddConnection(this);
             else
                 FlipperService.Instance.AddNonConnection(this);
+        }
+
+        private string FindWhatsNew(FlipSettings current, FlipSettings newSettings)
+        {
+            if(current.MinProfit != newSettings.MinProfit)
+                return "min Profit to " + FormatPrice(newSettings.MinProfit);
+            if(current.BlackList.Count < newSettings.BlackList.Count)
+                return $"blacklisted item";
+            if(current.WhiteList.Count < newSettings.WhiteList.Count)
+                return $"whitelisted item";
+
+            return "";
         }
 
         public class Response
