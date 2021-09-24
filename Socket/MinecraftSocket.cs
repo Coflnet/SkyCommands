@@ -91,6 +91,8 @@ namespace Coflnet.Sky.Commands
             catch (Exception e)
             {
                 dev.Logger.Instance.Log("removing connection because " + e.Message);
+                using var span = tracer.BuildSpan("modDisconnect").WithTag("error","true").AsChildOf(conSpan.Context).StartActive();
+                span.Span.Log(e.Message);
                 OnClose(null);
             }
         }
