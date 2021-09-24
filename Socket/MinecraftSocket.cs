@@ -86,7 +86,6 @@ namespace Coflnet.Sky.Commands
         {
             try
             {
-                using var span = tracer.BuildSpan("modSend").AsChildOf(conSpan.Context).StartActive();
                 this.Send(Response.Create("writeToChat", new { text, onClick = clickAction, hover = hoverText }));
             }
             catch (Exception e)
@@ -104,8 +103,11 @@ namespace Coflnet.Sky.Commands
 
         public bool SendFlip(FlipInstance flip)
         {
-            if (flip.Bin && Settings != null && Settings.MatchesSettings(flip) && !flip.Sold)
-                SendMessage(GetFlipMsg(flip), "/viewauction " + flip.Uuid, string.Join('\n', flip.Interesting.Select(s => "・" + s)));
+            if (!(flip.Bin && Settings != null && Settings.MatchesSettings(flip) && !flip.Sold))
+                return true;
+
+            using var span = tracer.BuildSpan("modFlip").WithTag("uuid", flip.Uuid).AsChildOf(conSpan.Context).StartActive();
+            SendMessage(GetFlipMsg(flip), "/viewauction " + flip.Uuid, string.Join('\n', flip.Interesting.Select(s => "・" + s)));
             return true;
         }
 
