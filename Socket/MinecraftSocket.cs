@@ -33,14 +33,14 @@ namespace Coflnet.Sky.Commands
             Console.WriteLine(Context.RequestUri.Query);
             if (args["uuid"] == null)
                 Send(Response.Create("error", "the connection query string needs to include uuid"));
-            if (args["conId"] != null)
-                connectionId = args["conId"].Truncate(60);
+            if (args["SId"] != null)
+                connectionId = args["SId"].Truncate(60);
             if (args["version"] != null)
                 Version = args["version"].Truncate(10);
 
 
             Uuid = args["uuid"];
-            conSpan.SetTag("uuid",Uuid);
+            conSpan.SetTag("uuid", Uuid);
             Console.Write($"Version: {Version} ");
             Console.WriteLine(Uuid);
             var key = new Random().Next();
@@ -70,8 +70,9 @@ namespace Coflnet.Sky.Commands
             base.OnMessage(e);
             Console.WriteLine("received message from mcmod " + e.Data);
             var a = JsonConvert.DeserializeObject<Response>(e.Data);
-            span.Span.SetTag("type",a.type);
-            SendMessage("executed " + a.data, "");
+            span.Span.SetTag("type", a.type);
+            if (connectionId.StartsWith("debug"))
+                SendMessage("executed " + a.data, "");
         }
 
         protected override void OnClose(CloseEventArgs e)
