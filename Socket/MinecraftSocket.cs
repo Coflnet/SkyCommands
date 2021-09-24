@@ -73,7 +73,15 @@ namespace Coflnet.Sky.Commands
 
         public void SendMessage(string text, string clickAction, string hoverText = null)
         {
-            this.Send(Response.Create("writeToChat", new { text, onClick = clickAction, hover = hoverText }));
+            try
+            {
+                this.Send(Response.Create("writeToChat", new { text, onClick = clickAction, hover = hoverText }));
+            }
+            catch (Exception e)
+            {
+                dev.Logger.Instance.Log("removing connection because " + e.Message);
+                OnClose(null);
+            }
         }
 
         public void Send(Response response)
@@ -84,7 +92,7 @@ namespace Coflnet.Sky.Commands
 
         public bool SendFlip(FlipInstance flip)
         {
-            if (Settings != null && Settings.MatchesSettings(flip) && !flip.Sold)
+            if (flip.Bin && Settings != null && Settings.MatchesSettings(flip) && !flip.Sold)
                 SendMessage(GetFlipMsg(flip), "/viewauction " + flip.Uuid, string.Join('\n', flip.Interesting.Select(s => "・" + s)));
             return true;
         }
