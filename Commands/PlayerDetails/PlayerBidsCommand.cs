@@ -15,7 +15,7 @@ namespace hypixel
             {
                 var playerBids = context.Bids.Where(b=>b.BidderId == context.Players.Where(p=>p.UuId == selector).Select(p=>p.Id).FirstOrDefault())
                     // filtering
-                    .OrderByDescending(auction=>auction.Timestamp)
+                    .OrderByDescending(auction=>auction.Id)
                         .Skip(offset)
                         .Take(amount)
                     //.Include (p => p.Auction)
