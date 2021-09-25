@@ -58,7 +58,7 @@ namespace Coflnet.Sky.Commands
             if (Settings == null)
                 Settings = DEFAULT_SETTINGS;
             FlipperService.Instance.AddNonConnection(this);
-            SendMessage("§6C§1oflnet§8: §fNOTE §7This is a development preview, it is NOT stable/bugfree", $"https://discord.gg/wvKXfTgCfb");
+            SendMessage("§1C§6oflnet§8: §fNOTE §7This is a development preview, it is NOT stable/bugfree", $"https://discord.gg/wvKXfTgCfb");
             System.Threading.Tasks.Task.Run(async () =>
             {
                 await SetupConnectionSettings(stringId);
@@ -90,10 +90,10 @@ namespace Coflnet.Sky.Commands
                         builder[i] = '*';
                     }
                     var anonymisedEmail = builder.ToString();
-                    SendMessage($"§6C§1oflnet§8: Hello {(await mcNameTask)?.Name} ({anonymisedEmail})");
-                    SendMessage($"§6C§1oflnet§8: Found and loaded settings for your connection, e.g. MinProfit: {FormatPrice(Settings.MinProfit)} ");
+                    SendMessage($"§1C§6oflnet§8: Hello {(await mcNameTask)?.Name} ({anonymisedEmail})");
+                    SendMessage($"§1C§6oflnet§8: Found and loaded settings for your connection, e.g. MinProfit: {FormatPrice(Settings.MinProfit)} ");
                     SendMessage("click this if you want to change a setting", "https://sky-commands.coflnet.com/flipper");
-                    SendMessage("§6C§1oflnet§8: nothing else to do have a nice day :)");
+                    SendMessage("§1C§6oflnet§8: nothing else to do have a nice day :)");
                     Console.WriteLine("loaded settings " + JsonConvert.SerializeObject(cachedSettings));
                     return;
                 }
@@ -105,7 +105,7 @@ namespace Coflnet.Sky.Commands
             }
             while (true)
             {
-                SendMessage("§6C§1oflnet§8: §lPlease click this [LINK] to login and configure your flip filters §8(you won't receive real time flips until you do)",
+                SendMessage("§1C§6oflnet§8: §lPlease click this [LINK] to login and configure your flip filters §8(you won't receive real time flips until you do)",
                     $"https://sky-commands.coflnet.com/authmod?uuid={Uuid}&conId={HttpUtility.UrlEncode(stringId)}");
                 await Task.Delay(TimeSpan.FromSeconds(60));
 
