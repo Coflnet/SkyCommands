@@ -32,7 +32,8 @@ namespace Coflnet.Sky.Commands
             var timer = new System.Threading.Timer((e) =>
             {
                 Ping?.Invoke();
-            }, null, TimeSpan.Zero, TimeSpan.FromSeconds(59));
+                dev.Logger.Instance.Log("pinging mod connections " + DateTime.Now);
+            }, null, TimeSpan.Zero, TimeSpan.FromSeconds(50));
         }
 
         protected override void OnOpen()
@@ -64,48 +65,53 @@ namespace Coflnet.Sky.Commands
             SendMessage("§6C§1oflnet§8: §fNOTE §7This is a development preview, it is NOT stable/bugfree", $"https://discord.gg/wvKXfTgCfb");
             System.Threading.Tasks.Task.Run(async () =>
             {
-                var cachedSettings = await CacheService.Instance.GetFromRedis<SettingsChange>(this.Id.ToString());
-                if (cachedSettings != null)
-                {
-                    try
-                    {
-                        this.Settings = cachedSettings.Settings;
-                        var mcNameTask = PlayerService.Instance.GetPlayer(this.Uuid);
-                        var user = UserService.Instance.GetUserById(cachedSettings.UserId);
-                        var length = user.Email.Length < 10 ? 3 : 6;
-                        var builder = new StringBuilder(user.Email);
-                        for (int i = 0; i < builder.Length - 5; i++)
-                        {
-                            if (builder[i] == '@' || i < 3)
-                                continue;
-                            builder[i] = '*';
-                        }
-                        var anonymisedEmail = builder.ToString();
-                        SendMessage($"§6C§1oflnet§8: Hello {(await mcNameTask)?.Name} ({anonymisedEmail})");
-                        SendMessage($"§6C§1oflnet§8: Found and loaded settings for your connection, e.g. MinProfit: {FormatPrice(Settings.MinProfit)} ");
-                        SendMessage("click this if you want to change a setting", "https://sky-commands.coflnet.com/flipper");
-                        SendMessage("§6C§1oflnet§8: nothing else to do have a nice day :)");
-                        Console.WriteLine("loaded settings " + JsonConvert.SerializeObject(cachedSettings));
-                        return;
-                    }
-                    catch (Exception e)
-                    {
-                        dev.Logger.Instance.Error(e, "loading modsocket");
-                    }
-
-                }
-                while (true)
-                {
-                    SendMessage("§6C§1oflnet§8: §lPlease click this [LINK] to login and configure your flip filters §8(you won't receive real time flips until you do)",
-                        $"https://sky-commands.coflnet.com/authmod?uuid={Uuid}&conId={stringId}");
-                    await Task.Delay(TimeSpan.FromSeconds(60));
-
-                    if (Settings != DEFAULT_SETTINGS)
-                        return;
-                    SendMessage("do /cofl stop to stop receiving this (or click this message)", "/cofl stop");
-                }
+                await SetupConnectionSettings(stringId);
             });
             Ping += SendPing;
+        }
+
+        private async Task SetupConnectionSettings(string stringId)
+        {
+            var cachedSettings = await CacheService.Instance.GetFromRedis<SettingsChange>(this.Id.ToString());
+            if (cachedSettings != null)
+            {
+                try
+                {
+                    this.Settings = cachedSettings.Settings;
+                    var mcNameTask = PlayerService.Instance.GetPlayer(this.Uuid);
+                    var user = UserService.Instance.GetUserById(cachedSettings.UserId);
+                    var length = user.Email.Length < 10 ? 3 : 6;
+                    var builder = new StringBuilder(user.Email);
+                    for (int i = 0; i < builder.Length - 5; i++)
+                    {
+                        if (builder[i] == '@' || i < 3)
+                            continue;
+                        builder[i] = '*';
+                    }
+                    var anonymisedEmail = builder.ToString();
+                    SendMessage($"§6C§1oflnet§8: Hello {(await mcNameTask)?.Name} ({anonymisedEmail})");
+                    SendMessage($"§6C§1oflnet§8: Found and loaded settings for your connection, e.g. MinProfit: {FormatPrice(Settings.MinProfit)} ");
+                    SendMessage("click this if you want to change a setting", "https://sky-commands.coflnet.com/flipper");
+                    SendMessage("§6C§1oflnet§8: nothing else to do have a nice day :)");
+                    Console.WriteLine("loaded settings " + JsonConvert.SerializeObject(cachedSettings));
+                    return;
+                }
+                catch (Exception e)
+                {
+                    dev.Logger.Instance.Error(e, "loading modsocket");
+                }
+
+            }
+            while (true)
+            {
+                SendMessage("§6C§1oflnet§8: §lPlease click this [LINK] to login and configure your flip filters §8(you won't receive real time flips until you do)",
+                    $"https://sky-commands.coflnet.com/authmod?uuid={Uuid}&conId={stringId}");
+                await Task.Delay(TimeSpan.FromSeconds(60));
+
+                if (Settings != DEFAULT_SETTINGS)
+                    return;
+                SendMessage("do /cofl stop to stop receiving this (or click this message)", "/cofl stop");
+            }
         }
 
         private void SendPing()
