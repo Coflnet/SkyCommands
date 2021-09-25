@@ -4,6 +4,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Coflnet.Sky.Filter;
 using hypixel;
+using Jaeger.Samplers;
 using Newtonsoft.Json;
 using OpenTracing.Util;
 using WebSocketSharp;
@@ -21,7 +22,7 @@ namespace Coflnet.Sky.Commands
 
         public FlipSettings Settings { get; set; }
         public string Version { get; private set; }
-        OpenTracing.ITracer tracer = GlobalTracer.Instance;
+        OpenTracing.ITracer tracer = new Jaeger.Tracer.Builder("sky-commands-mod").WithSampler(new ConstSampler(true)).Build();
         OpenTracing.ISpan conSpan;
         private System.Threading.Timer PingTimer;
 
@@ -30,7 +31,7 @@ namespace Coflnet.Sky.Commands
 
         protected override void OnOpen()
         {
-            conSpan = tracer.BuildSpan("mcConnection").Start();
+            conSpan = tracer.BuildSpan("connection").Start();
             var args = System.Web.HttpUtility.ParseQueryString(Context.RequestUri.Query);
             Console.WriteLine(Context.RequestUri.Query);
             if (args["uuid"] == null)
@@ -48,6 +49,7 @@ namespace Coflnet.Sky.Commands
 
             string stringId;
             (this.Id, stringId) = ComputeConnectionId();
+            conSpan.SetTag("conId",stringId);
 
             base.OnOpen();
 
@@ -113,7 +115,7 @@ namespace Coflnet.Sky.Commands
 
         private void SendPing()
         {
-            using var span = tracer.BuildSpan("modPing").AsChildOf(conSpan.Context).StartActive();
+            using var span = tracer.BuildSpan("ping").AsChildOf(conSpan.Context).StartActive();
             try
             {
                 Send(Response.Create("ping", 0));
@@ -121,13 +123,14 @@ namespace Coflnet.Sky.Commands
             catch (Exception e)
             {
                 span.Span.Log("could not send ping");
+
                 CloseBecauseError(e);
             }
         }
 
         protected (long, string) ComputeConnectionId()
         {
-            var bytes = Encoding.UTF8.GetBytes(Uuid.ToLower() + sessionId + DateTime.Now.Date.ToString());
+            var bytes = Encoding.UTF8.GetBytes(Uuid.ToLower() + sessionId + DateTime.Now.Hour.ToString());
             var hash = System.Security.Cryptography.SHA512.Create();
             var hashed = hash.ComputeHash(bytes);
             return (BitConverter.ToInt64(hashed), Convert.ToBase64String(hashed, 0, 16));
@@ -135,7 +138,7 @@ namespace Coflnet.Sky.Commands
 
         protected override void OnMessage(MessageEventArgs e)
         {
-            using var span = tracer.BuildSpan("modCommand").AsChildOf(conSpan.Context).StartActive();
+            using var span = tracer.BuildSpan("Command").AsChildOf(conSpan.Context).StartActive();
             base.OnMessage(e);
             Console.WriteLine("received message from mcmod " + e.Data);
             var a = JsonConvert.DeserializeObject<Response>(e.Data);
@@ -153,12 +156,15 @@ namespace Coflnet.Sky.Commands
         {
             base.OnClose(e);
             FlipperService.Instance.RemoveConnection(this);
+
+            PingTimer.Dispose();
             conSpan.Finish();
+
         }
 
         public void SendMessage(string text, string clickAction = null, string hoverText = null)
         {
-            if(ConnectionState != WebSocketState.Open)
+            if (ConnectionState != WebSocketState.Open)
             {
                 FlipperService.Instance.RemoveConnection(this);
                 return;
@@ -176,7 +182,8 @@ namespace Coflnet.Sky.Commands
         private OpenTracing.IScope CloseBecauseError(Exception e)
         {
             dev.Logger.Instance.Log("removing connection because " + e.Message);
-            var span = tracer.BuildSpan("modDisconnect").WithTag("error", "true").AsChildOf(conSpan.Context).StartActive();
+            dev.Logger.Instance.Error(System.Environment.StackTrace);
+            var span = tracer.BuildSpan("Disconnect").WithTag("error", "true").AsChildOf(conSpan.Context).StartActive();
             span.Span.Log(e.Message);
             OnClose(null);
             return span;
@@ -190,14 +197,14 @@ namespace Coflnet.Sky.Commands
 
         public bool SendFlip(FlipInstance flip)
         {
-            if(base.ConnectionState != WebSocketState.Open) 
+            if (base.ConnectionState != WebSocketState.Open)
                 return false;
             if (!(flip.Bin && Settings != null && Settings.MatchesSettings(flip) && !flip.Sold))
                 return true;
 
-            using var span = tracer.BuildSpan("modFlip").WithTag("uuid", flip.Uuid).AsChildOf(conSpan.Context).StartActive();
+            using var span = tracer.BuildSpan("Flip").WithTag("uuid", flip.Uuid).AsChildOf(conSpan.Context).StartActive();
             SendMessage(GetFlipMsg(flip), "/viewauction " + flip.Uuid, string.Join('\n', flip.Interesting.Select(s => "・" + s)));
-            PingTimer.Change(TimeSpan.FromSeconds(50),TimeSpan.FromSeconds(55));
+            PingTimer.Change(TimeSpan.FromSeconds(50), TimeSpan.FromSeconds(55));
             return true;
         }
 
@@ -229,7 +236,7 @@ namespace Coflnet.Sky.Commands
 
         public bool SendSold(string uuid)
         {
-            if(base.ConnectionState != WebSocketState.Open) 
+            if (base.ConnectionState != WebSocketState.Open)
                 return false;
             // don't send extra messages
             return true;
@@ -239,7 +246,7 @@ namespace Coflnet.Sky.Commands
         {
             if (this.Settings == DEFAULT_SETTINGS)
             {
-                using var span = tracer.BuildSpan("modAuthorized").AsChildOf(conSpan.Context).StartActive();
+                using var span = tracer.BuildSpan("Authorized").AsChildOf(conSpan.Context).StartActive();
                 SendMessage($"Authorized connection you can now control settings via the website");
                 Task.Run(async () =>
                 {
