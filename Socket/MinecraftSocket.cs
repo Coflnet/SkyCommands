@@ -85,7 +85,7 @@ namespace Coflnet.Sky.Commands
                         SendMessage($"§6C§1oflnet§8: Found and loaded settings for your connection, e.g. MinProfit: {FormatPrice(Settings.MinProfit)} ");
                         SendMessage("click this if you want to change a setting", "https://sky-commands.coflnet.com/flipper");
                         SendMessage("§6C§1oflnet§8: nothing else to do have a nice day :)");
-
+                        Console.WriteLine("loaded settings " + JsonConvert.SerializeObject(cachedSettings));
                         return;
                     }
                     catch (Exception e)

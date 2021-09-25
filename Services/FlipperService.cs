@@ -369,7 +369,7 @@ namespace hypixel
         public List<string> McIds = new List<string>();
 
         [DataMember(Name = "conIds")]
-        public List<string> ConIds = new List<string>();
+        public HashSet<string> ConIds = new HashSet<string>();
 
         [DataMember(Name = "tier")]
         public AccountTier Tier;
