@@ -23,9 +23,17 @@ namespace Coflnet.Sky.Commands
         public string Version { get; private set; }
         OpenTracing.ITracer tracer = GlobalTracer.Instance;
         OpenTracing.ISpan conSpan;
-
+        static event Action Ping;
 
         private static FlipSettings DEFAULT_SETTINGS = new FlipSettings() { MinProfit = 100000, MinVolume = 50 };
+
+        static MinecraftSocket()
+        {
+            var timer = new System.Threading.Timer((e) =>
+            {
+                Ping?.Invoke();
+            }, null, TimeSpan.Zero, TimeSpan.FromSeconds(59));
+        }
 
         protected override void OnOpen()
         {
@@ -97,6 +105,20 @@ namespace Coflnet.Sky.Commands
                     SendMessage("do /cofl stop to stop receiving this (or click this message)", "/cofl stop");
                 }
             });
+            Ping += SendPing;
+        }
+
+        private void SendPing()
+        {
+            try
+            {
+                Send(Response.Create("ping", 0));
+            }
+            catch (Exception e)
+            {
+                conSpan.Log("could not send ping");
+                CloseBecauseError(e);
+            }
         }
 
         protected (long, string) ComputeConnectionId()
@@ -128,6 +150,7 @@ namespace Coflnet.Sky.Commands
             base.OnClose(e);
             FlipperService.Instance.RemoveConnection(this);
             conSpan.Finish();
+            Ping -= SendPing;
         }
 
         public void SendMessage(string text, string clickAction = null, string hoverText = null)
@@ -138,11 +161,17 @@ namespace Coflnet.Sky.Commands
             }
             catch (Exception e)
             {
-                dev.Logger.Instance.Log("removing connection because " + e.Message);
-                using var span = tracer.BuildSpan("modDisconnect").WithTag("error", "true").AsChildOf(conSpan.Context).StartActive();
-                span.Span.Log(e.Message);
-                OnClose(null);
+                CloseBecauseError(e);
             }
+        }
+
+        private OpenTracing.IScope CloseBecauseError(Exception e)
+        {
+            dev.Logger.Instance.Log("removing connection because " + e.Message);
+            var span = tracer.BuildSpan("modDisconnect").WithTag("error", "true").AsChildOf(conSpan.Context).StartActive();
+            span.Span.Log(e.Message);
+            OnClose(null);
+            return span;
         }
 
         public void Send(Response response)
