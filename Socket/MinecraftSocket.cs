@@ -185,6 +185,8 @@ namespace Coflnet.Sky.Commands
 
         public bool SendFlip(FlipInstance flip)
         {
+            if(base.ConnectionState != WebSocketState.Open) 
+                return false;
             if (!(flip.Bin && Settings != null && Settings.MatchesSettings(flip) && !flip.Sold))
                 return true;
 
@@ -222,6 +224,8 @@ namespace Coflnet.Sky.Commands
 
         public bool SendSold(string uuid)
         {
+            if(base.ConnectionState != WebSocketState.Open) 
+                return false;
             // don't send extra messages
             return true;
         }
