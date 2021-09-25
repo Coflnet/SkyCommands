@@ -380,7 +380,7 @@ namespace hypixel
         {
             try
             {
-                return BitConverter.ToInt64(Convert.FromBase64String(id));
+                return BitConverter.ToInt64(Convert.FromBase64String(id.Replace('_', '/').Replace('-', '+')));
             }
             catch (Exception)
             {

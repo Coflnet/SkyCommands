@@ -2,8 +2,10 @@ using System;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 using Coflnet.Sky.Filter;
 using hypixel;
+using Jaeger.Reporters;
 using Jaeger.Samplers;
 using Newtonsoft.Json;
 using OpenTracing.Util;
@@ -104,7 +106,7 @@ namespace Coflnet.Sky.Commands
             while (true)
             {
                 SendMessage("§6C§1oflnet§8: §lPlease click this [LINK] to login and configure your flip filters §8(you won't receive real time flips until you do)",
-                    $"https://sky-commands.coflnet.com/authmod?uuid={Uuid}&conId={stringId}");
+                    $"https://sky-commands.coflnet.com/authmod?uuid={Uuid}&conId={HttpUtility.UrlEncode(stringId)}");
                 await Task.Delay(TimeSpan.FromSeconds(60));
 
                 if (Settings != DEFAULT_SETTINGS)
@@ -133,7 +135,7 @@ namespace Coflnet.Sky.Commands
             var bytes = Encoding.UTF8.GetBytes(Uuid.ToLower() + sessionId + DateTime.Now.Hour.ToString());
             var hash = System.Security.Cryptography.SHA512.Create();
             var hashed = hash.ComputeHash(bytes);
-            return (BitConverter.ToInt64(hashed), Convert.ToBase64String(hashed, 0, 16));
+            return (BitConverter.ToInt64(hashed), Convert.ToBase64String(hashed, 0, 16).Replace('+', '-').Replace('/', '_'));
         }
 
         protected override void OnMessage(MessageEventArgs e)
