@@ -158,6 +158,11 @@ namespace Coflnet.Sky.Commands
 
         public void SendMessage(string text, string clickAction = null, string hoverText = null)
         {
+            if(ConnectionState != WebSocketState.Open)
+            {
+                FlipperService.Instance.RemoveConnection(this);
+                return;
+            }
             try
             {
                 this.Send(Response.Create("writeToChat", new { text, onClick = clickAction, hover = hoverText }));
