@@ -23,18 +23,10 @@ namespace Coflnet.Sky.Commands
         public string Version { get; private set; }
         OpenTracing.ITracer tracer = GlobalTracer.Instance;
         OpenTracing.ISpan conSpan;
-        static event Action Ping;
+        private System.Threading.Timer PingTimer;
 
         private static FlipSettings DEFAULT_SETTINGS = new FlipSettings() { MinProfit = 100000, MinVolume = 50 };
 
-        static MinecraftSocket()
-        {
-            var timer = new System.Threading.Timer((e) =>
-            {
-                Ping?.Invoke();
-                dev.Logger.Instance.Log("pinging mod connections " + DateTime.Now);
-            }, null, TimeSpan.Zero, TimeSpan.FromSeconds(50));
-        }
 
         protected override void OnOpen()
         {
@@ -67,7 +59,12 @@ namespace Coflnet.Sky.Commands
             {
                 await SetupConnectionSettings(stringId);
             });
-            Ping += SendPing;
+
+            PingTimer = new System.Threading.Timer((e) =>
+            {
+
+                SendPing();
+            }, null, TimeSpan.FromSeconds(50), TimeSpan.FromSeconds(50));
         }
 
         private async Task SetupConnectionSettings(string stringId)
@@ -116,13 +113,14 @@ namespace Coflnet.Sky.Commands
 
         private void SendPing()
         {
+            using var span = tracer.BuildSpan("modPing").AsChildOf(conSpan.Context).StartActive();
             try
             {
                 Send(Response.Create("ping", 0));
             }
             catch (Exception e)
             {
-                conSpan.Log("could not send ping");
+                span.Span.Log("could not send ping");
                 CloseBecauseError(e);
             }
         }
@@ -156,7 +154,6 @@ namespace Coflnet.Sky.Commands
             base.OnClose(e);
             FlipperService.Instance.RemoveConnection(this);
             conSpan.Finish();
-            Ping -= SendPing;
         }
 
         public void SendMessage(string text, string clickAction = null, string hoverText = null)
@@ -193,6 +190,7 @@ namespace Coflnet.Sky.Commands
 
             using var span = tracer.BuildSpan("modFlip").WithTag("uuid", flip.Uuid).AsChildOf(conSpan.Context).StartActive();
             SendMessage(GetFlipMsg(flip), "/viewauction " + flip.Uuid, string.Join('\n', flip.Interesting.Select(s => "・" + s)));
+            PingTimer.Change(TimeSpan.FromSeconds(50),TimeSpan.FromSeconds(55));
             return true;
         }
 
