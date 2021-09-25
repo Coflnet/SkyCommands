@@ -376,7 +376,18 @@ namespace hypixel
         [DataMember(Name = "expires")]
         public DateTime ExpiresAt;
         [IgnoreDataMember]
-        public IEnumerable<long> LongConIds => ConIds.Select(id => BitConverter.ToInt64(Convert.FromBase64String(id)));
+        public IEnumerable<long> LongConIds => ConIds.Select(id =>
+        {
+            try
+            {
+                return BitConverter.ToInt64(Convert.FromBase64String(id));
+            }
+            catch (Exception)
+            {
+                Console.WriteLine("invalid conid: " + id);
+                return new Random().Next();
+            }
+        });
     }
 
     public enum AccountTier
