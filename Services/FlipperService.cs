@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
+using System.Text;
 using System.Threading.Tasks;
 using Coflnet.Sky.Commands;
 using Coflnet.Sky.Filter;
@@ -69,9 +70,9 @@ namespace hypixel
         {
             using (var p = new ProducerBuilder<string, SettingsChange>(producerConfig).SetValueSerializer(SerializerFactory.GetSerializer<SettingsChange>()).Build())
             {
+                await CacheService.Instance.SaveInRedis("uflipset" + settings.UserId, settings);
                 return await p.ProduceAsync(SettingsTopic, new Message<string, SettingsChange> { Value = settings });
             }
-
         }
 
         public void AddConnection(IFlipConnection con)
@@ -275,7 +276,7 @@ namespace hypixel
 
         private void UpdateSettingsInternal(SettingsChange settings)
         {
-            foreach (var item in settings.ConIds)
+            foreach (var item in settings.LongConIds)
             {
                 if (SlowSubs.TryGetValue(item, out IFlipConnection con)
                     || Subs.TryGetValue(item, out con)
@@ -368,13 +369,14 @@ namespace hypixel
         public List<string> McIds = new List<string>();
 
         [DataMember(Name = "conIds")]
-        public List<long> ConIds = new List<long>();
-
+        public List<string> ConIds = new List<string>();
 
         [DataMember(Name = "tier")]
         public AccountTier Tier;
-
-
+        [DataMember(Name = "expires")]
+        public DateTime ExpiresAt;
+        [IgnoreDataMember]
+        public IEnumerable<long> LongConIds => ConIds.Select(id => BitConverter.ToInt64(Convert.FromBase64String(id)));
     }
 
     public enum AccountTier

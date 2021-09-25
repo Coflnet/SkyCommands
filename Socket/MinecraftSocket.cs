@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Coflnet.Sky.Filter;
 using hypixel;
@@ -14,9 +15,9 @@ namespace Coflnet.Sky.Commands
     {
         public string Uuid;
 
-        public long Id => (Uuid + connectionId).GetHashCode();
+        public long Id { get; private set; }
 
-        protected string connectionId;
+        protected string sessionId = "";
 
         public FlipSettings Settings { get; set; }
         public string Version { get; private set; }
@@ -34,7 +35,7 @@ namespace Coflnet.Sky.Commands
             if (args["uuid"] == null)
                 Send(Response.Create("error", "the connection query string needs to include uuid"));
             if (args["SId"] != null)
-                connectionId = args["SId"].Truncate(60);
+                sessionId = args["SId"].Truncate(60);
             if (args["version"] != null)
                 Version = args["version"].Truncate(10);
 
@@ -43,7 +44,10 @@ namespace Coflnet.Sky.Commands
             conSpan.SetTag("uuid", Uuid);
             Console.Write($"Version: {Version} ");
             Console.WriteLine(Uuid);
-            var key = new Random().Next();
+
+            string stringId;
+            (this.Id, stringId) = ComputeConnectionId();
+
             base.OnOpen();
 
             if (Settings == null)
@@ -52,9 +56,39 @@ namespace Coflnet.Sky.Commands
             SendMessage("§6C§1oflnet§8: §fNOTE §7This is a development preview, it is NOT stable/bugfree", $"https://discord.gg/wvKXfTgCfb");
             System.Threading.Tasks.Task.Run(async () =>
             {
+                var cachedSettings = await CacheService.Instance.GetFromRedis<SettingsChange>(this.Id.ToString());
+                if (cachedSettings != null)
+                {
+                    try
+                    {
+                        this.Settings = cachedSettings.Settings;
+                        var mcNameTask = PlayerService.Instance.GetPlayer(this.Uuid);
+                        var user = UserService.Instance.GetUserById(cachedSettings.UserId);
+                        var length = user.Email.Length < 10 ? 3 : 6;
+                        var builder = new StringBuilder(user.Email);
+                        for (int i = 0; i < builder.Length - 5; i++)
+                        {
+                            if (builder[i] == '@' || i < 3)
+                                continue;
+                            builder[i] = '*';
+                        }
+                        var anonymisedEmail = builder.ToString();
+                        SendMessage($"§6C§1oflnet§8: Hello {(await mcNameTask)?.Name} ({anonymisedEmail})");
+                        SendMessage($"§6C§1oflnet§8: Found and loaded settings for your connection, e.g. MinProfit: {Settings.MinProfit} ");
+                        SendMessage("§6C§1oflnet§8: nothing else to do have a nice day :)");
+
+                        return;
+                    }
+                    catch (Exception e)
+                    {
+                        dev.Logger.Instance.Error(e, "loading modsocket");
+                    }
+
+                }
                 while (true)
                 {
-                    SendMessage("§6C§1oflnet§8: §lPlease click this [LINK] to login and configure your flip filters §8(you won't receive real time flips until you do)", $"https://sky-commands.coflnet.com/authmod?uuid={Uuid}&conId={Id}");
+                    SendMessage("§6C§1oflnet§8: §lPlease click this [LINK] to login and configure your flip filters §8(you won't receive real time flips until you do)",
+                        $"https://sky-commands.coflnet.com/authmod?uuid={Uuid}&conId={stringId}");
                     await Task.Delay(TimeSpan.FromSeconds(60));
 
                     if (Settings != DEFAULT_SETTINGS)
@@ -64,14 +98,27 @@ namespace Coflnet.Sky.Commands
             });
         }
 
+        protected (long, string) ComputeConnectionId()
+        {
+            var bytes = Encoding.UTF8.GetBytes(Uuid.ToLower() + sessionId + DateTime.Now.Date.ToString());
+            var hash = System.Security.Cryptography.SHA512.Create();
+            var hashed = hash.ComputeHash(bytes);
+            return (BitConverter.ToInt64(hashed), Convert.ToBase64String(hashed, 0, 16));
+        }
+
         protected override void OnMessage(MessageEventArgs e)
         {
             using var span = tracer.BuildSpan("modCommand").AsChildOf(conSpan.Context).StartActive();
             base.OnMessage(e);
             Console.WriteLine("received message from mcmod " + e.Data);
             var a = JsonConvert.DeserializeObject<Response>(e.Data);
+            if (a == null || a.type == null)
+            {
+                Send(new Response("error", "the payload has to have the property type"));
+                return;
+            }
             span.Span.SetTag("type", a.type);
-            if (connectionId.StartsWith("debug"))
+            if (sessionId.StartsWith("debug"))
                 SendMessage("executed " + a.data, "");
         }
 
@@ -91,7 +138,7 @@ namespace Coflnet.Sky.Commands
             catch (Exception e)
             {
                 dev.Logger.Instance.Log("removing connection because " + e.Message);
-                using var span = tracer.BuildSpan("modDisconnect").WithTag("error","true").AsChildOf(conSpan.Context).StartActive();
+                using var span = tracer.BuildSpan("modDisconnect").WithTag("error", "true").AsChildOf(conSpan.Context).StartActive();
                 span.Span.Log(e.Message);
                 OnClose(null);
             }
@@ -158,23 +205,32 @@ namespace Coflnet.Sky.Commands
                 });
             }
             else
-                SendMessage($"setting changed " + FindWhatsNew(this.Settings,settings.Settings));
+                SendMessage($"setting changed " + FindWhatsNew(this.Settings, settings.Settings));
             Settings = settings.Settings;
 
             if (settings.Tier.HasFlag(AccountTier.PREMIUM))
                 FlipperService.Instance.AddConnection(this);
             else
                 FlipperService.Instance.AddNonConnection(this);
+
+            CacheService.Instance.SaveInRedis(this.Id.ToString(), settings);
         }
 
         private string FindWhatsNew(FlipSettings current, FlipSettings newSettings)
         {
-            if(current.MinProfit != newSettings.MinProfit)
-                return "min Profit to " + FormatPrice(newSettings.MinProfit);
-            if(current.BlackList.Count < newSettings.BlackList.Count)
-                return $"blacklisted item";
-            if(current.WhiteList.Count < newSettings.WhiteList.Count)
-                return $"whitelisted item";
+            try
+            {
+                if (current.MinProfit != newSettings.MinProfit)
+                    return "min Profit to " + FormatPrice(newSettings.MinProfit);
+                if (current.BlackList?.Count < newSettings.BlackList.Count)
+                    return $"blacklisted item";
+                if (current.WhiteList?.Count < newSettings.WhiteList.Count)
+                    return $"whitelisted item";
+            }
+            catch (Exception e)
+            {
+                this.conSpan.Log(e.StackTrace);
+            }
 
             return "";
         }

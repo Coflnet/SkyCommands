@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 
 namespace hypixel
@@ -11,7 +12,14 @@ namespace hypixel
         {
             var con = (data as SocketMessageData).Connection;
             var lastSettings = con.LastSettingsChange;
-            lastSettings.ConIds.Add(data.GetAs<long>());
+            try
+            {
+                lastSettings.ConIds.Add(data.GetAs<long>().ToString());
+            }
+            catch (Exception)
+            {
+                lastSettings.ConIds.Add(data.GetAs<string>());
+            }
             lastSettings.UserId = data.UserId;
             await FlipperService.Instance.UpdateSettings(lastSettings);
             await data.Ok();

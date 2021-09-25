@@ -10,14 +10,27 @@ namespace hypixel
     public class SetGoogleIdCommand : Command
     {
         Counter loginCount = Metrics.CreateCounter("loginCount", "How often the login was executed (with a googleid)");
-        public override Task Execute(MessageData data)
+        public override async Task Execute(MessageData data)
         {
             var token = ValidateToken(data.GetAs<string>());
 
-            var id = UserService.Instance.GetOrCreateUser(token.Subject,token.Email);
+            var id = UserService.Instance.GetOrCreateUser(token.Subject, token.Email);
             data.UserId = id.Id;
+            try
+            {
+                if ((data is SocketMessageData con))
+                {
+                    var settings = await CacheService.Instance.GetFromRedis<SettingsChange>("uflipset" + id.Id);
+                    if (settings != null)
+                        con.Connection.LastSettingsChange = settings;
+                }
+            }
+            catch (Exception e)
+            {
+                dev.Logger.Instance.Error(e, "loading flip settings on login");
+            }
             loginCount.Inc();
-            return data.Ok();
+            await data.Ok();
         }
 
         public static GoogleJsonWebSignature.Payload ValidateToken(string token)
@@ -29,9 +42,10 @@ namespace hypixel
                 var tokenData = client.Result;
                 Console.WriteLine("google user: " + tokenData.Name);
                 return tokenData;
-            } catch(Exception e)
+            }
+            catch (Exception e)
             {
-                throw new CoflnetException("invalid_token",$"{e.InnerException.Message}");
+                throw new CoflnetException("invalid_token", $"{e.InnerException.Message}");
             }
 
 

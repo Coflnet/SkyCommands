@@ -35,6 +35,7 @@ namespace hypixel
                     FlipperService.Instance.AddConnection(con);
 
                     lastSettings.Tier = AccountTier.PREMIUM;
+                    lastSettings.ExpiresAt = data.User.PremiumExpires;
                 }
                 await FlipperService.Instance.UpdateSettings(lastSettings);
             }
