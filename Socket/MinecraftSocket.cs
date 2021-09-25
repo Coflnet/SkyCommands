@@ -74,7 +74,8 @@ namespace Coflnet.Sky.Commands
                         }
                         var anonymisedEmail = builder.ToString();
                         SendMessage($"§6C§1oflnet§8: Hello {(await mcNameTask)?.Name} ({anonymisedEmail})");
-                        SendMessage($"§6C§1oflnet§8: Found and loaded settings for your connection, e.g. MinProfit: {Settings.MinProfit} ");
+                        SendMessage($"§6C§1oflnet§8: Found and loaded settings for your connection, e.g. MinProfit: {FormatPrice(Settings.MinProfit)} ");
+                        SendMessage("click this if you want to change a setting", "https://sky-commands.coflnet.com/flipper");
                         SendMessage("§6C§1oflnet§8: nothing else to do have a nice day :)");
 
                         return;
@@ -222,6 +223,8 @@ namespace Coflnet.Sky.Commands
             {
                 if (current.MinProfit != newSettings.MinProfit)
                     return "min Profit to " + FormatPrice(newSettings.MinProfit);
+                if (current.MinProfit != newSettings.MinProfit)
+                    return "max Cost to " + FormatPrice(newSettings.MaxCost);
                 if (current.BlackList?.Count < newSettings.BlackList.Count)
                     return $"blacklisted item";
                 if (current.WhiteList?.Count < newSettings.WhiteList.Count)
