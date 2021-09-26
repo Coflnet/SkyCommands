@@ -61,7 +61,7 @@ namespace Coflnet.Sky.Filter
                 {
                     if (flip.Tag != null && flip.Tag == item.ItemTag)
                         return false;
-                    if (item.filter != null && item.MatchesSettings(flip))
+                    if (item.filter != null && item.filter.Count > 0 && item.MatchesSettings(flip))
                         return false;
                 }
             }
