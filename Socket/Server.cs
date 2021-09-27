@@ -20,6 +20,7 @@ using Prometheus;
 using System.Diagnostics;
 using Coflnet.Sky.Commands;
 using OpenTracing.Propagation;
+using Coflnet.Sky.Commands.MC;
 
 namespace hypixel
 {

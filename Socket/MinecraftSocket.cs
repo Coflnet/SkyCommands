@@ -12,7 +12,7 @@ using OpenTracing.Util;
 using WebSocketSharp;
 using WebSocketSharp.Server;
 
-namespace Coflnet.Sky.Commands
+namespace Coflnet.Sky.Commands.MC
 {
     public class MinecraftSocket : WebSocketBehavior, IFlipConnection
     {
@@ -29,6 +29,13 @@ namespace Coflnet.Sky.Commands
         private System.Threading.Timer PingTimer;
 
         private static FlipSettings DEFAULT_SETTINGS = new FlipSettings() { MinProfit = 100000, MinVolume = 50 };
+
+        public static ClassNameDictonary<McCommand> Commands = new ClassNameDictonary<McCommand>();
+
+        static MinecraftSocket()
+        {
+            Commands.Add<TestCommand>();
+        }
 
 
         protected override void OnOpen()
@@ -51,7 +58,7 @@ namespace Coflnet.Sky.Commands
 
             string stringId;
             (this.Id, stringId) = ComputeConnectionId();
-            conSpan.SetTag("conId",stringId);
+            conSpan.SetTag("conId", stringId);
 
             base.OnOpen();
 
@@ -152,6 +159,16 @@ namespace Coflnet.Sky.Commands
             span.Span.SetTag("type", a.type);
             if (sessionId.StartsWith("debug"))
                 SendMessage("executed " + a.data, "");
+
+            // block click commands for now
+            if(a.type == "tokenLogin" || a.type == "clicked")
+                return;
+
+            if(Commands.TryGetValue(a.type, out McCommand command))
+                command.Execute(this,a.data);
+            else 
+                SendMessage($"The command {a.type} is not know. Please check your spelling ;)");
+
         }
 
         protected override void OnClose(CloseEventArgs e)
@@ -212,7 +229,8 @@ namespace Coflnet.Sky.Commands
 
         private string GetFlipMsg(FlipInstance flip)
         {
-            return $"FLIP: {GetRarityColor(flip.Rarity)}{flip.Name} §f{FormatPrice(flip.LastKnownCost)} -> {FormatPrice(flip.MedianPrice)} §g[BUY]";
+            var priceColor = GetProfitColor(flip.MedianPrice-flip.LastKnownCost);
+            return $"\nFLIP: {GetRarityColor(flip.Rarity)}{flip.Name} {priceColor}{FormatPrice(flip.LastKnownCost)} -> {FormatPrice(flip.MedianPrice)} §g[BUY]";
         }
 
         private string GetRarityColor(Tier rarity)
@@ -231,6 +249,20 @@ namespace Coflnet.Sky.Commands
                 _ => ""
             };
         }
+
+        private string GetProfitColor(int profit)
+        {
+            if(profit > 50_000_000)
+                return McColorCodes.GOLD;
+            if(profit > 10_000_000)
+                return McColorCodes.BLUE;
+            if(profit > 1_000_000)
+                return McColorCodes.DARK_GREEN;
+            if(profit > 100_000)
+                return McColorCodes.GRAY;
+            return McColorCodes.DARK_GREY;
+        }
+
         private static string FormatPrice(long price)
         {
             return string.Format("{0:n0}", price);
@@ -311,5 +343,25 @@ namespace Coflnet.Sky.Commands
 
         }
 
+    }
+
+    public class McColorCodes
+    {
+        public static readonly string BLACK = "§0";
+        public static readonly string DARK_BLUE = "§1";
+        public static readonly string DARK_GREEN = "§2";
+        public static readonly string DARK_RED = "§3";
+        public static readonly string DARK_PURPLE = "§4";
+        public static readonly string GOLD = "§5";
+        public static readonly string GRAY = "§6";
+        public static readonly string DARK_GREY = "§7";
+        public static readonly string BLUE = "§8";
+        public static readonly string GREEN = "§9";
+        public static readonly string AQUA = "§a";
+        public static readonly string RED = "§b";
+        public static readonly string LIGHT_PURPLE = "§c";
+        public static readonly string YELLOW = "§d";
+        public static readonly string WHITE = "§f";
+        public static readonly string MINECOIN_GOLD = "§g";
     }
 }

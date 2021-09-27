@@ -60,7 +60,7 @@ namespace Coflnet.Hypixel.Controller
         /// <returns></returns>
         [Route("filter/options")]
         [HttpGet]
-        [ResponseCache(Duration = 3600*6, Location = ResponseCacheLocation.Any, NoStore = false)]
+        [ResponseCache(Duration = 3600 * 6, Location = ResponseCacheLocation.Any, NoStore = false)]
         public List<FilterOptions> GetFilterOptions()
         {
             var fe = new Sky.Filter.FilterEngine();
