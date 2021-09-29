@@ -252,13 +252,13 @@ namespace Coflnet.Sky.Commands.MC
 
         private string GetProfitColor(int profit)
         {
-            if(profit > 50_000_000)
+            if(profit >= 50_000_000)
                 return McColorCodes.GOLD;
-            if(profit > 10_000_000-1)
+            if(profit >= 10_000_000)
                 return McColorCodes.BLUE;
-            if(profit > 1_000_000-1)
+            if(profit >= 1_000_000)
                 return McColorCodes.GREEN;
-            if(profit > 100_000)
+            if(profit >= 100_000)
                 return McColorCodes.DARK_GREEN;
             return McColorCodes.DARK_GRAY;
         }
