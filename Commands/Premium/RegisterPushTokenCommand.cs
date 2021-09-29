@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using MessagePack;
+using RestSharp;
 
 namespace hypixel
 {
@@ -8,8 +9,10 @@ namespace hypixel
         public override Task Execute(MessageData data)
         {
             var args = data.GetAs<Arguments>();
-            throw new CoflnetException("deactivated","subscriptions are currently unavailable. If you want them back tell us on the discord");
-            //NotificationService.Instance.AddToken(data.UserId, args.deviceName, args.token);
+            var request = new RestRequest("Subscription/{userId}/device", Method.PUT)
+                    .AddJsonBody(new Device() { Name = args.deviceName, Token = args.token })
+                    .AddParameter("userId", data.UserId);
+            var response = SubscribeClient.Client.ExecuteAsync(request);
             return Task.CompletedTask;
         }
 

@@ -254,10 +254,10 @@ namespace Coflnet.Sky.Commands.MC
         {
             if(profit > 50_000_000)
                 return McColorCodes.GOLD;
-            if(profit > 10_000_000)
+            if(profit > 10_000_000-1)
                 return McColorCodes.BLUE;
-            if(profit > 1_000_000)
-                return McColorCodes.DARK_GREEN;
+            if(profit > 1_000_000-1)
+                return McColorCodes.WHITE;
             if(profit > 100_000)
                 return McColorCodes.GRAY;
             return McColorCodes.DARK_GREY;
