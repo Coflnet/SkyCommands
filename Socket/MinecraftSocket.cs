@@ -257,10 +257,10 @@ namespace Coflnet.Sky.Commands.MC
             if(profit > 10_000_000-1)
                 return McColorCodes.BLUE;
             if(profit > 1_000_000-1)
-                return McColorCodes.WHITE;
+                return McColorCodes.GREEN;
             if(profit > 100_000)
-                return McColorCodes.GRAY;
-            return McColorCodes.DARK_GREY;
+                return McColorCodes.DARK_GREEN;
+            return McColorCodes.DARK_GRAY;
         }
 
         private static string FormatPrice(long price)
