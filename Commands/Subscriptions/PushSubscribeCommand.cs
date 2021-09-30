@@ -16,26 +16,19 @@ namespace hypixel
 
 
             var user = data.User;
-            var userSubsRequest = new RestRequest("Subscription/{userId}", Method.GET)
-                .AddParameter("userId", user.Id);
+            var userId = user.Id;
+            List<SubscribeItem> subscriptions = (await SubscribeClient.GetSubscriptions(userId)).subscriptions;
 
-            var subscriptionsResponse = (await SubscribeClient.Client.ExecuteAsync(userSubsRequest)).Content;
-            var subscriptions = JsonConvert.DeserializeObject<UserResponse>(subscriptionsResponse).subscriptions;
             if (!user.HasPremium && subscriptions.Count() >= 3)
                 throw new NoPremiumException("Nonpremium users can only have 3 subscriptions");
-        
-            var request = new RestRequest("Subscription/{userId}/sub", Method.PUT)
-                .AddJsonBody(new SubscribeItem() { Type = args.Type, TopicId = args.Topic })
-                .AddParameter("userId", user.Id);
-            var response = SubscribeClient.Client.ExecuteAsync(request);
 
+            var request = new RestRequest("Subscription/{userId}/sub", Method.POST)
+                .AddJsonBody(new SubscribeItem() { Type = args.Type, TopicId = args.Topic, Price = args.Price })
+                .AddUrlSegment("userId", user.Id);
+            var response = await SubscribeClient.Client.ExecuteAsync(request);
             await data.Ok();
         }
 
-        public class UserResponse
-        {
-            public List<SubscribeItem> subscriptions { get; set; }
-        }
 
         [MessagePackObject]
         public class Arguments

@@ -7,7 +7,7 @@ namespace hypixel
 {
     public class DeleteSubscriptionCommand : Command
     {
-        public override Task Execute(MessageData data)
+        public override async Task Execute(MessageData data)
         {
             using (var context = new HypixelContext())
             {
@@ -16,10 +16,11 @@ namespace hypixel
 
                 //var affected = SubscribeEngine.Instance.Unsubscribe(userId, args.Topic,args.Type).Result;
                 var request = new RestRequest("Subscription/{userId}/sub", Method.DELETE)
-                    .AddJsonBody(new SubscribeItem() { Type = args.Type, TopicId = args.Topic }).AddParameter("userId", userId);
-                var response = SubscribeClient.Client.ExecuteAsync(request);
+                    .AddJsonBody(new SubscribeItem() { Type = args.Type, TopicId = args.Topic })
+                    .AddUrlSegment("userId", userId);
+                var response = await SubscribeClient.Client.ExecuteAsync(request);
 
-                return data.SendBack(data.Create("unsubscribed", response.Result));
+                await data.SendBack(new MessageData("unsubscribed", response.Content));
             }
         }
 
@@ -33,11 +34,5 @@ namespace hypixel
             [Key("type")]
             public SubscribeItem.SubType Type;
         }
-    }
-
-    public static class SubscribeClient
-    {
-        public static RestClient Client = new RestClient("http://"+SimplerConfig.Config.Instance["SUBSCRIPTION_HOST"]);
-
     }
 }

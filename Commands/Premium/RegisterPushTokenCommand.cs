@@ -11,7 +11,7 @@ namespace hypixel
             var args = data.GetAs<Arguments>();
             var request = new RestRequest("Subscription/{userId}/device", Method.PUT)
                     .AddJsonBody(new Device() { Name = args.deviceName, Token = args.token })
-                    .AddParameter("userId", data.UserId);
+                    .AddUrlSegment("userId", data.UserId);
             var response = SubscribeClient.Client.ExecuteAsync(request);
             return Task.CompletedTask;
         }
