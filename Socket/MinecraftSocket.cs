@@ -147,7 +147,7 @@ namespace Coflnet.Sky.Commands.MC
 
         protected (long, string) ComputeConnectionId()
         {
-            var bytes = Encoding.UTF8.GetBytes(Uuid.ToLower() + sessionId + DateTime.Now.Hour.ToString());
+            var bytes = Encoding.UTF8.GetBytes(Uuid.ToLower() + sessionId + DateTime.Now.Date.ToString());
             var hash = System.Security.Cryptography.SHA512.Create();
             var hashed = hash.ComputeHash(bytes);
             return (BitConverter.ToInt64(hashed), Convert.ToBase64String(hashed, 0, 16).Replace('+', '-').Replace('/', '_'));
@@ -306,7 +306,7 @@ namespace Coflnet.Sky.Commands.MC
             else
                 FlipperService.Instance.AddNonConnection(this);
 
-            CacheService.Instance.SaveInRedis(this.Id.ToString(), settings);
+            CacheService.Instance.SaveInRedis(this.Id.ToString(), settings,TimeSpan.FromHours(6));
         }
 
         private string FindWhatsNew(FlipSettings current, FlipSettings newSettings)
