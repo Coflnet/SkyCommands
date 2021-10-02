@@ -11,18 +11,21 @@ namespace hypixel
         {
             try
             {
+                
+                using (var context = new HypixelContext())
+                {
+                    var user = data.User;
+                    await data.SendBack(data.Create("premiumExpiration", user?.PremiumExpires));
+                    if(user.PremiumExpires > DateTime.Now)
+                        return;
+                }
+
                 var api = new UserApi();
                 var until = await api.UserUserIdOwnsProductSlugUntilGetAsync(data.UserId.ToString(), "premium-plan");
                 if(until > DateTime.Now)
                 {
                     await data.SendBack(data.Create("premiumExpiration", until));
                     return;
-                }
-                using (var context = new HypixelContext())
-                {
-                    var user = data.User;
-                    await data.SendBack(data.Create("premiumExpiration", user?.PremiumExpires));
-
                 }
             }
             catch (Exception)
