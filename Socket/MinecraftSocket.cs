@@ -206,6 +206,11 @@ namespace Coflnet.Sky.Commands.MC
             }
         }
 
+        public void SendSound(string soundId)
+        {
+            this.Send(Response.Create("playSound", soundId));
+        }
+
         private OpenTracing.IScope CloseBecauseError(Exception e)
         {
             dev.Logger.Instance.Log("removing connection because " + e.Message);
