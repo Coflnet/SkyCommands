@@ -80,7 +80,7 @@ namespace Coflnet.Sky.Commands.MC
         private async Task SetupConnectionSettings(string stringId)
         {
             var cachedSettings = await CacheService.Instance.GetFromRedis<SettingsChange>(this.Id.ToString());
-            if (false && cachedSettings != null)
+            if (cachedSettings != null)
             {
                 try
                 {
