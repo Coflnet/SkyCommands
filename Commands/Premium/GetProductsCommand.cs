@@ -1,4 +1,6 @@
+using System.Linq;
 using System.Threading.Tasks;
+using Coflnet.Payments.Client.Api;
 using Newtonsoft.Json;
 using Stripe;
 
@@ -6,18 +8,18 @@ namespace hypixel
 {
     public class GetProductsCommand : Command
     {
-        public override Task Execute(MessageData data)
+        public override async Task Execute(MessageData data)
         {
-            var options = new ProductListOptions
-            {
-                Limit = 10
-            };
-            var service = new ProductService();
-            StripeList<Product> products = service.List(
-              options
-            );
+            //var service = new ProductService();
+            //StripeList<Product> products = service.List(
+            //  options
+            //;
 
-            return data.SendBack(new MessageData("productsResponse", JsonConvert.SerializeObject(products), A_HOUR));
+            var productsApi = new ProductsApi();
+            var products = await productsApi.ProductsGetAsync();
+            var topUpProducts = products.Where(p=>p.Type == Coflnet.Payments.Client.Model.ProductType.NUMBER_4);
+
+            await data.SendBack(new MessageData("productsResponse", JsonConvert.SerializeObject(topUpProducts), A_HOUR));
         }
     }
 

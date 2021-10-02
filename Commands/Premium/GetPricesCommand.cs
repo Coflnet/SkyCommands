@@ -15,6 +15,4 @@ namespace hypixel
             return data.SendBack(new MessageData("pricesResponse", JsonConvert.SerializeObject(prices), A_HOUR));
         }
     }
-
-
 }
