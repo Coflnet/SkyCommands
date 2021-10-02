@@ -15,7 +15,7 @@ namespace hypixel
             //  options
             //;
 
-            var productsApi = new ProductsApi();
+            var productsApi = new ProductsApi("http://" + SimplerConfig.Config.Instance["PAYMENTS_HOST"]);
             var products = await productsApi.ProductsGetAsync();
             var topUpProducts = products.Where(p=>p.Type == Coflnet.Payments.Client.Model.ProductType.NUMBER_4);
 

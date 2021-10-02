@@ -69,11 +69,10 @@ namespace Coflnet.Sky.Commands.MC
             System.Threading.Tasks.Task.Run(async () =>
             {
                 await SetupConnectionSettings(stringId);
-            });
+            }).ConfigureAwait(false);
 
             PingTimer = new System.Threading.Timer((e) =>
             {
-
                 SendPing();
             }, null, TimeSpan.FromSeconds(50), TimeSpan.FromSeconds(50));
         }
@@ -81,23 +80,12 @@ namespace Coflnet.Sky.Commands.MC
         private async Task SetupConnectionSettings(string stringId)
         {
             var cachedSettings = await CacheService.Instance.GetFromRedis<SettingsChange>(this.Id.ToString());
-            if (cachedSettings != null)
+            if (false && cachedSettings != null)
             {
                 try
                 {
                     this.Settings = cachedSettings.Settings;
-                    var mcNameTask = PlayerService.Instance.GetPlayer(this.Uuid);
-                    var user = UserService.Instance.GetUserById(cachedSettings.UserId);
-                    var length = user.Email.Length < 10 ? 3 : 6;
-                    var builder = new StringBuilder(user.Email);
-                    for (int i = 0; i < builder.Length - 5; i++)
-                    {
-                        if (builder[i] == '@' || i < 3)
-                            continue;
-                        builder[i] = '*';
-                    }
-                    var anonymisedEmail = builder.ToString();
-                    SendMessage($"§1C§6oflnet§8: Hello {(await mcNameTask)?.Name} ({anonymisedEmail})");
+                    await SendAuthorizedHello(cachedSettings);
                     SendMessage($"§1C§6oflnet§8: Found and loaded settings for your connection, e.g. MinProfit: {FormatPrice(Settings.MinProfit)} ");
                     SendMessage("click this if you want to change a setting", "https://sky-commands.coflnet.com/flipper");
                     SendMessage("§1C§6oflnet§8: nothing else to do have a nice day :)");
@@ -108,7 +96,6 @@ namespace Coflnet.Sky.Commands.MC
                 {
                     dev.Logger.Instance.Error(e, "loading modsocket");
                 }
-
             }
             while (true)
             {
@@ -120,6 +107,27 @@ namespace Coflnet.Sky.Commands.MC
                     return;
                 SendMessage("do /cofl stop to stop receiving this (or click this message)", "/cofl stop");
             }
+        }
+
+        private async Task SendAuthorizedHello(SettingsChange cachedSettings)
+        {
+            var mcNameTask = PlayerService.Instance.GetPlayer(this.Uuid);
+            var user = UserService.Instance.GetUserById(cachedSettings.UserId);
+            var length = user.Email.Length < 10 ? 3 : 6;
+            var builder = new StringBuilder(user.Email);
+            for (int i = 0; i < builder.Length - 5; i++)
+            {
+                if (builder[i] == '@' || i < 3)
+                    continue;
+                builder[i] = '*';
+            }
+            var anonymisedEmail = builder.ToString();
+            SendMessage($"§1C§6oflnet§8: Hello {(await mcNameTask)?.Name} ({anonymisedEmail})");
+            if (cachedSettings.Tier != AccountTier.NONE)
+                SendMessage($"§1C§6oflnet§8: You have {cachedSettings.Tier.ToString()} until {cachedSettings.ExpiresAt}");
+            else 
+                SendMessage($"§1C§6oflnet§8: You use the free version of the flip finder");
+
         }
 
         private void SendPing()
@@ -161,12 +169,12 @@ namespace Coflnet.Sky.Commands.MC
                 SendMessage("executed " + a.data, "");
 
             // block click commands for now
-            if(a.type == "tokenLogin" || a.type == "clicked")
+            if (a.type == "tokenLogin" || a.type == "clicked")
                 return;
 
-            if(Commands.TryGetValue(a.type, out McCommand command))
-                command.Execute(this,a.data);
-            else 
+            if (Commands.TryGetValue(a.type, out McCommand command))
+                command.Execute(this, a.data);
+            else
                 SendMessage($"The command {a.type} is not know. Please check your spelling ;)");
 
         }
@@ -229,7 +237,7 @@ namespace Coflnet.Sky.Commands.MC
 
         private string GetFlipMsg(FlipInstance flip)
         {
-            var priceColor = GetProfitColor(flip.MedianPrice-flip.LastKnownCost);
+            var priceColor = GetProfitColor(flip.MedianPrice - flip.LastKnownCost);
             return $"\nFLIP: {GetRarityColor(flip.Rarity)}{flip.Name} {priceColor}{FormatPrice(flip.LastKnownCost)} -> {FormatPrice(flip.MedianPrice)} §g[BUY]";
         }
 
@@ -252,13 +260,13 @@ namespace Coflnet.Sky.Commands.MC
 
         private string GetProfitColor(int profit)
         {
-            if(profit >= 50_000_000)
+            if (profit >= 50_000_000)
                 return McColorCodes.GOLD;
-            if(profit >= 10_000_000)
+            if (profit >= 10_000_000)
                 return McColorCodes.BLUE;
-            if(profit >= 1_000_000)
+            if (profit >= 1_000_000)
                 return McColorCodes.GREEN;
-            if(profit >= 100_000)
+            if (profit >= 100_000)
                 return McColorCodes.DARK_GREEN;
             return McColorCodes.DARK_GRAY;
         }
@@ -280,10 +288,11 @@ namespace Coflnet.Sky.Commands.MC
         {
             if (this.Settings == DEFAULT_SETTINGS)
             {
-                using var span = tracer.BuildSpan("Authorized").AsChildOf(conSpan.Context).StartActive();
-                SendMessage($"Authorized connection you can now control settings via the website");
                 Task.Run(async () =>
                 {
+                    using var span = tracer.BuildSpan("Authorized").AsChildOf(conSpan.Context).StartActive();
+                    await SendAuthorizedHello(settings);
+                    SendMessage($"Authorized connection you can now control settings via the website");
                     await Task.Delay(TimeSpan.FromSeconds(20));
                     SendMessage($"Remember: the format of the flips is: §dITEM NAME §fCOST -> MEDIAN");
                 });
