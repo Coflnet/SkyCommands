@@ -8,7 +8,7 @@ namespace Coflnet.Sky.Commands
         public void Add<TDerived>() where TDerived : T
         {
             var filter = Activator.CreateInstance<TDerived>();
-            this.Add(typeof(TDerived).Name.Replace("Command",""), filter);
+            this.Add(typeof(TDerived).Name.Replace("Command","").ToLower(), filter);
         }
     }
 }

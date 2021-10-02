@@ -6,6 +6,7 @@ namespace Coflnet.Sky.Commands.MC
     {
         public override Task Execute(MinecraftSocket socket, string arguments)
         {
+            socket.SendSound("random.explode");
             socket.SendMessage("The test was successful :)");
             return Task.CompletedTask;
         }

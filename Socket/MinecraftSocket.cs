@@ -172,7 +172,7 @@ namespace Coflnet.Sky.Commands.MC
             if (a.type == "tokenLogin" || a.type == "clicked")
                 return;
 
-            if (Commands.TryGetValue(a.type, out McCommand command))
+            if (Commands.TryGetValue(a.type.ToLower(), out McCommand command))
                 command.Execute(this, a.data);
             else
                 SendMessage($"The command {a.type} is not know. Please check your spelling ;)");

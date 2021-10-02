@@ -14,13 +14,21 @@ namespace hypixel
         {
             var token = ValidateToken(data.GetAs<string>());
 
-            var id = UserService.Instance.GetOrCreateUser(token.Subject, token.Email);
-            data.UserId = id.Id;
+            GoogleUser user;
+            try
+            {
+                user = UserService.Instance.GetOrCreateUser(token.Subject, token.Email);
+            }
+            catch (Exception e)
+            {
+                throw new CoflnetException("disabled","For first time login visit sky.coflnet.com/flipper");
+            }
+            data.UserId = user.Id;
             try
             {
                 if ((data is SocketMessageData con))
                 {
-                    var settings = await CacheService.Instance.GetFromRedis<SettingsChange>("uflipset" + id.Id);
+                    var settings = await CacheService.Instance.GetFromRedis<SettingsChange>("uflipset" + user.Id);
                     if (settings != null)
                         con.Connection.LastSettingsChange = settings;
                 }
