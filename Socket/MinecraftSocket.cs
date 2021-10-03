@@ -125,7 +125,7 @@ namespace Coflnet.Sky.Commands.MC
             }
             var anonymisedEmail = builder.ToString();
             SendMessage($"§1C§6oflnet§8: Hello {(await mcNameTask)?.Name} ({anonymisedEmail})");
-            if (cachedSettings.Tier != AccountTier.NONE)
+            if (cachedSettings.Tier != AccountTier.NONE && cachedSettings.ExpiresAt > DateTime.Now)
                 SendMessage($"§1C§6oflnet§8: You have {cachedSettings.Tier.ToString()} until {cachedSettings.ExpiresAt}");
             else
                 SendMessage($"§1C§6oflnet§8: You use the free version of the flip finder");
@@ -292,6 +292,7 @@ namespace Coflnet.Sky.Commands.MC
 
         public void UpdateSettings(SettingsChange settings)
         {
+            using var span = tracer.BuildSpan("SettingsUpdate").AsChildOf(conSpan.Context).StartActive();
             if (this.Settings == DEFAULT_SETTINGS)
             {
                 Task.Run(async () =>
@@ -321,7 +322,7 @@ namespace Coflnet.Sky.Commands.MC
 
         private void UpdateConnectionTier(SettingsChange settings)
         {
-            if (settings.Tier.HasFlag(AccountTier.PREMIUM))
+            if (settings.Tier.HasFlag(AccountTier.PREMIUM) && settings.ExpiresAt > DateTime.Now)
                 FlipperService.Instance.AddConnection(this);
             else
                 FlipperService.Instance.AddNonConnection(this);
