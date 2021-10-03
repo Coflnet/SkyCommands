@@ -50,7 +50,6 @@ namespace Coflnet.Sky.Commands.MC
             if (args["version"] != null)
                 Version = args["version"].Truncate(10);
 
-
             Uuid = args["uuid"];
             conSpan.SetTag("uuid", Uuid);
             Console.Write($"Version: {Version} ");
