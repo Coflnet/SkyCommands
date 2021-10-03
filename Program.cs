@@ -45,6 +45,6 @@ namespace SkyCommands
     public static class Settings
     {
         public static bool Migrated = true;
-        public static string InstanceId = "skycommands";
+        public static string InstanceId = "commands";
     }
 }

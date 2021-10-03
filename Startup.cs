@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using AspNetCoreRateLimit;
 using AspNetCoreRateLimit.Redis;
+using Coflnet.Payments.Client.Api;
 using hypixel;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
@@ -51,6 +52,10 @@ namespace SkyCommands
             services.AddScoped<PricesService>();
             services.AddSingleton<AuctionService>();
             services.AddDbContext<HypixelContext>();
+            services.AddSingleton<ProductsApi>(sp =>
+            {
+                return new ProductsApi("http://" + SimplerConfig.Config.Instance["PAYMENTS_HOST"]);
+            });
 
 
             services.AddSwaggerGenNewtonsoftSupport();

@@ -85,11 +85,13 @@ namespace Coflnet.Sky.Commands.MC
                 try
                 {
                     this.Settings = cachedSettings.Settings;
+                    UpdateConnectionTier(cachedSettings);
                     await SendAuthorizedHello(cachedSettings);
-                    SendMessage($"§1C§6oflnet§8: Found and loaded settings for your connection, e.g. MinProfit: {FormatPrice(Settings.MinProfit)} ");
-                    SendMessage("click this if you want to change a setting", "https://sky-commands.coflnet.com/flipper");
-                    SendMessage("§1C§6oflnet§8: nothing else to do have a nice day :)");
-                    Console.WriteLine("loaded settings " + JsonConvert.SerializeObject(cachedSettings));
+                    SendMessage($"§1C§6oflnet§8: Found and loaded settings for your connection, e.g. MinProfit: {FormatPrice(Settings.MinProfit)}\n "
+                        + "§f: click this if you want to change a setting \n"
+                        + "§8: nothing else to do have a nice day :)",
+                        "https://sky-commands.coflnet.com/flipper");
+                    Console.WriteLine($"loaded settings for {this.sessionId} " + JsonConvert.SerializeObject(cachedSettings));
                     return;
                 }
                 catch (Exception e)
@@ -125,9 +127,8 @@ namespace Coflnet.Sky.Commands.MC
             SendMessage($"§1C§6oflnet§8: Hello {(await mcNameTask)?.Name} ({anonymisedEmail})");
             if (cachedSettings.Tier != AccountTier.NONE)
                 SendMessage($"§1C§6oflnet§8: You have {cachedSettings.Tier.ToString()} until {cachedSettings.ExpiresAt}");
-            else 
+            else
                 SendMessage($"§1C§6oflnet§8: You use the free version of the flip finder");
-
         }
 
         private void SendPing()
@@ -186,13 +187,13 @@ namespace Coflnet.Sky.Commands.MC
 
             PingTimer.Dispose();
             conSpan.Finish();
-
         }
 
         public void SendMessage(string text, string clickAction = null, string hoverText = null)
         {
             if (ConnectionState != WebSocketState.Open)
             {
+                using var span = tracer.BuildSpan("removing").AsChildOf(conSpan).StartActive();
                 FlipperService.Instance.RemoveConnection(this);
                 return;
             }
@@ -296,22 +297,34 @@ namespace Coflnet.Sky.Commands.MC
                 Task.Run(async () =>
                 {
                     using var span = tracer.BuildSpan("Authorized").AsChildOf(conSpan.Context).StartActive();
-                    await SendAuthorizedHello(settings);
-                    SendMessage($"Authorized connection you can now control settings via the website");
-                    await Task.Delay(TimeSpan.FromSeconds(20));
-                    SendMessage($"Remember: the format of the flips is: §dITEM NAME §fCOST -> MEDIAN");
+                    try
+                    {
+                        await SendAuthorizedHello(settings);
+                        SendMessage($"Authorized connection you can now control settings via the website");
+                        await Task.Delay(TimeSpan.FromSeconds(20));
+                        SendMessage($"Remember: the format of the flips is: §dITEM NAME §fCOST -> MEDIAN");
+                    }
+                    catch (Exception e)
+                    {
+                        dev.Logger.Instance.Error(e, "settings authorization");
+                        span.Span.Log(e.Message);
+                    }
                 });
             }
             else
                 SendMessage($"setting changed " + FindWhatsNew(this.Settings, settings.Settings));
             Settings = settings.Settings;
+            UpdateConnectionTier(settings);
 
+            CacheService.Instance.SaveInRedis(this.Id.ToString(), settings, TimeSpan.FromHours(6));
+        }
+
+        private void UpdateConnectionTier(SettingsChange settings)
+        {
             if (settings.Tier.HasFlag(AccountTier.PREMIUM))
                 FlipperService.Instance.AddConnection(this);
             else
                 FlipperService.Instance.AddNonConnection(this);
-
-            CacheService.Instance.SaveInRedis(this.Id.ToString(), settings,TimeSpan.FromHours(6));
         }
 
         private string FindWhatsNew(FlipSettings current, FlipSettings newSettings)
