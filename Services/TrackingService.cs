@@ -17,8 +17,8 @@ namespace hypixel
 
         public void TrackSearch(MessageData data, string value, int resultCount, TimeSpan time)
         {
-            if(value.Length <= 2)
-                return; 
+            if (value.Length <= 2)
+                return;
             var genMs = ((int)time.TotalMilliseconds).ToString();
             trackClient.ExecuteAsync(new RestRequest("/matomo.php?idsite=2&rec=1&action_name=search")
                     .AddQueryParameter("search", value)
@@ -29,10 +29,10 @@ namespace hypixel
                     .AddQueryParameter("ua", "search")
                     .AddQueryParameter("action_name", "search/" + value)
                     .AddQueryParameter("url", "http://s/search/" + value)
-                    .AddQueryParameter("cid","1234567890abcdef")
+                    .AddQueryParameter("cid", "1234567890abcdef")
                     .AddQueryParameter("pf_srv", genMs));
 
-                    
+
             Console.WriteLine($"took {((int)time.TotalMilliseconds)}");
         }
 

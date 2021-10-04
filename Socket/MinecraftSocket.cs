@@ -28,7 +28,7 @@ namespace Coflnet.Sky.Commands.MC
         OpenTracing.ISpan conSpan;
         private System.Threading.Timer PingTimer;
 
-        private static FlipSettings DEFAULT_SETTINGS = new FlipSettings() { MinProfit = 100000, MinVolume = 50 };
+        public static FlipSettings DEFAULT_SETTINGS = new FlipSettings() { MinProfit = 100000, MinVolume = 50, ModSettings = new ModSettings() };
 
         public static ClassNameDictonary<McCommand> Commands = new ClassNameDictonary<McCommand>();
 
@@ -52,7 +52,7 @@ namespace Coflnet.Sky.Commands.MC
 
             Uuid = args["uuid"];
             conSpan.SetTag("uuid", Uuid);
-            Console.Write($"Version: {Version} ");
+            conSpan.SetTag("version", Version);
             Console.WriteLine(Uuid);
 
             string stringId;
@@ -236,6 +236,8 @@ namespace Coflnet.Sky.Commands.MC
 
             using var span = tracer.BuildSpan("Flip").WithTag("uuid", flip.Uuid).AsChildOf(conSpan.Context).StartActive();
             SendMessage(GetFlipMsg(flip), "/viewauction " + flip.Uuid, string.Join('\n', flip.Interesting.Select(s => "・" + s)));
+            if (this.Settings.ModSettings?.PlaySoundOnFlip ?? false)
+                SendSound("minecraft:entity.experience_orb.pickup");
             PingTimer.Change(TimeSpan.FromSeconds(50), TimeSpan.FromSeconds(55));
             return true;
         }

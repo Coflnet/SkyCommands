@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using Coflnet.Sky.Filter;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using RestSharp;
@@ -36,6 +37,18 @@ namespace Coflnet.Hypixel.Controller
             var client = new RestClient("http://"+config["UPDATER_HOST"]);
             var response = await client.ExecuteAsync(new RestRequest("/api/time"));
             return response.Content;
+        }
+
+        /// <summary>
+        /// Shows you the available settings options for the socket comand subFlip,
+        /// Doesn't currently actually do anything.
+        /// </summary>
+        /// <returns>The default settings for modsocket v1</returns>
+        [Route("settings/options")]
+        [HttpGet]
+        public FlipSettings SeeOptions()
+        {
+            return Sky.Commands.MC.MinecraftSocket.DEFAULT_SETTINGS;
         }
     }
 }

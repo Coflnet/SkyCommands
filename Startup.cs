@@ -56,6 +56,15 @@ namespace SkyCommands
             {
                 return new ProductsApi("http://" + SimplerConfig.Config.Instance["PAYMENTS_HOST"]);
             });
+            services.AddSingleton<UserApi>(sp =>
+            {
+                return new UserApi("http://" + SimplerConfig.Config.Instance["PAYMENTS_HOST"]);
+            });
+            services.AddSingleton<TopUpApi>(sp =>
+            {
+                return new TopUpApi("http://" + SimplerConfig.Config.Instance["PAYMENTS_HOST"]);
+            });
+            services.AddSingleton<PremiumService>();
 
 
             services.AddSwaggerGenNewtonsoftSupport();

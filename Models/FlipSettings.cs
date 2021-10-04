@@ -29,6 +29,9 @@ namespace Coflnet.Sky.Filter
         [DataMember(Name = "maxCost")]
         public int MaxCost;
 
+        [DataMember(Name = "mod")]
+        public ModSettings ModSettings;
+
 
         private FlipFilter filter;
         private List<FlipFilter> blackListFilters;

@@ -25,12 +25,14 @@ namespace Coflnet.Hypixel.Controller
         private ProductsApi productsService;
         private TopUpApi topUpApi;
         private UserApi userApi;
+        private PremiumService premiumService;
 
-        public PremiumController(ProductsApi productsService, TopUpApi topUpApi, UserApi userApi)
+        public PremiumController(ProductsApi productsService, TopUpApi topUpApi, UserApi userApi, PremiumService premiumService)
         {
             this.productsService = productsService;
             this.topUpApi = topUpApi;
             this.userApi = userApi;
+            this.premiumService = premiumService;
         }
 
         /// <summary>
@@ -54,7 +56,7 @@ namespace Coflnet.Hypixel.Controller
         [HttpPost]
         public async Task<IActionResult> StartTopUp(string option)
         {
-            if (TryGetUser(out GoogleUser user))
+            if (!TryGetUser(out GoogleUser user))
                 return Unauthorized("no googletoken header");
 
             var session = await topUpApi.TopUpStripePostAsync(option,user.Id.ToString());
@@ -70,7 +72,7 @@ namespace Coflnet.Hypixel.Controller
         [HttpPost]
         public async Task<IActionResult> Purchase(string option)
         {
-            if (TryGetUser(out GoogleUser user))
+            if (!TryGetUser(out GoogleUser user))
                 return Unauthorized("no googletoken header");
 
             var purchaseResult = await userApi.UserUserIdPurchaseProductSlugPostAsync(user.Id.ToString(), option);
@@ -82,7 +84,7 @@ namespace Coflnet.Hypixel.Controller
             user = default(GoogleUser);
             if(!Request.Headers.TryGetValue("GoogleToken", out StringValues value))
                 return false;
-            user = UserService.Instance.GetOrCreateUser(value);
+            user = premiumService.GetUserWithToken(value);
             return true;
         }
     }
