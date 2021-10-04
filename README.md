@@ -683,13 +683,15 @@ Response:
 ```
 ## SubFlip Command 
 This will start pushing the command `flip` with the same format as `getFlips`.
+Please see the api endpoint `/api/flip/settings/options` for all options
 ```
 {
     "whitelist":[{"tag":"PET_ENDERDRAGON","filter":{"Tier":"LEGENDARY"}}],
     "blacklist":[{"tag":"PET_ENDERDRAGON"}],
     "minProfit":300000,
     "minVolume":5,
-    "filter":{"BIN":"true"}
+    "lbin":false,
+    "filters":{"Bin":"true"}
 }
 ```
 Filter is applied to all flips and can be omitted. 
