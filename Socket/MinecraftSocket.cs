@@ -16,7 +16,7 @@ namespace Coflnet.Sky.Commands.MC
 {
     public class MinecraftSocket : WebSocketBehavior, IFlipConnection
     {
-        public string Uuid;
+        public string McId;
 
         public long Id { get; private set; }
 
@@ -44,17 +44,17 @@ namespace Coflnet.Sky.Commands.MC
             conSpan = tracer.BuildSpan("connection").Start();
             var args = System.Web.HttpUtility.ParseQueryString(Context.RequestUri.Query);
             Console.WriteLine(Context.RequestUri.Query);
-            if (args["uuid"] == null)
-                Send(Response.Create("error", "the connection query string needs to include uuid"));
+            if (args["uuid"] == null && args["player"] == null)
+                Send(Response.Create("error", "the connection query string needs to include 'player'"));
             if (args["SId"] != null)
                 sessionId = args["SId"].Truncate(60);
             if (args["version"] != null)
                 Version = args["version"].Truncate(10);
 
-            Uuid = args["uuid"];
-            conSpan.SetTag("uuid", Uuid);
+            McId = args["player"] ?? args["uuid"];
+            conSpan.SetTag("uuid", McId);
             conSpan.SetTag("version", Version);
-            Console.WriteLine(Uuid);
+            Console.WriteLine(McId);
 
             string stringId;
             (this.Id, stringId) = ComputeConnectionId();
@@ -102,7 +102,7 @@ namespace Coflnet.Sky.Commands.MC
             while (true)
             {
                 SendMessage("§1C§6oflnet§8: §lPlease click this [LINK] to login and configure your flip filters §8(you won't receive real time flips until you do)",
-                    $"https://sky-commands.coflnet.com/authmod?uuid={Uuid}&conId={HttpUtility.UrlEncode(stringId)}");
+                    $"https://sky-commands.coflnet.com/authmod?mcid={McId}&conId={HttpUtility.UrlEncode(stringId)}");
                 await Task.Delay(TimeSpan.FromSeconds(60));
 
                 if (Settings != DEFAULT_SETTINGS)
@@ -113,7 +113,7 @@ namespace Coflnet.Sky.Commands.MC
 
         private async Task SendAuthorizedHello(SettingsChange cachedSettings)
         {
-            var mcNameTask = PlayerService.Instance.GetPlayer(this.Uuid);
+            var mcName = this.McId.Length == 32 ? (await PlayerService.Instance.GetPlayer(this.McId)).Name : this.McId;
             var user = UserService.Instance.GetUserById(cachedSettings.UserId);
             var length = user.Email.Length < 10 ? 3 : 6;
             var builder = new StringBuilder(user.Email);
@@ -124,7 +124,7 @@ namespace Coflnet.Sky.Commands.MC
                 builder[i] = '*';
             }
             var anonymisedEmail = builder.ToString();
-            SendMessage($"§1C§6oflnet§8: Hello {(await mcNameTask)?.Name} ({anonymisedEmail})");
+            SendMessage($"§1C§6oflnet§8: Hello {mcName} ({anonymisedEmail})");
             if (cachedSettings.Tier != AccountTier.NONE && cachedSettings.ExpiresAt > DateTime.Now)
                 SendMessage($"§1C§6oflnet§8: You have {cachedSettings.Tier.ToString()} until {cachedSettings.ExpiresAt}");
             else
@@ -148,7 +148,7 @@ namespace Coflnet.Sky.Commands.MC
 
         protected (long, string) ComputeConnectionId()
         {
-            var bytes = Encoding.UTF8.GetBytes(Uuid.ToLower() + sessionId + DateTime.Now.Date.ToString());
+            var bytes = Encoding.UTF8.GetBytes(McId.ToLower() + sessionId + DateTime.Now.Date.ToString());
             var hash = System.Security.Cryptography.SHA512.Create();
             var hashed = hash.ComputeHash(bytes);
             return (BitConverter.ToInt64(hashed), Convert.ToBase64String(hashed, 0, 16).Replace('+', '-').Replace('/', '_'));
