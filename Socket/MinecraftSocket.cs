@@ -35,6 +35,7 @@ namespace Coflnet.Sky.Commands.MC
         static MinecraftSocket()
         {
             Commands.Add<TestCommand>();
+            Commands.Add<SoundCommand>();
         }
 
 

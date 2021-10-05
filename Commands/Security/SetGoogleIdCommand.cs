@@ -41,7 +41,7 @@ namespace hypixel
             await data.Ok();
         }
 
-        public static GoogleJsonWebSignature.Payload ValidateToken(string token)
+         public static GoogleJsonWebSignature.Payload ValidateToken(string token)
         {
             try
             {
