@@ -128,7 +128,7 @@ namespace hypixel
                        new
                        {
                            End = new DateTime(item.Key.Year, item.Key.Month, item.Key.Day, item.Key.Hour, 0, 0),
-                           Price = (int)item.Average(a => ((int)a.HighestBidAmount) / a.Count), ///(a.Count == 0 ? 1 : a.Count)),
+                           Price = (int)item.Average(a => ((int)a.HighestBidAmount) / a.Count), //(a.Count == 0 ? 1 : a.Count)),
                            Count = item.Sum(a => a.Count)
                            //Bids =  (long) item.Sum(a=> a.Bids.Count)
                        }).ToList().Select(i => new Result() { Count = i.Count, End = i.End, Price = i.Price });

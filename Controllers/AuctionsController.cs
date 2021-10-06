@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Coflnet.Sky.Commands;
 using Coflnet.Sky.Filter;
 using hypixel;
 using Microsoft.AspNetCore.Mvc;
@@ -32,14 +33,14 @@ namespace Coflnet.Hypixel.Controller
         [Route("auction/{auctionUuid}")]
         [HttpGet]
         [ResponseCache(Duration = 120, Location = ResponseCacheLocation.Any, NoStore = false)]
-        public async Task<ActionResult<SaveAuction>> getAuctionDetails(string auctionUuid)
+        public async Task<EnchantColorMapper.ColorSaveAuction> getAuctionDetails(string auctionUuid)
         {
             var result = await auctionService.GetAuctionAsync(auctionUuid, auction => auction
                         .Include(a => a.Enchantments)
                         .Include(a => a.NbtData)
                         .Include(a => a.Bids));
 
-            return Ok(result);
+            return EnchantColorMapper.Instance.AddColors(result);
         }
 
         /// <summary>

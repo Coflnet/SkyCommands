@@ -1,11 +1,12 @@
 using System.Linq;
 using System.Text.RegularExpressions;
-using Newtonsoft.Json;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Threading.Tasks;
+using hypixel;
+using MessagePack;
 
-namespace hypixel
+namespace Coflnet.Sky.Commands
 {
     class AuctionDetails : Command
     {
@@ -15,7 +16,7 @@ namespace hypixel
             var search = rgx.Replace(data.Data, "");
             using (var context = new HypixelContext())
             {
-                var result = AuctionService.Instance.GetAuction(search, 
+                var result = AuctionService.Instance.GetAuction(search,
                             a => a
                              .Include(a => a.NbtData)
                              .Include(a => a.Enchantments)
@@ -30,7 +31,7 @@ namespace hypixel
                     }
                     throw new CoflnetException("error", $"The Auction `{search}` wasn't found");
                 }
-                var resultJson = JSON.Stringify(result);
+                var resultJson = JSON.Stringify(EnchantColorMapper.Instance.AddColors(result));
                 var maxAge = A_MINUTE;
                 if (result.End < DateTime.Now)
                     // won't change anymore
@@ -38,7 +39,6 @@ namespace hypixel
 
                 return data.SendBack(new MessageData("auctionDetailsResponse", resultJson, maxAge));
             }
-
         }
     }
 }
