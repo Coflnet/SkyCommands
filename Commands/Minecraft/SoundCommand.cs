@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace Coflnet.Sky.Commands.MC
 {
@@ -6,7 +7,7 @@ namespace Coflnet.Sky.Commands.MC
     {
         public override Task Execute(MinecraftSocket socket, string arguments)
         {
-            socket.SendSound(arguments);
+            socket.SendSound(JsonConvert.DeserializeObject<string>(arguments));
             return Task.CompletedTask;
         }
     }
