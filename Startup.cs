@@ -122,7 +122,7 @@ namespace SkyCommands
                 context.Response.Headers[Microsoft.Net.Http.Headers.HeaderNames.AccessControlAllowHeaders] =
                     new string[] { "*" };
                 context.Response.Headers[Microsoft.Net.Http.Headers.HeaderNames.AccessControlAllowMethods] =
-                    new string[] { "GET", "OPTIONS", "POST" };
+                    new string[] { "POST, GET, OPTIONS" };
 
                 await next();
             });
