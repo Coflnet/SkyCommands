@@ -87,11 +87,14 @@ namespace Coflnet.Sky.Commands.MC
                     this.Settings = cachedSettings.Settings;
                     UpdateConnectionTier(cachedSettings);
                     await SendAuthorizedHello(cachedSettings);
-                    SendMessage($"§1C§6oflnet§8: Found and loaded settings for your connection, e.g. MinProfit: {FormatPrice(Settings.MinProfit)}\n "
+                    SendMessage($"§1C§6oflnet§8: §fFound and loaded settings for your connection, e.g. MinProfit: {FormatPrice(Settings.MinProfit)}\n "
                         + "§f: click this if you want to change a setting \n"
                         + "§8: nothing else to do have a nice day :)",
                         "https://sky-commands.coflnet.com/flipper");
                     Console.WriteLine($"loaded settings for {this.sessionId} " + JsonConvert.SerializeObject(cachedSettings));
+                    await Task.Delay(100);
+                    SendMessage($"§1C§6oflnet§8: {McColorCodes.GREEN} click this to relink your account",
+                    GetAuthLink(stringId));
                     return;
                 }
                 catch (Exception e)
@@ -102,13 +105,18 @@ namespace Coflnet.Sky.Commands.MC
             while (true)
             {
                 SendMessage("§1C§6oflnet§8: §lPlease click this [LINK] to login and configure your flip filters §8(you won't receive real time flips until you do)",
-                    $"https://sky-commands.coflnet.com/authmod?mcid={McId}&conId={HttpUtility.UrlEncode(stringId)}");
+                    GetAuthLink(stringId));
                 await Task.Delay(TimeSpan.FromSeconds(60));
 
                 if (Settings != DEFAULT_SETTINGS)
                     return;
                 SendMessage("do /cofl stop to stop receiving this (or click this message)", "/cofl stop");
             }
+        }
+
+        private string GetAuthLink(string stringId)
+        {
+            return $"https://sky-commands.coflnet.com/authmod?mcid={McId}&conId={HttpUtility.UrlEncode(stringId)}";
         }
 
         private async Task SendAuthorizedHello(SettingsChange cachedSettings)
@@ -129,6 +137,8 @@ namespace Coflnet.Sky.Commands.MC
                 SendMessage($"§1C§6oflnet§8: You have {cachedSettings.Tier.ToString()} until {cachedSettings.ExpiresAt}");
             else
                 SendMessage($"§1C§6oflnet§8: You use the free version of the flip finder");
+
+            await Task.Delay(200);
         }
 
         private void SendPing()
