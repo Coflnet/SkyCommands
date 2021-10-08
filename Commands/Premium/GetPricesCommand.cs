@@ -8,7 +8,7 @@ namespace hypixel
     {
         public override Task Execute(MessageData data)
         {
-            throw new CoflnetException("deactive","You have to use the url sky.coflnet.com to purchase premium");
+            throw new CoflnetException("deactive","We do currently not sell premium. Check back tomorrow :)");
             var options = new PriceListOptions { Limit = 10 };
             var service = new PriceService();
             StripeList<Price> prices = service.List(options);
