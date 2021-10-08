@@ -4,12 +4,14 @@ using System.Threading.Tasks;
 using Google.Apis.Auth;
 using Newtonsoft.Json;
 using Prometheus;
+using RestSharp;
 
 namespace hypixel
 {
     public class SetGoogleIdCommand : Command
     {
         Counter loginCount = Metrics.CreateCounter("loginCount", "How often the login was executed (with a googleid)");
+        RestClient client = new RestClient("http://" + SimplerConfig.SConfig.Instance["INDEXER_HOST"]);
         public override async Task Execute(MessageData data)
         {
             var token = ValidateToken(data.GetAs<string>());
@@ -19,9 +21,12 @@ namespace hypixel
             {
                 user = UserService.Instance.GetOrCreateUser(token.Subject, token.Email);
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                throw new CoflnetException("disabled","For first time login visit sky.coflnet.com/flipper");
+                var request = new RestRequest("user", Method.POST).AddJsonBody(new GoogleUser() { GoogleId = token.Subject, Email = token.Email });
+                var response = await client.ExecuteAsync<GoogleUser>(request);
+                user = response.Data;
+                Console.WriteLine("created new user " + user.Id);
             }
             data.UserId = user.Id;
             try
@@ -41,7 +46,7 @@ namespace hypixel
             await data.Ok();
         }
 
-         public static GoogleJsonWebSignature.Payload ValidateToken(string token)
+        public static GoogleJsonWebSignature.Payload ValidateToken(string token)
         {
             try
             {

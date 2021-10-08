@@ -37,8 +37,6 @@ namespace Coflnet.Sky.Commands
 
         public class ColorEnchant : Enchantment
         {
-
-
             [JsonProperty("color")]
             public string ColorPrefix { get; set; }
 
