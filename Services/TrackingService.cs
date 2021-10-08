@@ -62,7 +62,6 @@ namespace hypixel
 
         public void TrackPage(string url, string title, string referer, string userAgend = null, TimeSpan genTime = default(TimeSpan))
         {
-            System.Console.WriteLine("tracking " + url);
             var request = new RestRequest("/matomo.php?idsite=2&rec=1")
                     .AddQueryParameter("action_name", title)
                     .AddQueryParameter("url", url)
