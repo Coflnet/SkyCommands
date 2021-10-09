@@ -247,8 +247,8 @@ namespace Coflnet.Sky.Commands.MC
 
             using var span = tracer.BuildSpan("Flip").WithTag("uuid", flip.Uuid).AsChildOf(conSpan.Context).StartActive();
             SendMessage(GetFlipMsg(flip), "/viewauction " + flip.Uuid, string.Join('\n', flip.Interesting.Select(s => "・" + s)));
-            if (this.Settings.ModSettings?.PlaySoundOnFlip ?? false)
-                SendSound("minecraft:entity.experience_orb.pickup");
+            if (this.Settings.ModSettings?.PlaySoundOnFlip ?? false && flip.Profit > 1_000_000)
+                SendSound("note.pling");
             PingTimer.Change(TimeSpan.FromSeconds(50), TimeSpan.FromSeconds(55));
             return true;
         }

@@ -432,5 +432,7 @@ namespace hypixel
         public SaveAuction Auction;
         [IgnoreDataMember]
         public long UId => AuctionService.Instance.GetId(this.Uuid);
+        [IgnoreDataMember]
+        public long Profit => MedianPrice - LastKnownCost;
     }
 }
