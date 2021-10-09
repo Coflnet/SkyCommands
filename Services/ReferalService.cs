@@ -35,7 +35,7 @@ namespace hypixel
             {
                 user.ReferedBy = id;
                 // give the user 'test' premium time
-                throw new CoflnetException("deactivated", "refferal is currently deactivated :/ try again in a few days ");
+                throw new CoflnetException("deactivated", "refferal is currently deactivated (we have to many users) try again in a few days ");
                 //Server.AddPremiumTime(1, user);
                 context.Update(user);
                 // persist the boni
