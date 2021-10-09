@@ -62,6 +62,7 @@ namespace Coflnet.Hypixel.Controller
                 int.TryParse(filter["page"], out page);
                 filter.Remove("page");
             }
+            filter["ItemId"] = itemId.ToString();
             var pageSize = 10;
             var result = await new FilterEngine().AddFilters(context.Auctions
                         .Where(a => a.ItemId == itemId && a.End > DateTime.Now && a.HighestBidAmount == 0 && a.Bin), filter)
