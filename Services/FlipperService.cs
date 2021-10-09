@@ -75,11 +75,12 @@ namespace hypixel
             }
         }
 
-        public void AddConnection(IFlipConnection con)
+        public void AddConnection(IFlipConnection con, bool sendHistory = true)
         {
             Subs.AddOrUpdate(con.Id, cid => con, (cid, oldMId) => con);
             var toSendFlips = Flipps.Reverse().Take(25);
-            SendFlipHistory(con, toSendFlips, 0);
+            if (sendHistory)
+                SendFlipHistory(con, toSendFlips, 0);
             RemoveNonConnection(con);
         }
 
