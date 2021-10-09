@@ -47,7 +47,7 @@ namespace Coflnet.Sky.Commands
                 else if (enchantment.Level >= 6 || Constants.RelevantEnchants.Where(e => e.Type == enchantment.Type && enchantment.Level >= e.Level).Any())
                     ColorPrefix = McColorCodes.DARK_PURPLE;
                 else
-                    ColorPrefix = McColorCodes.DARK_BLUE;
+                    ColorPrefix = McColorCodes.BLUE;
             }
         }
     }
