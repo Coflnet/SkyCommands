@@ -435,7 +435,7 @@ namespace hypixel
             var data = new ProxyMessageData<TReq, TRes>(command, reqdata, source);
             if (!(await CacheService.Instance.TryFromCacheAsync(data)).IsFlagSet(CacheStatus.VALID))
                 await SkyblockBackEnd.Commands[command].Execute(data);
-            return source.Task.Result;
+            return await source.Task;
         }
 
 

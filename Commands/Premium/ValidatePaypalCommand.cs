@@ -14,7 +14,7 @@ namespace hypixel
 
         private ConcurrentCollections.ConcurrentHashSet<string> UsedIds = new ConcurrentCollections.ConcurrentHashSet<string>();
 
-        public override Task Execute(MessageData data)
+        public override async Task Execute(MessageData data)
         {        
             Console.WriteLine($"PayPal attempt {data.Data}");
             var args = data.GetAs<Params>();
@@ -29,7 +29,7 @@ namespace hypixel
             PayPalHttp.HttpResponse response;
             try
             {
-                response = client.Execute(request).Result;
+                response = await client.Execute(request);
             }
             catch (Exception e)
             {
@@ -61,7 +61,7 @@ namespace hypixel
 
             UsedIds.Add(args.OrderId);
             FileController.AppendLineAs("purchases", JSON.Stringify(result));
-            return data.Ok();
+            await data.Ok();
         }
 
         [DataContract]

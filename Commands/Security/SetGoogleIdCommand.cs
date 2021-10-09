@@ -14,7 +14,7 @@ namespace hypixel
         RestClient client = new RestClient("http://" + SimplerConfig.SConfig.Instance["INDEXER_HOST"]);
         public override async Task Execute(MessageData data)
         {
-            var token = ValidateToken(data.GetAs<string>());
+            var token = await ValidateToken(data.GetAs<string>());
 
             GoogleUser user;
             try
@@ -46,13 +46,11 @@ namespace hypixel
             await data.Ok();
         }
 
-        public static GoogleJsonWebSignature.Payload ValidateToken(string token)
+        public static async Task<GoogleJsonWebSignature.Payload> ValidateToken(string token)
         {
             try
             {
-                var client = GoogleJsonWebSignature.ValidateAsync(token);
-                client.Wait();
-                var tokenData = client.Result;
+                var tokenData = await GoogleJsonWebSignature.ValidateAsync(token);
                 Console.WriteLine("google user: " + tokenData.Name);
                 return tokenData;
             }

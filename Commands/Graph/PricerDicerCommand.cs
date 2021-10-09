@@ -6,7 +6,7 @@ namespace hypixel
 {
     public class PricerDicerCommand : Command
     {
-        public override Task Execute(MessageData data)
+        public override async Task Execute(MessageData data)
         {
             ItemSearchQuery details = ItemPricesCommand.GetQuery(data);
             // temporary map none (0) to any
@@ -16,11 +16,11 @@ namespace hypixel
 
             if (Program.LightClient && details.Start < DateTime.Now - TimeSpan.FromDays(7))
             {
-                return ClientProxy.Instance.Proxy(data);
+                await ClientProxy.Instance.Proxy(data);
+                return;
             }
 
-            var thread = ItemPrices.Instance.GetPriceFor(details);
-            var res = thread.Result;
+            var res = await ItemPrices.Instance.GetPriceFor(details);
 
             var maxAge = A_MINUTE;
             if (IsDayRange(details))
@@ -29,7 +29,7 @@ namespace hypixel
             }
             Console.WriteLine("made response");
 
-            return data.SendBack(data.Create("itemResponse", res, maxAge));
+            await data.SendBack(data.Create("itemResponse", res, maxAge));
         }
 
         private static bool IsDayRange(ItemSearchQuery details)
