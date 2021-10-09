@@ -11,6 +11,7 @@ namespace Coflnet.Sky.Commands
         /// <param name="flip"></param>
         /// <returns></returns>
         bool SendFlip(hypixel.FlipInstance flip);
+        bool SendFlip(LowPricedAuction flip);
         bool SendSold(string uuid);
         FlipSettings Settings { get; }
         long Id { get; }

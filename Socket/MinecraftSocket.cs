@@ -64,7 +64,7 @@ namespace Coflnet.Sky.Commands.MC
 
             if (Settings == null)
                 Settings = DEFAULT_SETTINGS;
-            FlipperService.Instance.AddNonConnection(this);
+            FlipperService.Instance.AddNonConnection(this, false);
             SendMessage("§1C§6oflnet§8: §fNOTE §7This is a development preview, it is NOT stable/bugfree", $"https://discord.gg/wvKXfTgCfb");
             System.Threading.Tasks.Task.Run(async () =>
             {
@@ -335,9 +335,9 @@ namespace Coflnet.Sky.Commands.MC
         private void UpdateConnectionTier(SettingsChange settings)
         {
             if (settings.Tier.HasFlag(AccountTier.PREMIUM) && settings.ExpiresAt > DateTime.Now)
-                FlipperService.Instance.AddConnection(this);
+                FlipperService.Instance.AddConnection(this, false);
             else
-                FlipperService.Instance.AddNonConnection(this);
+                FlipperService.Instance.AddNonConnection(this, false);
         }
 
         private string FindWhatsNew(FlipSettings current, FlipSettings newSettings)
@@ -359,6 +359,17 @@ namespace Coflnet.Sky.Commands.MC
             }
 
             return "";
+        }
+
+        public bool SendFlip(LowPricedAuction flip)
+        {
+            return SendFlip(new FlipInstance()
+            {
+                LastKnownCost = (int)flip.Auction.StartingBid,
+                Auction = flip.Auction,
+                MedianPrice = flip.TargetPrice,
+                Uuid = flip.Auction.Uuid,
+            });
         }
 
         public class Response

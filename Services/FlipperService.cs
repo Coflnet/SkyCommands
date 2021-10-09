@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
+using Coflnet.Sky;
 using Coflnet.Sky.Commands;
 using Coflnet.Sky.Filter;
 using Confluent.Kafka;
@@ -84,9 +85,11 @@ namespace hypixel
             RemoveNonConnection(con);
         }
 
-        public void AddNonConnection(IFlipConnection con)
+        public void AddNonConnection(IFlipConnection con, bool sendHistory = true)
         {
             SlowSubs.AddOrUpdate(con.Id, cid => con, (cid, oldMId) => con);
+            if(!sendHistory)
+                return;
             SendFlipHistory(con, LoadBurst, 0);
             Task.Run(async () =>
             {
@@ -176,6 +179,8 @@ namespace hypixel
         /// <param name="flip"></param>
         private void DeliverFlip(FlipInstance flip)
         {
+            if(FlipIdLookup.ContainsKey(flip.UId))
+                return; // do not double deliver
             var tracer = OpenTracing.Util.GlobalTracer.Instance;
             var span = OpenTracing.Util.GlobalTracer.Instance.BuildSpan("SendFlip")
                     .AsChildOf(tracer.Extract(BuiltinFormats.TextMap, flip.Auction.TraceContext));
@@ -192,6 +197,22 @@ namespace hypixel
                     FlipIdLookup.Remove(result.UId, out bool value);
                 }
             }
+        }
+
+        private void DeliverLowPricedAuction(LowPricedAuction flip)
+        {
+            if(FlipIdLookup.ContainsKey(flip.UId))
+                return; // do not double deliver
+            var tracer = OpenTracing.Util.GlobalTracer.Instance;
+            var span = OpenTracing.Util.GlobalTracer.Instance.BuildSpan("DeliverFlip")
+                    .AsChildOf(tracer.Extract(BuiltinFormats.TextMap, flip.Auction.TraceContext));
+            using var scope = span.StartActive();
+
+            foreach (var item in Subs)
+            {
+                item.Value.SendFlip(flip);
+            }
+
         }
 
 

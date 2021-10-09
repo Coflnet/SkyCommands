@@ -12,6 +12,7 @@ using RateLimiter;
 using ComposableAsync;
 using Coflnet.Sky.Commands;
 using Coflnet.Sky.Filter;
+using Coflnet.Sky;
 
 namespace hypixel
 {
@@ -385,6 +386,11 @@ namespace hypixel
                 if (uId != 0 && uId == userId)
                     yield return item.Value;
             }
+        }
+
+        public bool SendFlip(LowPricedAuction flip)
+        {
+            return true;
         }
     }
 }
