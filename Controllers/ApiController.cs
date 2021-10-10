@@ -39,8 +39,6 @@ namespace Coflnet.Hypixel.Controller
             var result = await Server.ExecuteCommandWithCache<string, List<SearchService.SearchResultItem>>("fullSearch", searchVal);
             return Ok(result);
         }
-
-
     }
 }
 
