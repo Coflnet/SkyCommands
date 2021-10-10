@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
+using Coflnet.Sky.Commands;
 using HashidsNet;
 
 namespace hypixel
@@ -19,8 +20,11 @@ namespace hypixel
         public async Task<string> GetUserName(string refId)
         {
             if (UserService.Instance.TryGetUserById(GetId(refId), out GoogleUser user))
-                if (user.MinecraftUuid != null)
-                    return await PlayerSearch.Instance.GetNameWithCacheAsync(user.MinecraftUuid);
+            {
+                var accountUuid =  (await McAccountService.Instance.GetActiveAccount(user.Id))?.AccountUuid;
+                if (accountUuid != null)
+                    return await PlayerSearch.Instance.GetNameWithCacheAsync(accountUuid);
+            }
             return null;
         }
 
