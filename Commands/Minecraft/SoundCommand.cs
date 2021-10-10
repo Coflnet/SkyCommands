@@ -7,7 +7,9 @@ namespace Coflnet.Sky.Commands.MC
     {
         public override Task Execute(MinecraftSocket socket, string arguments)
         {
-            socket.SendSound(JsonConvert.DeserializeObject<string>(arguments));
+            var name = JsonConvert.DeserializeObject<string>(arguments);
+            socket.SendSound(name);
+            socket.SendMessage("playing " + name);
             return Task.CompletedTask;
         }
     }

@@ -20,7 +20,7 @@ namespace hypixel
             if (player == default(Player))
                 throw new CoflnetException("unkown_player", "This player was not found");
 
-            var restResponse = await mcAccountClient.ExecuteAsync(new RestRequest("Connect​/user​/{userId}", Method.POST)
+            var restResponse = await mcAccountClient.ExecuteAsync(new RestRequest("connect/user/{userId}", Method.POST)
                                 .AddUrlSegment("userId", userId).AddQueryParameter("mcUuid", uuid));
 
             await data.SendBack(new MessageData("connectMc", restResponse.Content));
