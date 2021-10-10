@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Coflnet.Sky.Commands
 {
-    public class McAccountService 
+    public class McAccountService
     {
         public static McAccountService Instance = new McAccountService();
         RestClient mcAccountClient = new RestClient("http://" + SimplerConfig.Config.Instance["MCCONNECT_HOST"]);
@@ -17,8 +17,8 @@ namespace Coflnet.Sky.Commands
             var mcRequest = new RestRequest("connect/user/{userId}")
                                 .AddUrlSegment("userId", userId);
             var mcResponse = await mcAccountClient.ExecuteAsync(mcRequest);
-            var mcAccounts  = JsonConvert.DeserializeObject<Coflnet.Sky.McConnect.Models.User>(mcResponse.Content);
-            return mcAccounts.Accounts.OrderByDescending(a=>a.UpdatedAt).FirstOrDefault();
+            var mcAccounts = JsonConvert.DeserializeObject<Coflnet.Sky.McConnect.Models.User>(mcResponse.Content);
+            return mcAccounts.Accounts.OrderByDescending(a => a.UpdatedAt).Where(a=>a.Verified).FirstOrDefault();
         }
 
         public async Task<string> ConnectAccount(string userId, string uuid)
