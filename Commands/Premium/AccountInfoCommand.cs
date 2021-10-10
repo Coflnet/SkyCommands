@@ -1,5 +1,9 @@
+using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
+using Coflnet.Sky.Commands;
+using Newtonsoft.Json;
+using RestSharp;
 
 namespace hypixel
 {
@@ -10,9 +14,12 @@ namespace hypixel
             var user = data.User;
             var token = LoginExternalCommand.GenerateToken(user.Email);
             var mcName = "unkown";
-            if (user.MinecraftUuid != null)
-                mcName = await PlayerSearch.Instance.GetNameWithCacheAsync(user.MinecraftUuid);
-            await data.SendBack(data.Create("acInfo", new Response(user.Email, token, user.MinecraftUuid, mcName)));
+
+            var activeAccount = await McAccountService.Instance.GetActiveAccount(user.Id);
+                    
+            if (activeAccount != null && activeAccount.AccountUuid != null)
+                mcName = await PlayerSearch.Instance.GetNameWithCacheAsync(activeAccount.AccountUuid);
+            await data.SendBack(data.Create("acInfo", new Response(user.Email, token, activeAccount?.AccountUuid, mcName)));
         }
 
         [DataContract]

@@ -3,13 +3,13 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
+using Coflnet.Sky.Commands;
 using RestSharp;
 
 namespace hypixel
 {
     public class ConnectMCAccountCommand : Command
     {
-        RestClient mcAccountClient = new RestClient("http://" + SimplerConfig.Config.Instance["MCCONNECT_HOST"]);
 
         public override async Task Execute(MessageData data)
         {
@@ -20,10 +20,8 @@ namespace hypixel
             if (player == default(Player))
                 throw new CoflnetException("unkown_player", "This player was not found");
 
-            var restResponse = await mcAccountClient.ExecuteAsync(new RestRequest("connect/user/{userId}", Method.POST)
-                                .AddUrlSegment("userId", userId).AddQueryParameter("mcUuid", uuid));
-
-            await data.SendBack(new MessageData("connectMc", restResponse.Content));
+            var restResponse = await McAccountService.Instance.ConnectAccount(userId.ToString(),uuid);
+            await data.SendBack(new MessageData("connectMc", restResponse));
         }
     }
 }
