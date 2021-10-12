@@ -222,9 +222,9 @@ namespace Coflnet.Sky.Commands.MC
 
         public class ChatPart
         {
-            public string Text;
-            public string OnClick;
-            public string Hover;
+            public string text;
+            public string onClick;
+            public string hover;
 
             public ChatPart()
             {
@@ -232,16 +232,16 @@ namespace Coflnet.Sky.Commands.MC
 
             public ChatPart(string text, string onClick, string hover)
             {
-                Text = text;
-                OnClick = onClick;
-                Hover = hover;
+                this.text = text;
+                this.onClick = onClick;
+                this.hover = hover;
             }
 
         }
 
         public void SendSound(string soundId, float pitch = 1f)
         {
-            this.Send(Response.Create("playSound", new { nameof = soundId, pitch }));
+            this.Send(Response.Create("playSound", new { name = soundId, pitch }));
         }
 
         private OpenTracing.IScope CloseBecauseError(Exception e)
