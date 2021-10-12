@@ -209,7 +209,10 @@ namespace Coflnet.Sky.Commands.MC
             }
             try
             {
-                this.Send(Response.Create("writeToChat", new { text, onClick = clickAction, hover = hoverText }));
+                if (Version == "1.2-Alpha")
+                    this.Send(Response.Create("chatMessage", new ChatPart[] { new ChatPart(text, clickAction, hoverText), new ChatPart("[X]", null, "hi :D") }));
+                else
+                    this.Send(Response.Create("writeToChat", new { text, onClick = clickAction, hover = hoverText }));
             }
             catch (Exception e)
             {
@@ -217,9 +220,28 @@ namespace Coflnet.Sky.Commands.MC
             }
         }
 
-        public void SendSound(string soundId)
+        public class ChatPart
         {
-            this.Send(Response.Create("playSound", soundId));
+            public string Text;
+            public string OnClick;
+            public string Hover;
+
+            public ChatPart()
+            {
+            }
+
+            public ChatPart(string text, string onClick, string hover)
+            {
+                Text = text;
+                OnClick = onClick;
+                Hover = hover;
+            }
+
+        }
+
+        public void SendSound(string soundId, float pitch = 1f)
+        {
+            this.Send(Response.Create("playSound", new { nameof = soundId, pitch }));
         }
 
         private OpenTracing.IScope CloseBecauseError(Exception e)
