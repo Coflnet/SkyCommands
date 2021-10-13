@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
@@ -9,35 +8,60 @@ using Jaeger.Reporters;
 using Jaeger.Samplers;
 using Newtonsoft.Json;
 using OpenTracing.Util;
+using RestSharp;
 using WebSocketSharp;
 using WebSocketSharp.Server;
 
 namespace Coflnet.Sky.Commands.MC
 {
-    public class MinecraftSocket : WebSocketBehavior, IFlipConnection
+    public class NextUpdateRetriever
+    {
+        static RestClient client = new RestClient("http://" + SimplerConfig.SConfig.Instance["UPDATER_HOST"]);
+        public async Task<DateTime> Get()
+        {
+            var last = await client.ExecuteAsync<DateTime>(new RestRequest("/api/time"));
+            return last.Data + TimeSpan.FromSeconds(61);
+        }
+    }
+    public partial class MinecraftSocket : WebSocketBehavior, IFlipConnection
     {
         public string McId;
+        public static string COFLNET = "§1C§6oflnet§8: ";
 
         public long Id { get; private set; }
 
         protected string sessionId = "";
 
         public FlipSettings Settings { get; set; }
+
         public string Version { get; private set; }
         OpenTracing.ITracer tracer = new Jaeger.Tracer.Builder("sky-commands-mod").WithSampler(new ConstSampler(true)).Build();
         OpenTracing.ISpan conSpan;
         private System.Threading.Timer PingTimer;
 
+        public IModVersionAdapter ModAdapter;
+
         public static FlipSettings DEFAULT_SETTINGS = new FlipSettings() { MinProfit = 100000, MinVolume = 50, ModSettings = new ModSettings() };
 
         public static ClassNameDictonary<McCommand> Commands = new ClassNameDictonary<McCommand>();
+
+        public static event Action NextUpdateStart;
 
         static MinecraftSocket()
         {
             Commands.Add<TestCommand>();
             Commands.Add<SoundCommand>();
-        }
+            Commands.Add<ReferenceCommand>();
 
+            Task.Run(async () =>
+            {
+                var next = await new NextUpdateRetriever().Get();
+                var timer = new System.Threading.Timer((e) =>
+                {
+                    NextUpdateStart?.Invoke();
+                }, null, DateTime.Now - next, TimeSpan.FromMinutes(1));
+            });
+        }
 
         protected override void OnOpen()
         {
@@ -50,6 +74,12 @@ namespace Coflnet.Sky.Commands.MC
                 sessionId = args["SId"].Truncate(60);
             if (args["version"] != null)
                 Version = args["version"].Truncate(10);
+
+            ModAdapter = Version switch
+            {
+                "1.2-Alpha" => new SecondVersionAdapter(this),
+                _ => new FirstModVersionAdapter(this)
+            };
 
             McId = args["player"] ?? args["uuid"];
             conSpan.SetTag("uuid", McId);
@@ -65,7 +95,7 @@ namespace Coflnet.Sky.Commands.MC
             if (Settings == null)
                 Settings = DEFAULT_SETTINGS;
             FlipperService.Instance.AddNonConnection(this, false);
-            SendMessage("§1C§6oflnet§8: §fNOTE §7This is a development preview, it is NOT stable/bugfree", $"https://discord.gg/wvKXfTgCfb");
+            SendMessage(COFLNET + "§fNOTE §7This is a development preview, it is NOT stable/bugfree", $"https://discord.gg/wvKXfTgCfb");
             System.Threading.Tasks.Task.Run(async () =>
             {
                 await SetupConnectionSettings(stringId);
@@ -87,13 +117,13 @@ namespace Coflnet.Sky.Commands.MC
                     this.Settings = cachedSettings.Settings;
                     UpdateConnectionTier(cachedSettings);
                     await SendAuthorizedHello(cachedSettings);
-                    SendMessage($"§1C§6oflnet§8: §fFound and loaded settings for your connection, e.g. MinProfit: {FormatPrice(Settings.MinProfit)}\n "
+                    SendMessage(COFLNET + $"§fFound and loaded settings for your connection, e.g. MinProfit: {FormatPrice(Settings.MinProfit)}\n "
                         + "§f: click this if you want to change a setting \n"
                         + "§8: nothing else to do have a nice day :)",
                         "https://sky-commands.coflnet.com/flipper");
                     Console.WriteLine($"loaded settings for {this.sessionId} " + JsonConvert.SerializeObject(cachedSettings));
                     await Task.Delay(100);
-                    SendMessage($"§1C§6oflnet§8: {McColorCodes.GREEN} click this to relink your account",
+                    SendMessage(COFLNET + $"{McColorCodes.GREEN} click this to relink your account",
                     GetAuthLink(stringId));
                     return;
                 }
@@ -104,7 +134,7 @@ namespace Coflnet.Sky.Commands.MC
             }
             while (true)
             {
-                SendMessage("§1C§6oflnet§8: §lPlease click this [LINK] to login and configure your flip filters §8(you won't receive real time flips until you do)",
+                SendMessage(COFLNET + "§lPlease click this [LINK] to login and configure your flip filters §8(you won't receive real time flips until you do)",
                     GetAuthLink(stringId));
                 await Task.Delay(TimeSpan.FromSeconds(60));
 
@@ -132,11 +162,11 @@ namespace Coflnet.Sky.Commands.MC
                 builder[i] = '*';
             }
             var anonymisedEmail = builder.ToString();
-            SendMessage($"§1C§6oflnet§8: Hello {mcName} ({anonymisedEmail})");
+            SendMessage(COFLNET + $"Hello {mcName} ({anonymisedEmail})");
             if (cachedSettings.Tier != AccountTier.NONE && cachedSettings.ExpiresAt > DateTime.Now)
-                SendMessage($"§1C§6oflnet§8: You have {cachedSettings.Tier.ToString()} until {cachedSettings.ExpiresAt}");
+                SendMessage(COFLNET + $"You have {cachedSettings.Tier.ToString()} until {cachedSettings.ExpiresAt}");
             else
-                SendMessage($"§1C§6oflnet§8: You use the free version of the flip finder");
+                SendMessage(COFLNET + $"You use the free version of the flip finder");
 
             await Task.Delay(200);
         }
@@ -151,7 +181,6 @@ namespace Coflnet.Sky.Commands.MC
             catch (Exception e)
             {
                 span.Span.Log("could not send ping");
-
                 CloseBecauseError(e);
             }
         }
@@ -168,11 +197,10 @@ namespace Coflnet.Sky.Commands.MC
         {
             using var span = tracer.BuildSpan("Command").AsChildOf(conSpan.Context).StartActive();
             base.OnMessage(e);
-            Console.WriteLine("received message from mcmod " + e.Data);
             var a = JsonConvert.DeserializeObject<Response>(e.Data);
             if (a == null || a.type == null)
             {
-                Send(new Response("error", "the payload has to have the property type"));
+                Send(new Response("error", "the payload has to have the property 'type'"));
                 return;
             }
             span.Span.SetTag("type", a.type);
@@ -183,10 +211,17 @@ namespace Coflnet.Sky.Commands.MC
             if (a.type == "tokenLogin" || a.type == "clicked")
                 return;
 
-            if (Commands.TryGetValue(a.type.ToLower(), out McCommand command))
-                command.Execute(this, a.data);
-            else
-                SendMessage($"The command {a.type} is not know. Please check your spelling ;)");
+            try
+            {
+                if (Commands.TryGetValue(a.type.ToLower(), out McCommand command))
+                    command.Execute(this, a.data);
+                else
+                    SendMessage($"The command '{a.type}' is not know. Please check your spelling ;)");
+            }
+            catch (Exception ex)
+            {
+                dev.Logger.Instance.Error(ex, "mod command");
+            }
 
         }
 
@@ -209,10 +244,7 @@ namespace Coflnet.Sky.Commands.MC
             }
             try
             {
-                if (Version == "1.2-Alpha")
-                    this.Send(Response.Create("chatMessage", new ChatPart[] { new ChatPart(text, clickAction, hoverText), new ChatPart("[X]", null, "hi :D") }));
-                else
-                    this.Send(Response.Create("writeToChat", new { text, onClick = clickAction, hover = hoverText }));
+                this.Send(Response.Create("writeToChat", new { text, onClick = clickAction, hover = hoverText }));
             }
             catch (Exception e)
             {
@@ -220,28 +252,9 @@ namespace Coflnet.Sky.Commands.MC
             }
         }
 
-        public class ChatPart
-        {
-            public string text;
-            public string onClick;
-            public string hover;
-
-            public ChatPart()
-            {
-            }
-
-            public ChatPart(string text, string onClick, string hover)
-            {
-                this.text = text;
-                this.onClick = onClick;
-                this.hover = hover;
-            }
-
-        }
-
         public void SendSound(string soundId, float pitch = 1f)
         {
-            this.Send(Response.Create("playSound", new { name = soundId, pitch }));
+            ModAdapter.SendSound(soundId, pitch);
         }
 
         private OpenTracing.IScope CloseBecauseError(Exception e)
@@ -262,26 +275,28 @@ namespace Coflnet.Sky.Commands.MC
 
         public bool SendFlip(FlipInstance flip)
         {
+            if (flip.UId % 3 == 0)
+                Console.WriteLine(GetFlipMsg(flip) + "|");
             if (base.ConnectionState != WebSocketState.Open)
                 return false;
             if (!(flip.Bin && Settings != null && Settings.MatchesSettings(flip) && !flip.Sold))
                 return true;
 
             using var span = tracer.BuildSpan("Flip").WithTag("uuid", flip.Uuid).AsChildOf(conSpan.Context).StartActive();
-            SendMessage(GetFlipMsg(flip), "/viewauction " + flip.Uuid, string.Join('\n', flip.Interesting.Select(s => "・" + s)));
-            if (this.Settings.ModSettings?.PlaySoundOnFlip ?? false && flip.Profit > 1_000_000)
-                SendSound("note.pling");
+            ModAdapter.SendFlip(flip);
+
             PingTimer.Change(TimeSpan.FromSeconds(50), TimeSpan.FromSeconds(55));
             return true;
         }
 
-        private string GetFlipMsg(FlipInstance flip)
+
+        public string GetFlipMsg(FlipInstance flip)
         {
             var priceColor = GetProfitColor(flip.MedianPrice - flip.LastKnownCost);
             return $"\nFLIP: {GetRarityColor(flip.Rarity)}{flip.Name} {priceColor}{FormatPrice(flip.LastKnownCost)} -> {FormatPrice(flip.MedianPrice)} §g[BUY]";
         }
 
-        private string GetRarityColor(Tier rarity)
+        public string GetRarityColor(Tier rarity)
         {
             return rarity switch
             {
@@ -298,7 +313,7 @@ namespace Coflnet.Sky.Commands.MC
             };
         }
 
-        private string GetProfitColor(int profit)
+        public string GetProfitColor(int profit)
         {
             if (profit >= 50_000_000)
                 return McColorCodes.GOLD;
@@ -311,7 +326,7 @@ namespace Coflnet.Sky.Commands.MC
             return McColorCodes.DARK_GRAY;
         }
 
-        private static string FormatPrice(long price)
+        public static string FormatPrice(long price)
         {
             return string.Format("{0:n0}", price);
         }
@@ -357,9 +372,22 @@ namespace Coflnet.Sky.Commands.MC
         private void UpdateConnectionTier(SettingsChange settings)
         {
             if (settings.Tier.HasFlag(AccountTier.PREMIUM) && settings.ExpiresAt > DateTime.Now)
+            {
                 FlipperService.Instance.AddConnection(this, false);
+                NextUpdateStart += SendTimer;
+            }
             else
                 FlipperService.Instance.AddNonConnection(this, false);
+        }
+
+        private void SendTimer()
+        {
+            if (base.ConnectionState != WebSocketState.Open)
+            {
+                NextUpdateStart -= SendTimer;
+                return;
+            }
+            SendMessage(COFLNET + "Flips in 10 seconds");
         }
 
         private string FindWhatsNew(FlipSettings current, FlipSettings newSettings)
@@ -392,28 +420,6 @@ namespace Coflnet.Sky.Commands.MC
                 MedianPrice = flip.TargetPrice,
                 Uuid = flip.Auction.Uuid,
             });
-        }
-
-        public class Response
-        {
-            public string type;
-            public string data;
-
-            public Response()
-            {
-            }
-
-            public Response(string type, string data)
-            {
-                this.type = type;
-                this.data = data;
-            }
-
-            public static Response Create<T>(string type, T data)
-            {
-                return new Response(type, JsonConvert.SerializeObject(data));
-            }
-
         }
 
     }
