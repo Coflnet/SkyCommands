@@ -51,7 +51,7 @@ namespace hypixel
             try
             {
                 var tokenData = await GoogleJsonWebSignature.ValidateAsync(token);
-                Console.WriteLine("google user: " + tokenData.Name);
+                Console.WriteLine("google user: " + tokenData?.Name);
                 return tokenData;
             }
             catch (Exception e)
