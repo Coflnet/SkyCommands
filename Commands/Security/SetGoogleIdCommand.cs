@@ -56,7 +56,7 @@ namespace hypixel
             }
             catch (Exception e)
             {
-                throw new CoflnetException("invalid_token", $"{e.InnerException.Message}");
+                throw new CoflnetException("invalid_token", $"{e?.InnerException?.Message}");
             }
 
 
