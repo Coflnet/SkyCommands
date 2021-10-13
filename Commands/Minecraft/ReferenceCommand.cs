@@ -11,7 +11,7 @@ namespace Coflnet.Sky.Commands.MC
         public override async Task Execute(MinecraftSocket socket, string arguments)
         {
             Console.WriteLine(arguments);
-            var based = await Server.ExecuteCommandWithCache<string, IEnumerable<BasedOnCommand.Response>>("flipBased", arguments);
+            var based = await Server.ExecuteCommandWithCache<string, IEnumerable<BasedOnCommand.Response>>("flipBased", arguments.Trim('"'));
             Console.WriteLine("got based ");
             Console.WriteLine(based.First().uuid);
             socket.ModAdapter.SendMessage(based

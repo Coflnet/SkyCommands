@@ -204,6 +204,7 @@ namespace Coflnet.Sky.Commands.MC
                 return;
             }
             span.Span.SetTag("type", a.type);
+            span.Span.SetTag("content", a.data);
             if (sessionId.StartsWith("debug"))
                 SendMessage("executed " + a.data, "");
 
