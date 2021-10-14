@@ -49,6 +49,9 @@ namespace Coflnet.Sky.Filter
                 return false;
             if (MaxCost != 0 && flip.LastKnownCost > MaxCost)
                 return false;
+            // don't show above lbin if not wanted
+            if(BasedOnLBin && MaxCost != 0 && flip.LastKnownCost > flip.LowestBin)
+                return false;
             if (flip.Auction == null)
                 return false;
 
