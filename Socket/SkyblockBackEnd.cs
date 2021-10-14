@@ -325,8 +325,6 @@ namespace hypixel
             long id = 0;
             if (stringId != null && stringId.Length > 4)
                 id = ((long)stringId.Substring(0, stringId.Length / 2).GetHashCode()) << 32 + stringId.Substring(stringId.Length / 2, stringId.Length / 2).GetHashCode();
-
-            Console.WriteLine($" got connection, id: {stringId} {id} ");
             return id;
         }
         public static bool SendTo(MessageData data, long connectionId)
@@ -353,6 +351,8 @@ namespace hypixel
 
         private bool TrySendData(MessageData data)
         {
+            if(ConnectionState != WebSocketState.Open)
+                return false;
             data.mId = SubFlipMsgId;
             try
             {

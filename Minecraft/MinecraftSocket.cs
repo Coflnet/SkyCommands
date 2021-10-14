@@ -4,10 +4,8 @@ using System.Threading.Tasks;
 using System.Web;
 using Coflnet.Sky.Filter;
 using hypixel;
-using Jaeger.Reporters;
 using Jaeger.Samplers;
 using Newtonsoft.Json;
-using OpenTracing.Util;
 using RestSharp;
 using WebSocketSharp;
 using WebSocketSharp.Server;
@@ -205,7 +203,7 @@ namespace Coflnet.Sky.Commands.MC
 
         protected override void OnMessage(MessageEventArgs e)
         {
-            if(waiting > 3)
+            if (waiting > 3)
             {
                 SendMessage(COFLNET + $"You are executing to many commands please wait a bit");
                 return;
@@ -329,6 +327,8 @@ namespace Coflnet.Sky.Commands.MC
         public string GetFlipMsg(FlipInstance flip)
         {
             var priceColor = GetProfitColor(flip.MedianPrice - flip.LastKnownCost);
+            if (Settings.ModSettings?.DisplayJustProfit ?? false)
+                return $"\nFLIP: {GetRarityColor(flip.Rarity)}{flip.Name} {priceColor}{FormatPrice(flip.Profit)} §g[BUY]";
             return $"\nFLIP: {GetRarityColor(flip.Rarity)}{flip.Name} {priceColor}{FormatPrice(flip.LastKnownCost)} -> {FormatPrice(flip.MedianPrice)} §g[BUY]";
         }
 
