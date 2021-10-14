@@ -46,6 +46,8 @@ namespace Coflnet.Sky.Commands.MC
         public static ClassNameDictonary<McCommand> Commands = new ClassNameDictonary<McCommand>();
 
         public static event Action NextUpdateStart;
+        private int blockedFlipCount;
+        private int blockedFlipFilterCount;
 
         static MinecraftSocket()
         {
@@ -176,7 +178,13 @@ namespace Coflnet.Sky.Commands.MC
             using var span = tracer.BuildSpan("ping").AsChildOf(conSpan.Context).StartActive();
             try
             {
-                Send(Response.Create("ping", 0));
+                if (blockedFlipFilterCount > 0)
+                {
+                    SendMessage(COFLNET + $"there were {blockedFlipFilterCount} flips blocked by your filter the last minute");
+                    blockedFlipFilterCount = 0;
+                }
+                else
+                    Send(Response.Create("ping", 0));
             }
             catch (Exception e)
             {
@@ -193,8 +201,15 @@ namespace Coflnet.Sky.Commands.MC
             return (BitConverter.ToInt64(hashed), Convert.ToBase64String(hashed, 0, 16).Replace('+', '-').Replace('/', '_'));
         }
 
+        int waiting = 0;
+
         protected override void OnMessage(MessageEventArgs e)
         {
+            if(waiting > 3)
+            {
+                SendMessage(COFLNET + $"You are executing to many commands please wait a bit");
+                return;
+            }
             using var span = tracer.BuildSpan("Command").AsChildOf(conSpan.Context).StartActive();
             base.OnMessage(e);
             var a = JsonConvert.DeserializeObject<Response>(e.Data);
@@ -212,17 +227,27 @@ namespace Coflnet.Sky.Commands.MC
             if (a.type == "tokenLogin" || a.type == "clicked")
                 return;
 
-            try
+            if (!Commands.TryGetValue(a.type.ToLower(), out McCommand command))
+                SendMessage($"The command '{a.type}' is not know. Please check your spelling ;)");
+
+            Task.Run(async () =>
             {
-                if (Commands.TryGetValue(a.type.ToLower(), out McCommand command))
-                    command.Execute(this, a.data);
-                else
-                    SendMessage($"The command '{a.type}' is not know. Please check your spelling ;)");
-            }
-            catch (Exception ex)
-            {
-                dev.Logger.Instance.Error(ex, "mod command");
-            }
+                waiting++;
+                try
+                {
+                    await command.Execute(this, a.data);
+                }
+                catch (Exception ex)
+                {
+                    dev.Logger.Instance.Error(ex, "mod command");
+                }
+                finally
+                {
+                    waiting--;
+                }
+            });
+
+
 
         }
 
@@ -277,11 +302,21 @@ namespace Coflnet.Sky.Commands.MC
         public bool SendFlip(FlipInstance flip)
         {
             if (flip.UId % 3 == 0)
-                Console.WriteLine(GetFlipMsg(flip) + "|");
+                try
+                {
+                    Console.WriteLine(GetFlipMsg(flip) + "|");
+                }
+                catch (Exception e)
+                {
+                    dev.Logger.Instance.Error(e, "logging flip");
+                }
             if (base.ConnectionState != WebSocketState.Open)
                 return false;
             if (!(flip.Bin && Settings != null && Settings.MatchesSettings(flip) && !flip.Sold))
+            {
+                blockedFlipFilterCount++;
                 return true;
+            }
 
             using var span = tracer.BuildSpan("Flip").WithTag("uuid", flip.Uuid).AsChildOf(conSpan.Context).StartActive();
             ModAdapter.SendFlip(flip);
@@ -375,6 +410,7 @@ namespace Coflnet.Sky.Commands.MC
             if (settings.Tier.HasFlag(AccountTier.PREMIUM) && settings.ExpiresAt > DateTime.Now)
             {
                 FlipperService.Instance.AddConnection(this, false);
+                NextUpdateStart -= SendTimer;
                 NextUpdateStart += SendTimer;
             }
             else
