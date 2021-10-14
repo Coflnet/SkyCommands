@@ -329,7 +329,7 @@ namespace Coflnet.Sky.Commands.MC
             var priceColor = GetProfitColor(flip.MedianPrice - flip.LastKnownCost);
             if (Settings.ModSettings?.DisplayJustProfit ?? false)
                 return $"\nFLIP: {GetRarityColor(flip.Rarity)}{flip.Name} {priceColor}{FormatPrice(flip.Profit)} §g[BUY]";
-            return $"\nFLIP: {GetRarityColor(flip.Rarity)}{flip.Name} {priceColor}{FormatPrice(flip.LastKnownCost)} -> {FormatPrice(flip.MedianPrice)} §g[BUY]";
+            return $"\nFLIP: {GetRarityColor(flip.Rarity)}{flip.Name} {priceColor}{FormatPrice(flip.LastKnownCost)} -> {FormatPrice(Settings.BasedOnLBin ? (flip.LowestBin ?? 0) : flip.MedianPrice)} §g[BUY]";
         }
 
         public string GetRarityColor(Tier rarity)
