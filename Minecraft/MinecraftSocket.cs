@@ -173,7 +173,7 @@ namespace Coflnet.Sky.Commands.MC
 
         private void SendPing()
         {
-            using var span = tracer.BuildSpan("ping").AsChildOf(conSpan.Context).StartActive();
+            using var span = tracer.BuildSpan("ping").AsChildOf(conSpan.Context).WithTag("count", blockedFlipFilterCount).StartActive();
             try
             {
                 if (blockedFlipFilterCount > 0)
