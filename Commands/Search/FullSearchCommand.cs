@@ -43,13 +43,26 @@ namespace hypixel
                 pullTask.Wait(600);
                 DequeueResult(results, result);
             }
-            data.Log($"Waited half a second " + watch.Elapsed);
-
-            var maxAge = A_DAY / 2;
+            var maxAge = A_DAY;
 
             cancelationSource.Cancel();
             DequeueResult(results, result);
             data.Log($"Started sorting {search} " + watch.Elapsed);
+            List<SearchService.SearchResultItem> orderedResult = RankSearchResults(data, search, result);
+            data.Log($"making response {watch.Elapsed} total: {System.DateTime.Now - data.Created}");
+            if (orderedResult.Count() == 0)
+                maxAge = A_MINUTE;
+            var elapsed = watch.Elapsed;
+            Task.Run(() =>
+            {
+                if (!(data is ProxyMessageData<string, object>))
+                    TrackingService.Instance.TrackSearch(data, data.Data, orderedResult.Count, elapsed);
+            }).ConfigureAwait(false);
+            return data.SendBack(data.Create(Type, orderedResult, maxAge));
+        }
+
+        private static List<SearchService.SearchResultItem> RankSearchResults(MessageData data, string search, ConcurrentBag<SearchService.SearchResultItem> result)
+        {
             var orderedResult = result.Where(r => r.Name != null)
                             .Select(r =>
                             {
@@ -76,16 +89,7 @@ namespace hypixel
                         .Distinct(new SearchService.SearchResultComparer())
                         .Take(5)
                         .ToList();
-            data.Log($"making response {watch.Elapsed} total: {System.DateTime.Now - data.Created}");
-            if (orderedResult.Count() == 0)
-                maxAge = A_MINUTE;
-            var elapsed = watch.Elapsed;
-            Task.Run(() =>
-            {
-                if (!(data is ProxyMessageData<string, object>))
-                    TrackingService.Instance.TrackSearch(data, data.Data, orderedResult.Count, elapsed);
-            }).ConfigureAwait(false);
-            return data.SendBack(data.Create(Type, orderedResult, maxAge));
+            return orderedResult;
         }
 
         private static void DequeueResult(Task<ConcurrentQueue<SearchService.SearchResultItem>> results, ConcurrentBag<SearchService.SearchResultItem> result)

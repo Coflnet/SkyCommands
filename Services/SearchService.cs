@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using dev;
 using MessagePack;
 using Microsoft.EntityFrameworkCore;
+using RestSharp;
 
 namespace hypixel
 {
@@ -151,23 +152,23 @@ namespace hypixel
 
 
         private static int prefetchIndex = new Random().Next(1000);
-/*        private async Task PrefetchCache()
-        {
-            var charCount = VALID_MINECRAFT_NAME_CHARS.Length;
-            var combinations = charCount * charCount + charCount;
-            var index = prefetchIndex++ % combinations;
-            var requestString = "";
-            if (index < charCount)
-            {
-                requestString = VALID_MINECRAFT_NAME_CHARS[index].ToString();
-            }
-            else
-            {
-                index = index - charCount;
-                requestString = VALID_MINECRAFT_NAME_CHARS[index / charCount].ToString() + VALID_MINECRAFT_NAME_CHARS[index % charCount];
-            }
-            await Server.ExecuteCommandWithCache<string, object>("fullSearch", requestString);
-        }*/
+        /*        private async Task PrefetchCache()
+                {
+                    var charCount = VALID_MINECRAFT_NAME_CHARS.Length;
+                    var combinations = charCount * charCount + charCount;
+                    var index = prefetchIndex++ % combinations;
+                    var requestString = "";
+                    if (index < charCount)
+                    {
+                        requestString = VALID_MINECRAFT_NAME_CHARS[index].ToString();
+                    }
+                    else
+                    {
+                        index = index - charCount;
+                        requestString = VALID_MINECRAFT_NAME_CHARS[index / charCount].ToString() + VALID_MINECRAFT_NAME_CHARS[index % charCount];
+                    }
+                    await Server.ExecuteCommandWithCache<string, object>("fullSearch", requestString);
+                }*/
 
         private static Regex RomanNumber = new Regex("^[IVX]+$");
         private static async Task<ConcurrentQueue<SearchResultItem>> CreateResponse(string search, CancellationToken token)
@@ -186,48 +187,21 @@ namespace hypixel
 
             searchTasks[0] = Task.Run(async () =>
             {
-                Console.WriteLine("scheduled item wait");
-                var items = await itemTask;
-                Console.WriteLine("awaited item wait");
-                if (items.Count() == 0)// && singlePlayer.Result == null)
-                    items = await ItemDetails.Instance.FindClosest(search);
-
-                foreach (var item in items.Select(item => new SearchResultItem(item)))
-                {
-                    Results.Enqueue(item);
-                }
-                Console.WriteLine("done item wait");
+                await FindItems(search, itemTask, Results);
             }, token).ConfigureAwait(false);
 
             searchTasks[1] = Task.Run(async () =>
             {
-                Console.WriteLine("scheduled player wait");
-                foreach (var item in (await playersTask).Select(player => new SearchResultItem(player)))
-                    Results.Enqueue(item);
-                Console.WriteLine("done player wait");
+                await FindPlayers(playersTask, Results);
             }, token).ConfigureAwait(false);
 
             searchTasks[2] = Task.Run(async () =>
             {
-                if (search.Length <= 2)
-                    return;
-                await Task.Delay(1);
-                Console.WriteLine("scheduled last cache wait");
-                foreach (var item in await CoreServer.ExecuteCommandWithCache<string, List<SearchResultItem>>("fullSearch", search.Substring(0, search.Length - 2)))
-                    Results.Enqueue(item);
-                if (searchWords.Count() == 1 || String.IsNullOrWhiteSpace(searchWords.Last()))
-                    return;
-                if(searchWords[1].Length < 2)
-                    return;
-                foreach (var item in await CoreServer.ExecuteCommandWithCache<string, List<SearchResultItem>>("fullSearch", searchWords[1]))
-                {
-                    item.HitCount -= 20; // no exact match
-                    Results.Enqueue(item);
-                }
+                await FindSimilarSearches(search, Results, searchWords);
             }, token).ConfigureAwait(false);
             ComputeEnchantments(search, Results, searchWords);
 
-            
+
 
             var timeout = DateTime.Now + TimeSpan.FromMilliseconds(400);
             while (DateTime.Now < timeout)
@@ -242,17 +216,62 @@ namespace hypixel
             // return result.OrderBy(r => r.Name?.Length / 2 - r.HitCount - (r.Name?.ToLower() == search.ToLower() ? 10000000 : 0)).Take(targetAmount).ToList();
         }
 
+        private static async Task FindItems(string search, Task<IEnumerable<ItemDetails.ItemSearchResult>> itemTask, ConcurrentQueue<SearchResultItem> Results)
+        {
+            Console.WriteLine("scheduled item wait");
+            var items = await itemTask;
+            Console.WriteLine("awaited item wait");
+            if (items.Count() == 0)// && singlePlayer.Result == null)
+                items = await ItemDetails.Instance.FindClosest(search);
+
+            foreach (var item in items.Select(item => new SearchResultItem(item)))
+            {
+                Results.Enqueue(item);
+            }
+            Console.WriteLine("done item wait");
+        }
+
+        private static async Task FindPlayers(Task<IEnumerable<PlayerResult>> playersTask, ConcurrentQueue<SearchResultItem> Results)
+        {
+            Console.WriteLine("scheduled player wait");
+            var playerList = (await playersTask);
+            foreach (var item in playerList.Select(player => new SearchResultItem(player)))
+                Results.Enqueue(item);
+            if (playerList.Count() == 1)
+                await IndexerClient.TriggerNameUpdate(playerList.First().UUid);
+            Console.WriteLine("done player wait");
+        }
+
+        private static async Task FindSimilarSearches(string search, ConcurrentQueue<SearchResultItem> Results, string[] searchWords)
+        {
+            if (search.Length <= 2)
+                return;
+            await Task.Delay(1);
+            Console.WriteLine("scheduled last cache wait");
+            foreach (var item in await CoreServer.ExecuteCommandWithCache<string, List<SearchResultItem>>("fullSearch", search.Substring(0, search.Length - 2)))
+                Results.Enqueue(item);
+            if (searchWords.Count() == 1 || String.IsNullOrWhiteSpace(searchWords.Last()))
+                return;
+            if (searchWords[1].Length < 2)
+                return;
+            foreach (var item in await CoreServer.ExecuteCommandWithCache<string, List<SearchResultItem>>("fullSearch", searchWords[1]))
+            {
+                item.HitCount -= 20; // no exact match
+                Results.Enqueue(item);
+            }
+        }
+
         private static ConcurrentDictionary<string, Enchantment.EnchantmentType> Enchantments = new ConcurrentDictionary<string, Enchantment.EnchantmentType>();
 
         private static void ComputeEnchantments(string search, ConcurrentQueue<SearchResultItem> Results, string[] searchWords)
         {
             var lastSpace = search.LastIndexOf(' ');
-            if(Enchantments.Count == 0)
+            if (Enchantments.Count == 0)
             {
                 foreach (var item in Enum.GetValues(typeof(Enchantment.EnchantmentType)).Cast<Enchantment.EnchantmentType>())
                 {
                     var name = item.ToString().Replace('_', ' ');
-                    if(item != Enchantment.EnchantmentType.ultimate_wise)
+                    if (item != Enchantment.EnchantmentType.ultimate_wise)
                         name = name.Replace("ultimate ", "");
                     var formattedName = System.Threading.Thread.CurrentThread.CurrentCulture.TextInfo.ToTitleCase(name.ToLower());
                     Enchantments[formattedName] = item;

@@ -11,7 +11,6 @@ namespace hypixel
     public class SetGoogleIdCommand : Command
     {
         Counter loginCount = Metrics.CreateCounter("loginCount", "How often the login was executed (with a googleid)");
-        RestClient client = new RestClient("http://" + SimplerConfig.SConfig.Instance["INDEXER_HOST"]);
         public override async Task Execute(MessageData data)
         {
             var token = await ValidateToken(data.GetAs<string>());
@@ -24,7 +23,7 @@ namespace hypixel
             catch (Exception)
             {
                 var request = new RestRequest("user", Method.POST).AddJsonBody(new GoogleUser() { GoogleId = token.Subject, Email = token.Email });
-                var response = await client.ExecuteAsync<GoogleUser>(request);
+                var response = await IndexerClient.Client.ExecuteAsync<GoogleUser>(request);
                 user = response.Data;
                 Console.WriteLine("created new user " + user.Id);
             }

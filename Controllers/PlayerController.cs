@@ -63,6 +63,21 @@ namespace Coflnet.Hypixel.Controller
         {
             return (await PlayerService.Instance.GetPlayer(playerUuid)).Name;
         }
+
+
+        /// <summary>
+        /// The name for a given uuid
+        /// </summary>
+        /// <param name="playerUuid">The uuid of the player</param>
+        /// <returns></returns>
+        [Route("{playerUuid}/name")]
+        [HttpPost]
+        [ResponseCache(Duration = 3600, Location = ResponseCacheLocation.Any, NoStore = false)]
+        public async Task<string> UpdateName(string playerUuid)
+        {
+            await IndexerClient.TriggerNameUpdate(playerUuid);
+            return "ok";
+        }
     }
 }
 
