@@ -45,12 +45,12 @@ namespace Coflnet.Sky.Filter
         {
             if (flip.MedianPrice - flip.LastKnownCost < MinProfit)
                 return false;
+            // don't show above lbin if not wanted
+            if(BasedOnLBin && MinProfit != 0 && flip.LastKnownCost > flip.LowestBin)
+                return false;
             if (flip.Volume < MinVolume)
                 return false;
             if (MaxCost != 0 && flip.LastKnownCost > MaxCost)
-                return false;
-            // don't show above lbin if not wanted
-            if(BasedOnLBin && MaxCost != 0 && flip.LastKnownCost > flip.LowestBin)
                 return false;
             if (flip.Auction == null)
                 return false;
