@@ -46,7 +46,7 @@ namespace Coflnet.Sky.Filter
             if (flip.MedianPrice - flip.LastKnownCost < MinProfit)
                 return false;
             // don't show above lbin if not wanted
-            if(BasedOnLBin && MinProfit != 0 && flip.LastKnownCost > flip.LowestBin)
+            if (BasedOnLBin && flip.LowestBin - flip.LastKnownCost < MinProfit)
                 return false;
             if (flip.Volume < MinVolume)
                 return false;
