@@ -69,9 +69,14 @@ namespace hypixel
 
         internal async Task<DeliveryResult<string, SettingsChange>> UpdateSettings(SettingsChange settings)
         {
-            using (var p = new ProducerBuilder<string, SettingsChange>(producerConfig).SetValueSerializer(SerializerFactory.GetSerializer<SettingsChange>()).Build())
+            var cacheKey = "uflipset" + settings.UserId;
+            var stored = await CacheService.Instance.GetFromRedis<SettingsChange>(cacheKey);
+            var serializer = SerializerFactory.GetSerializer<SettingsChange>();
+            if(serializer.Serialize(settings,default).SequenceEqual(serializer.Serialize(stored,default)))
+                return null;
+            using (var p = new ProducerBuilder<string, SettingsChange>(producerConfig).SetValueSerializer(serializer).Build())
             {
-                await CacheService.Instance.SaveInRedis("uflipset" + settings.UserId, settings);
+                await CacheService.Instance.SaveInRedis(cacheKey, settings);
                 return await p.ProduceAsync(SettingsTopic, new Message<string, SettingsChange> { Value = settings });
             }
         }

@@ -117,7 +117,11 @@ namespace Coflnet.Sky.Commands.MC
                     this.Settings = cachedSettings.Settings;
                     UpdateConnectionTier(cachedSettings);
                     await SendAuthorizedHello(cachedSettings);
-                    SendMessage(COFLNET + $"§fFound and loaded settings for your connection, e.g. MinProfit: {FormatPrice(Settings.MinProfit)}\n "
+                    SendMessage(COFLNET + $"§fFound and loaded settings for your connection\n"
+                        +$" MinProfit: {FormatPrice(Settings.MinProfit)}  "
+                        +$" MaxCost: {FormatPrice(Settings.MaxCost)}"
+                        +$" Blacklist-Size: {Settings.BlackList.Count}\n "
+                        + (Settings.BasedOnLBin ? $" Your profit is based on Lowest bin, please not that this is NOT the intended way to use this\n " : "")
                         + "§f: click this if you want to change a setting \n"
                         + "§8: nothing else to do have a nice day :)",
                         "https://sky-commands.coflnet.com/flipper");
