@@ -335,7 +335,7 @@ namespace Coflnet.Sky.Commands.MC
             if (Settings.ModSettings?.DisplayJustProfit ?? false)
                 return $"\nFLIP: {GetRarityColor(flip.Rarity)}{flip.Name} {priceColor}{FormatPrice(profit)} §g[BUY]";
 
-            return $"\nFLIP: {GetRarityColor(flip.Rarity)}{flip.Name} {priceColor}{FormatPrice(flip.LastKnownCost)} -> {FormatPrice(Settings.BasedOnLBin ? (flip.LowestBin ?? 0) : flip.MedianPrice)} (+{FormatPrice(profit)}§g[BUY]";
+            return $"\nFLIP: {GetRarityColor(flip.Rarity)}{flip.Name} {priceColor}{FormatPrice(flip.LastKnownCost)} -> {FormatPrice(Settings.BasedOnLBin ? (flip.LowestBin ?? 0) : flip.MedianPrice)} (+{FormatPrice(profit)}) §g[BUY]";
         }
 
         public string GetRarityColor(Tier rarity)
@@ -370,10 +370,10 @@ namespace Coflnet.Sky.Commands.MC
 
         public static string FormatPrice(long price)
         {
-            if(price > 10_000_000)
+            /*if(price > 10_000_000)
                 return string.Format("{0:n0}", price/1_000_000) + "M";
             if(price > 100_000)
-                return string.Format("{0:n0}", price/1_000) + "k";
+                return string.Format("{0:n0}", price/1_000) + "k";*/
             return string.Format("{0:n0}", price);
         }
 
