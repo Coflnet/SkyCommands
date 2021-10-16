@@ -15,8 +15,10 @@ namespace Coflnet.Sky.Commands.MC
         public bool SendFlip(FlipInstance flip)
         {
             var message = socket.GetFlipMsg(flip);
-            SendMessage(new ChatPart(message, "/viewauction " + flip.Uuid, string.Join('\n', flip.Interesting.Select(s => "・" + s))),
-                new ChatPart("?", "/cofl reference " + flip.Uuid, "Get reference auctions"));
+            var openCommand= "/viewauction " + flip.Uuid;
+            SendMessage(new ChatPart(message, openCommand, string.Join('\n', flip.Interesting.Select(s => "・" + s))),
+                new ChatPart("?", "/cofl reference " + flip.Uuid, "Get reference auctions"),
+                new ChatPart(" ", openCommand, null));
 
             if (socket.Settings.ModSettings?.PlaySoundOnFlip ?? false && flip.Profit > 1_000_000)
                 SendSound("note.pling");
