@@ -29,6 +29,9 @@ namespace Coflnet.Sky.Filter
         [DataMember(Name = "maxCost")]
         public int MaxCost;
 
+        [DataMember(Name = "visibility")]
+        public VisibilitySettings Visibility;
+
         [DataMember(Name = "mod")]
         public ModSettings ModSettings;
 

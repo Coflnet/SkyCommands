@@ -15,5 +15,10 @@ namespace Coflnet.Sky.Filter
         /// </summary>
         [DataMember(Name = "soundOnFlip")]
         public bool PlaySoundOnFlip;
+        /// <summary>
+        /// Use M and k to shorten larger numbers
+        /// </summary>
+        [DataMember(Name = "shortNumbers")]
+        public bool ShortNumbers;
     }
 }

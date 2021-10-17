@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using Newtonsoft.Json;
 using static hypixel.ItemPrices;
 using System.Collections.Specialized;
+using static hypixel.ItemReferences;
 
 namespace hypixel
 {
@@ -231,7 +232,14 @@ namespace hypixel
         {
             try
             {
-                var prices = (await ItemPrices.Instance.GetPriceFor(new ItemSearchQuery() { name = tag, Filter = filter, Start = DateTime.Now - TimeSpan.FromDays(1) })).Prices;
+                var result = await Server.ExecuteCommandWithCache<ItemSearchQuery,ItemPrices.Resonse>("pricerdicer",new ItemSearchQuery()
+                {
+                    Filter = filter,
+                    name = tag,
+                    Start = DateTime.Now - TimeSpan.FromDays(1)
+                });
+
+                var prices = result.Prices;
                 if (prices == null || prices.Count == 0)
                     return 0;
                 return prices.Average(a => a.Avg);

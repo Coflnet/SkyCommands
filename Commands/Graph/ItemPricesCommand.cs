@@ -63,8 +63,9 @@ namespace hypixel
 
             if (details.End == default(DateTime))
             {
-                details.End = DateTime.Now;
+                details.End = DateTime.Now.RoundDown(TimeSpan.FromMinutes(5));
             }
+            details.Start = details.Start.RoundDown(TimeSpan.FromMinutes(5));
 
             return details;
         }

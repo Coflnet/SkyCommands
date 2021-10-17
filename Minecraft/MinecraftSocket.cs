@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
@@ -118,9 +119,9 @@ namespace Coflnet.Sky.Commands.MC
                     UpdateConnectionTier(cachedSettings);
                     await SendAuthorizedHello(cachedSettings);
                     SendMessage(COFLNET + $"§fFound and loaded settings for your connection\n"
-                        +$" MinProfit: {FormatPrice(Settings.MinProfit)}  "
-                        +$" MaxCost: {FormatPrice(Settings.MaxCost)}"
-                        +$" Blacklist-Size: {Settings.BlackList.Count}\n "
+                        + $" MinProfit: {FormatPrice(Settings.MinProfit)}  "
+                        + $" MaxCost: {FormatPrice(Settings.MaxCost)}"
+                        + $" Blacklist-Size: {Settings.BlackList.Count}\n "
                         + (Settings.BasedOnLBin ? $" Your profit is based on Lowest bin, please not that this is NOT the intended way to use this\n " : "")
                         + "§f: click this if you want to change a setting \n"
                         + "§8: nothing else to do have a nice day :)",
@@ -332,10 +333,11 @@ namespace Coflnet.Sky.Commands.MC
         {
             var profit = Settings.BasedOnLBin ? (flip.LowestBin ?? 0 - flip.LastKnownCost) : flip.Profit;
             var priceColor = GetProfitColor((int)profit);
-            if (Settings.ModSettings?.DisplayJustProfit ?? false)
-                return $"\nFLIP: {GetRarityColor(flip.Rarity)}{flip.Name} {priceColor}{FormatPrice(profit)} §g[BUY]";
+            var targetPrice = Settings.BasedOnLBin ? (flip.LowestBin ?? 0) : flip.MedianPrice;
+            var extraText = String.Join(",", flip.Interesting.Take(Settings.Visibility?.ExtraInfoMax ?? 0));
 
-            return $"\nFLIP: {GetRarityColor(flip.Rarity)}{flip.Name} {priceColor}{FormatPrice(flip.LastKnownCost)} -> {FormatPrice(Settings.BasedOnLBin ? (flip.LowestBin ?? 0) : flip.MedianPrice)} (+{FormatPrice(profit)}) §g[BUY]";
+            return $"\nFLIP: {GetRarityColor(flip.Rarity)}{flip.Name} {priceColor}{FormatPrice(flip.LastKnownCost)} -> {FormatPrice(targetPrice)} (+{FormatPrice(profit)}) §g[BUY]"
+                + extraText;
         }
 
         public string GetRarityColor(Tier rarity)
@@ -360,7 +362,7 @@ namespace Coflnet.Sky.Commands.MC
             if (profit >= 50_000_000)
                 return McColorCodes.GOLD;
             if (profit >= 10_000_000)
-                return McColorCodes.BLUE;
+                return McColorCodes.AQUA;
             if (profit >= 1_000_000)
                 return McColorCodes.GREEN;
             if (profit >= 100_000)
@@ -368,13 +370,33 @@ namespace Coflnet.Sky.Commands.MC
             return McColorCodes.DARK_GRAY;
         }
 
-        public static string FormatPrice(long price)
+        public string FormatPrice(long price)
         {
-            /*if(price > 10_000_000)
-                return string.Format("{0:n0}", price/1_000_000) + "M";
-            if(price > 100_000)
-                return string.Format("{0:n0}", price/1_000) + "k";*/
+            if (Settings.ModSettings?.ShortNumbers ?? false)
+                return FormatPriceShort(price);
             return string.Format("{0:n0}", price);
+        }
+
+        /// <summary>
+        /// By RenniePet on Stackoverflow
+        /// https://stackoverflow.com/a/30181106
+        /// </summary>
+        /// <param name="num"></param>
+        /// <returns></returns>
+        private static string FormatPriceShort(long num)
+        {
+            // Ensure number has max 3 significant digits (no rounding up can happen)
+            long i = (long)Math.Pow(10, (int)Math.Max(0, Math.Log10(num) - 2));
+            num = num / i * i;
+
+            if (num >= 1000000000)
+                return (num / 1000000000D).ToString("0.##") + "B";
+            if (num >= 1000000)
+                return (num / 1000000D).ToString("0.##") + "M";
+            if (num >= 1000)
+                return (num / 1000D).ToString("0.##") + "k";
+
+            return num.ToString("#,0");
         }
 
         public bool SendSold(string uuid)

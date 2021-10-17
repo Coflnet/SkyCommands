@@ -18,7 +18,7 @@ namespace Coflnet.Sky.Commands.MC
             Console.WriteLine(based.First().uuid);
             socket.ModAdapter.SendMessage(based
                 .Select(b => new ChatPart(
-                    $"\n-> {b.ItemName} for {MinecraftSocket.FormatPrice(b.highestBid)} {b.end}",
+                    $"\n-> {b.ItemName} for {socket.FormatPrice(b.highestBid)} {b.end}",
                     "https://sky.coflnet.com/auction/" + b.uuid,
                     "Click to open this auction"))
                 .ToArray());
