@@ -304,15 +304,6 @@ namespace Coflnet.Sky.Commands.MC
 
         public bool SendFlip(FlipInstance flip)
         {
-            if (flip.UId % 3 == 0)
-                try
-                {
-                    Console.WriteLine(GetFlipMsg(flip) + "|");
-                }
-                catch (Exception e)
-                {
-                    dev.Logger.Instance.Error(e, "logging flip");
-                }
             if (base.ConnectionState != WebSocketState.Open)
                 return false;
             if (!(flip.Bin && Settings != null && Settings.MatchesSettings(flip) && !flip.Sold))
@@ -331,9 +322,9 @@ namespace Coflnet.Sky.Commands.MC
 
         public string GetFlipMsg(FlipInstance flip)
         {
-            var profit = Settings.BasedOnLBin ? (flip.LowestBin ?? 0 - flip.LastKnownCost) : flip.Profit;
-            var priceColor = GetProfitColor((int)profit);
             var targetPrice = Settings.BasedOnLBin ? (flip.LowestBin ?? 0) : flip.MedianPrice;
+            var profit = targetPrice - flip.LastKnownCost;
+            var priceColor = GetProfitColor((int)profit);
             var extraText = String.Join(",", flip.Interesting.Take(Settings.Visibility?.ExtraInfoMax ?? 0));
 
             return $"\nFLIP: {GetRarityColor(flip.Rarity)}{flip.Name} {priceColor}{FormatPrice(flip.LastKnownCost)} -> {FormatPrice(targetPrice)} (+{FormatPrice(profit)}) §g[BUY]"
