@@ -306,7 +306,11 @@ namespace Coflnet.Sky.Commands.MC
         {
             if (base.ConnectionState != WebSocketState.Open)
                 return false;
-            if (!(flip.Bin && Settings != null && Settings.MatchesSettings(flip) && !flip.Sold))
+            if(!flip.Bin ) // no nonbin
+                return true;
+            
+            if (Settings != null && Settings.MatchesSettings(flip) 
+                || flip.Sold)
             {
                 blockedFlipFilterCount++;
                 return true;
