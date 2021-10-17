@@ -21,6 +21,7 @@ namespace Coflnet.Hypixel.Controller
         [HttpGet]
         public async Task<List<PlayerBidsCommand.BidResult>> GetPlayerBids(string playerUuid, int page = 0)
         {
+            AssertUuid(playerUuid);
             var result = await Server.ExecuteCommandWithCache<PaginatedRequestCommand<PlayerBidsCommand.BidResult>.Request, List<PlayerBidsCommand.BidResult>>(
                 "playerBids", new PaginatedRequestCommand<PlayerBidsCommand.BidResult>.Request()
                 {
@@ -41,6 +42,7 @@ namespace Coflnet.Hypixel.Controller
         [HttpGet]
         public async Task<List<AuctionResult>> GetPlayerAuctions(string playerUuid, int page = 0)
         {
+            AssertUuid(playerUuid);
             var result = await Server.ExecuteCommandWithCache<PaginatedRequestCommand<AuctionResult>.Request, List<AuctionResult>>(
                 "playerAuctions", new PaginatedRequestCommand<AuctionResult>.Request()
                 {
@@ -61,6 +63,7 @@ namespace Coflnet.Hypixel.Controller
         [ResponseCache(Duration = 3600, Location = ResponseCacheLocation.Any, NoStore = false)]
         public async Task<string> GetPlayerName(string playerUuid)
         {
+            AssertUuid(playerUuid);
             return (await PlayerService.Instance.GetPlayer(playerUuid)).Name;
         }
 
@@ -75,8 +78,15 @@ namespace Coflnet.Hypixel.Controller
         [ResponseCache(Duration = 3600, Location = ResponseCacheLocation.Any, NoStore = false)]
         public async Task<string> UpdateName(string playerUuid)
         {
+            AssertUuid(playerUuid);
             await IndexerClient.TriggerNameUpdate(playerUuid);
             return "ok";
+        }
+
+        private static void AssertUuid(string playerUuid)
+        {
+            if (playerUuid.Length != 32)
+                throw new CoflnetException("invalid_uuid", "The provided string does not seem to be a valid minecraft account uuid.");
         }
     }
 }
