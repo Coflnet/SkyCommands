@@ -429,7 +429,7 @@ namespace Coflnet.Sky.Commands.MC
             Settings = settings.Settings;
             UpdateConnectionTier(settings);
 
-            CacheService.Instance.SaveInRedis(this.Id.ToString(), settings, TimeSpan.FromHours(6));
+            CacheService.Instance.SaveInRedis(this.Id.ToString(), settings);
         }
 
         private void UpdateConnectionTier(SettingsChange settings)
