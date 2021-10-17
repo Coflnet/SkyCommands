@@ -72,11 +72,11 @@ namespace hypixel
             var cacheKey = "uflipset" + settings.UserId;
             var stored = await CacheService.Instance.GetFromRedis<SettingsChange>(cacheKey);
             var serializer = SerializerFactory.GetSerializer<SettingsChange>();
-            if(serializer.Serialize(settings,default).SequenceEqual(serializer.Serialize(stored,default)))
-                return null;
+            //if(serializer.Serialize(settings,default).SequenceEqual(serializer.Serialize(stored,default)))
+            //    return null;
             using (var p = new ProducerBuilder<string, SettingsChange>(producerConfig).SetValueSerializer(serializer).Build())
             {
-                await CacheService.Instance.SaveInRedis(cacheKey, settings,TimeSpan.FromHours(1));
+                await CacheService.Instance.SaveInRedis(cacheKey, settings,TimeSpan.FromMinutes(5));
                 return await p.ProduceAsync(SettingsTopic, new Message<string, SettingsChange> { Value = settings });
             }
         }
