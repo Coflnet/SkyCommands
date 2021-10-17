@@ -309,7 +309,7 @@ namespace Coflnet.Sky.Commands.MC
             if(!flip.Bin ) // no nonbin
                 return true;
             
-            if (Settings != null && Settings.MatchesSettings(flip) 
+            if (Settings != null && !Settings.MatchesSettings(flip) 
                 || flip.Sold)
             {
                 blockedFlipFilterCount++;
