@@ -40,7 +40,7 @@ namespace Coflnet.Sky.Commands.MC
 
         public IModVersionAdapter ModAdapter;
 
-        public static FlipSettings DEFAULT_SETTINGS = new FlipSettings() { MinProfit = 100000, MinVolume = 50, ModSettings = new ModSettings() };
+        public static FlipSettings DEFAULT_SETTINGS = new FlipSettings() { MinProfit = 100000, MinVolume = 50, ModSettings = new ModSettings(), Visibility = new VisibilitySettings() };
 
         public static ClassNameDictonary<McCommand> Commands = new ClassNameDictonary<McCommand>();
 
@@ -306,10 +306,10 @@ namespace Coflnet.Sky.Commands.MC
         {
             if (base.ConnectionState != WebSocketState.Open)
                 return false;
-            if(!flip.Bin ) // no nonbin
+            if (!flip.Bin) // no nonbin
                 return true;
-            
-            if (Settings != null && !Settings.MatchesSettings(flip) 
+
+            if (Settings != null && !Settings.MatchesSettings(flip)
                 || flip.Sold)
             {
                 blockedFlipFilterCount++;
