@@ -57,6 +57,9 @@ namespace Coflnet.Sky.Commands.MC
             Task.Run(async () =>
             {
                 var next = await new NextUpdateRetriever().Get();
+                NextUpdateStart += ()=>{
+                    Console.WriteLine("next update");
+                };
                 var timer = new System.Threading.Timer((e) =>
                 {
                     NextUpdateStart?.Invoke();
