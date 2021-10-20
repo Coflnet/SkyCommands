@@ -10,7 +10,7 @@ namespace Coflnet.Sky.Commands.MC
         public FirstModVersionAdapter(MinecraftSocket socket)
         {
             this.socket = socket;
-            socket.SendMessage(MinecraftSocket.COFLNET + "There is a newer mod version. click this to open discord and download it", "https://discord.com/channels/267680588666896385/890682907889373257/898974585318416395");
+            socket.SendMessage(MinecraftSocket.COFLNET + McColorCodes.RED + "There is a newer mod version. click this to open discord and download it", "https://discord.com/channels/267680588666896385/890682907889373257/898974585318416395");
         }
 
         public bool SendFlip(FlipInstance flip)
@@ -28,7 +28,7 @@ namespace Coflnet.Sky.Commands.MC
         public void SendSound(string name, float pitch = 1f)
         {
             // no support
-            socket.SendMessage(MinecraftSocket.COFLNET + "There is a newer mod version. click this to open discord and download it", "https://discord.com/channels/267680588666896385/890682907889373257/898974585318416395");
+            socket.SendMessage(MinecraftSocket.COFLNET + McColorCodes.DARK_RED + "There is a newer mod version. click this to open discord and download it", "https://discord.com/channels/267680588666896385/890682907889373257/898974585318416395");
 
         }
     }
