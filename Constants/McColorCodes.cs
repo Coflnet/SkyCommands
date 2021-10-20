@@ -9,7 +9,7 @@ namespace Coflnet.Sky.Commands.MC
         public static readonly string DARK_RED = "§4";
         public static readonly string DARK_PURPLE = "§5";
         public static readonly string GOLD = "§6";
-        public static readonly string DARK = "§7";
+        public static readonly string GRAY = "§7";
         public static readonly string DARK_GRAY = "§8";
         public static readonly string BLUE = "§9";
         public static readonly string GREEN = "§a";

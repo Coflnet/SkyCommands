@@ -25,7 +25,7 @@ namespace Coflnet.Sky.Commands.MC
     public partial class MinecraftSocket : WebSocketBehavior, IFlipConnection
     {
         public string McId;
-        public static string COFLNET = "§1C§6oflnet§8: ";
+        public static string COFLNET = "[§1C§6oflnet$f]§7: ";
 
         public long Id { get; private set; }
 
