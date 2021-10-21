@@ -407,25 +407,12 @@ namespace Coflnet.Sky.Commands.MC
 
         public void UpdateSettings(SettingsChange settings)
         {
+            if (AreSettingsDifferent(settings))
+                return;
             using var span = tracer.BuildSpan("SettingsUpdate").AsChildOf(conSpan.Context).StartActive();
             if (this.Settings == DEFAULT_SETTINGS)
             {
-                Task.Run(async () =>
-                {
-                    using var span = tracer.BuildSpan("Authorized").AsChildOf(conSpan.Context).StartActive();
-                    try
-                    {
-                        await SendAuthorizedHello(settings);
-                        SendMessage($"Authorized connection you can now control settings via the website");
-                        await Task.Delay(TimeSpan.FromSeconds(20));
-                        SendMessage($"Remember: the format of the flips is: §dITEM NAME §fCOST -> MEDIAN");
-                    }
-                    catch (Exception e)
-                    {
-                        dev.Logger.Instance.Error(e, "settings authorization");
-                        span.Span.Log(e.Message);
-                    }
-                });
+                Task.Run(async () => await ModGotAuthorised(settings));
             }
             else
                 SendMessage($"setting changed " + FindWhatsNew(this.Settings, settings.Settings));
@@ -433,6 +420,35 @@ namespace Coflnet.Sky.Commands.MC
             UpdateConnectionTier(settings);
 
             CacheService.Instance.SaveInRedis(this.Id.ToString(), settings);
+        }
+
+        private async Task<OpenTracing.IScope> ModGotAuthorised(SettingsChange settings)
+        {
+            var span = tracer.BuildSpan("Authorized").AsChildOf(conSpan.Context).StartActive();
+            try
+            {
+                await SendAuthorizedHello(settings);
+                SendMessage($"Authorized connection you can now control settings via the website");
+                await Task.Delay(TimeSpan.FromSeconds(20));
+                SendMessage($"Remember: the format of the flips is: §dITEM NAME §fCOST -> MEDIAN");
+            }
+            catch (Exception e)
+            {
+                dev.Logger.Instance.Error(e, "settings authorization");
+                span.Span.Log(e.Message);
+            }
+
+            return span;
+        }
+
+        /// <summary>
+        /// Tests if the given settings are different from the current active ones
+        /// </summary>
+        /// <param name="settings"></param>
+        /// <returns></returns>
+        private bool AreSettingsDifferent(SettingsChange settings)
+        {
+            return !MessagePack.MessagePackSerializer.Serialize(settings.Settings).SequenceEqual(MessagePack.MessagePackSerializer.Serialize(Settings));
         }
 
         private void UpdateConnectionTier(SettingsChange settings)
