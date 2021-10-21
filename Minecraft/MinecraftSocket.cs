@@ -407,7 +407,7 @@ namespace Coflnet.Sky.Commands.MC
 
         public void UpdateSettings(SettingsChange settings)
         {
-            if (AreSettingsDifferent(settings))
+            if (AreSettingsTheSame(settings))
                 return;
             using var span = tracer.BuildSpan("SettingsUpdate").AsChildOf(conSpan.Context).StartActive();
             if (this.Settings == DEFAULT_SETTINGS)
@@ -446,9 +446,9 @@ namespace Coflnet.Sky.Commands.MC
         /// </summary>
         /// <param name="settings"></param>
         /// <returns></returns>
-        private bool AreSettingsDifferent(SettingsChange settings)
+        private bool AreSettingsTheSame(SettingsChange settings)
         {
-            return !MessagePack.MessagePackSerializer.Serialize(settings.Settings).SequenceEqual(MessagePack.MessagePackSerializer.Serialize(Settings));
+            return MessagePack.MessagePackSerializer.Serialize(settings.Settings).SequenceEqual(MessagePack.MessagePackSerializer.Serialize(Settings));
         }
 
         private void UpdateConnectionTier(SettingsChange settings)

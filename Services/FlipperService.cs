@@ -76,7 +76,7 @@ namespace hypixel
             //    return null;
             using (var p = new ProducerBuilder<string, SettingsChange>(producerConfig).SetValueSerializer(serializer).Build())
             {
-                await CacheService.Instance.SaveInRedis(cacheKey, settings,TimeSpan.FromMinutes(5));
+                await CacheService.Instance.SaveInRedis(cacheKey, settings, TimeSpan.FromMinutes(5));
                 return await p.ProduceAsync(SettingsTopic, new Message<string, SettingsChange> { Value = settings });
             }
         }
@@ -93,7 +93,7 @@ namespace hypixel
         public void AddNonConnection(IFlipConnection con, bool sendHistory = true)
         {
             SlowSubs.AddOrUpdate(con.Id, cid => con, (cid, oldMId) => con);
-            if(!sendHistory)
+            if (!sendHistory)
                 return;
             SendFlipHistory(con, LoadBurst, 0);
             Task.Run(async () =>
@@ -184,11 +184,12 @@ namespace hypixel
         /// <param name="flip"></param>
         private void DeliverFlip(FlipInstance flip)
         {
-            if(FlipIdLookup.ContainsKey(flip.UId))
+            if (FlipIdLookup.ContainsKey(flip.UId))
                 return; // do not double deliver
             var tracer = OpenTracing.Util.GlobalTracer.Instance;
-            var span = OpenTracing.Util.GlobalTracer.Instance.BuildSpan("SendFlip")
-                    .AsChildOf(tracer.Extract(BuiltinFormats.TextMap, flip.Auction.TraceContext));
+            var span = OpenTracing.Util.GlobalTracer.Instance.BuildSpan("SendFlip");
+            if (flip.Auction.TraceContext != null)
+                span = span.AsChildOf(tracer.Extract(BuiltinFormats.TextMap, flip.Auction.TraceContext));
             using var scope = span.StartActive();
 
             NotifyAll(flip, Subs);
@@ -206,7 +207,7 @@ namespace hypixel
 
         private void DeliverLowPricedAuction(LowPricedAuction flip)
         {
-            if(FlipIdLookup.ContainsKey(flip.UId))
+            if (FlipIdLookup.ContainsKey(flip.UId))
                 return; // do not double deliver
             var tracer = OpenTracing.Util.GlobalTracer.Instance;
             var span = OpenTracing.Util.GlobalTracer.Instance.BuildSpan("DeliverFlip")
