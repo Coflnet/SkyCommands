@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Coflnet.Sky.Filter;
 
@@ -12,21 +13,16 @@ namespace hypixel
             try
             {
                 con.SubFlipMsgId = (int)data.mId;
-                try
-                {
-                    con.Settings = data.GetAs<FlipSettings>();
-                    if (con.Settings == null)
-                        con.Settings = new FlipSettings();
-                }
-                catch (Exception)
-                {
-                    // could not get it continue with default
-                    con.Settings = new FlipSettings();
-                }
+                SetSettingsOnConnection(data, con);
 
                 var lastSettings = con.LastSettingsChange;
+
+                if (MessagePack.MessagePackSerializer.Serialize(con.Settings).SequenceEqual(MessagePack.MessagePackSerializer.Serialize(lastSettings.Settings)))
+                    return; // nothing actually changed
+                    
                 lastSettings.Settings = con.Settings;
                 lastSettings.UserId = data.UserId;
+
                 if (!data.User.HasPremium)
                     FlipperService.Instance.AddNonConnection(con);
                 else
@@ -44,6 +40,21 @@ namespace hypixel
                 FlipperService.Instance.AddNonConnection(con);
             }
             await data.Ok();
+        }
+
+        private static void SetSettingsOnConnection(MessageData data, SkyblockBackEnd con)
+        {
+            try
+            {
+                con.Settings = data.GetAs<FlipSettings>();
+                if (con.Settings == null)
+                    con.Settings = new FlipSettings();
+            }
+            catch (Exception)
+            {
+                // could not get it continue with default
+                con.Settings = new FlipSettings();
+            }
         }
     }
 }
