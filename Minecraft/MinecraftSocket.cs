@@ -407,14 +407,13 @@ namespace Coflnet.Sky.Commands.MC
 
         public void UpdateSettings(SettingsChange settings)
         {
-            if (AreSettingsTheSame(settings))
-                return;
+            var settingsSame = AreSettingsTheSame(settings);
             using var span = tracer.BuildSpan("SettingsUpdate").AsChildOf(conSpan.Context).StartActive();
             if (this.Settings == DEFAULT_SETTINGS)
             {
                 Task.Run(async () => await ModGotAuthorised(settings));
             }
-            else
+            else if(!settingsSame)
                 SendMessage($"setting changed " + FindWhatsNew(this.Settings, settings.Settings));
             Settings = settings.Settings;
             UpdateConnectionTier(settings);
