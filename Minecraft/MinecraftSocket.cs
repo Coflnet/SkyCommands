@@ -128,7 +128,7 @@ namespace Coflnet.Sky.Commands.MC
                         + (Settings.BasedOnLBin ? $" Your profit is based on Lowest bin, please not that this is NOT the intended way to use this\n " : "")
                         + "§f: click this if you want to change a setting \n"
                         + "§8: nothing else to do have a nice day :)",
-                        "https://sky-commands.coflnet.com/flipper");
+                        "https://sky.coflnet.com/flipper");
                     Console.WriteLine($"loaded settings for {this.sessionId} " + JsonConvert.SerializeObject(cachedSettings));
                     await Task.Delay(100);
                     SendMessage(COFLNET + $"{McColorCodes.GREEN} click this to relink your account",
@@ -154,7 +154,7 @@ namespace Coflnet.Sky.Commands.MC
 
         private string GetAuthLink(string stringId)
         {
-            return $"https://sky-commands.coflnet.com/authmod?mcid={McId}&conId={HttpUtility.UrlEncode(stringId)}";
+            return $"https://sky.coflnet.com/authmod?mcid={McId}&conId={HttpUtility.UrlEncode(stringId)}";
         }
 
         private async Task SendAuthorizedHello(SettingsChange cachedSettings)
@@ -460,6 +460,7 @@ namespace Coflnet.Sky.Commands.MC
             }
             else
                 FlipperService.Instance.AddNonConnection(this, false);
+            conSpan.SetTag("premium",settings.Tier.ToString());
         }
 
         private void SendTimer()
