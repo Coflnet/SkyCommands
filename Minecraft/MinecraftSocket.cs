@@ -56,6 +56,8 @@ namespace Coflnet.Sky.Commands.MC
         private int blockedFlipCount;
         private int blockedFlipFilterCount;
 
+        private static System.Threading.Timer updateTimer;
+
         static MinecraftSocket()
         {
             Commands.Add<TestCommand>();
@@ -75,7 +77,7 @@ namespace Coflnet.Sky.Commands.MC
                     Console.WriteLine("next update");
                 };
                 Console.WriteLine("started timer to start at " + next);
-                var timer = new System.Threading.Timer((e) =>
+                updateTimer = new System.Threading.Timer((e) =>
                 {
                     try
                     {
@@ -103,6 +105,7 @@ namespace Coflnet.Sky.Commands.MC
 
             ModAdapter = Version switch
             {
+                "1.3-Alpha" => new SecondVersionAdapter(this),
                 "1.2-Alpha" => new SecondVersionAdapter(this),
                 _ => new FirstModVersionAdapter(this)
             };
