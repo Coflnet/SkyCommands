@@ -279,6 +279,10 @@ namespace hypixel
         private void SendNextUpdate()
         {
             TrySendData(new MessageData("nextUpdate",""));
+            Task.Run(async ()=>{
+                await Task.Delay(TimeSpan.FromSeconds(30));
+                this.TrySendData(new MessageData("ping",null));
+            });
         }
 
         protected override void OnOpen()
