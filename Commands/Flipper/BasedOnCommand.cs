@@ -21,9 +21,7 @@ namespace hypixel
                 var auction = AuctionService.Instance.GetAuction(uuid);
                 if (auction == null)
                     throw new CoflnetException("auction_unkown", "Auction not found yet, please try again in a few seconds");
-
-                var response = await SkyFlipperHost.ExecuteAsync(new RestRequest("flip/{uuid}/based").AddParameter("uuid",uuid, ParameterType.UrlSegment));// Flipper.FlipperEngine.Instance.GetRelevantAuctionsCache(auction, context);
-                var result = JsonConvert.DeserializeObject<List<SaveAuction>>(response.Content);
+                List<SaveAuction> result = await GetReferences(uuid);
                 await data.SendBack(data.Create("basedOnResp", result
                             .Select(a => new Response()
                             {
@@ -35,6 +33,14 @@ namespace hypixel
                             A_HOUR));
             }
         }
+
+        public static async Task<List<SaveAuction>> GetReferences(string uuid)
+        {
+            var response = await SkyFlipperHost.ExecuteAsync(new RestRequest("flip/{uuid}/based").AddParameter("uuid", uuid, ParameterType.UrlSegment));
+            var result = JsonConvert.DeserializeObject<List<SaveAuction>>(response.Content);
+            return result;
+        }
+
         [DataContract]
         public class Response
         {

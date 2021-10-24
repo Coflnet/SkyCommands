@@ -17,12 +17,13 @@ namespace Coflnet.Hypixel.Controller
     public class ModController : ControllerBase
     {
         private HypixelContext db;
+        private PricesService priceService;
 
-        public ModController(HypixelContext db)
+        public ModController(HypixelContext db, PricesService pricesService)
         {
             this.db = db;
+            priceService = pricesService;
         }
-
 
         /// <summary>
         /// Returns a list of available server-side commands
@@ -42,17 +43,36 @@ namespace Coflnet.Hypixel.Controller
         /// </summary>
         [Route("item/{uuid}")]
         [HttpGet]
-        public async Task<string> ItemDescription(string uuid)
+        public async Task<string> ItemDescription(string uuid, int count = 1)
         {
             if (uuid.Length < 32 && uuid.Length != 12)
-                throw new CoflnetException("invalid_uuid", "the passed uuid is not valid");
+            {
+                if (ItemDetails.Instance.GetItemIdForName(uuid) == 0)
+                    throw new CoflnetException("invalid_id", "the passed id does not map to an item");
+                var median = await priceService.GetSumary(uuid, new Dictionary<string, string>());
+                return $"Median sell for {count} is {FormatPrice(median.Med)}";
+            }
 
             var lookupId = hypixel.NBT.UidToLong(uuid.Length == 12 ? uuid : uuid.Substring(24));
             var key = NBT.GetLookupKey("uId");
             var auctions = await db.Auctions.Where(a => a.NBTLookup.Where(l => l.KeyId == key && l.Value == lookupId).Any()).Include(a => a.Bids).OrderByDescending(a => a.End).ToListAsync();
             var lastSell = auctions.Where(a => a.End < System.DateTime.Now).FirstOrDefault();
+            long med = await GetMedian(lastSell);
             return $"Sold {auctions.Count} times\n"
-                + (lastSell == null ? "" : $"last sold for {string.Format("{0:n0}", lastSell.HighestBidAmount)} to {await PlayerSearch.Instance.GetNameWithCacheAsync(lastSell.Bids.FirstOrDefault()?.Bidder)}");
+                + (lastSell == null ? "" : $"last sold for {FormatPrice(lastSell.HighestBidAmount)} to {await PlayerSearch.Instance.GetNameWithCacheAsync(lastSell.Bids.FirstOrDefault()?.Bidder)}")
+                + (auctions.Count == 0 ? "" : $"Median {FormatPrice(med)}");
+        }
+
+        private static async Task<long> GetMedian(SaveAuction lastSell)
+        {
+            var references = await BasedOnCommand.GetReferences(lastSell.Uuid);
+            var med = references.OrderByDescending(r => r.HighestBidAmount).Skip(references.Count / 2).FirstOrDefault()?.HighestBidAmount ?? 0;
+            return med;
+        }
+
+        private static string FormatPrice(long price)
+        {
+            return string.Format("{0:n0}", price);
         }
 
         public class CommandListEntry
