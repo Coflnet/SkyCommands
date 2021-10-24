@@ -226,6 +226,8 @@ namespace hypixel
         private static void NotifyAll(FlipInstance flip, ConcurrentDictionary<long, IFlipConnection> subscribers)
         {
             runtroughTime.Observe((DateTime.Now - flip.Auction.FindTime).TotalSeconds);
+            if (flip.Auction != null && flip.Auction.NBTLookup == null)
+                flip.Auction.NBTLookup = NBT.CreateLookup(flip.Auction);
             foreach (var item in subscribers.Keys)
             {
                 try
