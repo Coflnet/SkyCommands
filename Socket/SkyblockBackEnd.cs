@@ -273,12 +273,19 @@ namespace hypixel
         private new void Close()
         {
             Subscribers.TryRemove(Id, out SkyblockBackEnd value);
+            Coflnet.Sky.Commands.MC.MinecraftSocket.NextUpdateStart -= SendNextUpdate;
+        }
+
+        private void SendNextUpdate()
+        {
+            TrySendData(new MessageData("nextUpdate",""));
         }
 
         protected override void OnOpen()
         {
             base.OnOpen();
             SetConnectionId(this.ID);
+            Coflnet.Sky.Commands.MC.MinecraftSocket.NextUpdateStart += SendNextUpdate;
         }
 
         public void SetConnectionId(string stringId)

@@ -57,12 +57,21 @@ namespace Coflnet.Sky.Commands.MC
             Task.Run(async () =>
             {
                 var next = await new NextUpdateRetriever().Get();
-                NextUpdateStart += ()=>{
+                NextUpdateStart += () =>
+                {
                     Console.WriteLine("next update");
                 };
+                Console.WriteLine("started timer to start at " + next);
                 var timer = new System.Threading.Timer((e) =>
                 {
-                    NextUpdateStart?.Invoke();
+                    try
+                    {
+                        NextUpdateStart?.Invoke();
+                    }
+                    catch (Exception ex)
+                    {
+                        dev.Logger.Instance.Error(ex, "sending next update");
+                    }
                 }, null, DateTime.Now - next, TimeSpan.FromMinutes(1));
             });
         }
@@ -413,7 +422,7 @@ namespace Coflnet.Sky.Commands.MC
             {
                 Task.Run(async () => await ModGotAuthorised(settings));
             }
-            else if(!settingsSame)
+            else if (!settingsSame)
                 SendMessage($"setting changed " + FindWhatsNew(this.Settings, settings.Settings));
             Settings = settings.Settings;
             UpdateConnectionTier(settings);
@@ -460,7 +469,7 @@ namespace Coflnet.Sky.Commands.MC
             }
             else
                 FlipperService.Instance.AddNonConnection(this, false);
-            conSpan.SetTag("premium",settings.Tier.ToString());
+            conSpan.SetTag("premium", settings.Tier.ToString());
         }
 
         private void SendTimer()
