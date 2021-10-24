@@ -105,7 +105,7 @@ namespace Coflnet.Sky.Commands.MC
 
             ModAdapter = Version switch
             {
-                "1.3-Alpha" => new SecondVersionAdapter(this),
+                "1.3-Alpha" => new ThirdVersionAdapter(this),
                 "1.2-Alpha" => new SecondVersionAdapter(this),
                 _ => new FirstModVersionAdapter(this)
             };
