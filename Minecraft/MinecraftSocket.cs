@@ -42,7 +42,7 @@ namespace Coflnet.Sky.Commands.MC
         public FlipSettings Settings { get; set; }
 
         public string Version { get; private set; }
-        OpenTracing.ITracer tracer = new Jaeger.Tracer.Builder("sky-commands-mod").WithSampler(new ConstSampler(true)).Build();
+        public OpenTracing.ITracer tracer = new Jaeger.Tracer.Builder("sky-commands-mod").WithSampler(new ConstSampler(true)).Build();
         public OpenTracing.ISpan ConSpan { get; private set; }
         private System.Threading.Timer PingTimer;
 

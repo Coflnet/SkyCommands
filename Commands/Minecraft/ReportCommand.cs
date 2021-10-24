@@ -9,7 +9,7 @@ namespace Coflnet.Sky.Commands.MC
     {
         public override Task Execute(MinecraftSocket socket, string arguments)
         {
-            using var reportSpan = GlobalTracer.Instance.BuildSpan("report")
+            using var reportSpan = socket.tracer.BuildSpan("report")
                         .WithTag("message", arguments.Truncate(150))
                         .WithTag("error", "true")
                         .WithTag("settings", JsonConvert.SerializeObject(socket.Settings))
