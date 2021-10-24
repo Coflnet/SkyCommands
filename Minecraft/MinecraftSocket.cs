@@ -62,6 +62,9 @@ namespace Coflnet.Sky.Commands.MC
             Commands.Add<SoundCommand>();
             Commands.Add<ReferenceCommand>();
             Commands.Add<ReportCommand>();
+            Commands.Add<PurchaseStartCommand>();
+            Commands.Add<PurchaseConfirmCommand>();
+            Commands.Add<ClickedCommand>();
 
             Task.Run(async () =>
             {
