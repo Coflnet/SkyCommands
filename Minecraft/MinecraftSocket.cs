@@ -18,8 +18,16 @@ namespace Coflnet.Sky.Commands.MC
         static RestClient client = new RestClient("http://" + SimplerConfig.SConfig.Instance["UPDATER_HOST"]);
         public async Task<DateTime> Get()
         {
-            var last = await client.ExecuteAsync<DateTime>(new RestRequest("/api/time"));
-            return last.Data + TimeSpan.FromSeconds(61);
+            try
+            {
+                var last = await client.ExecuteAsync<DateTime>(new RestRequest("/api/time"));
+                return last.Data + TimeSpan.FromSeconds(61);
+            }
+            catch (Exception e)
+            {
+                dev.Logger.Instance.Error(e, "getting next update time");
+                throw e;
+            }
         }
     }
     public partial class MinecraftSocket : WebSocketBehavior, IFlipConnection
