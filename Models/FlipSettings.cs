@@ -1,4 +1,5 @@
 
+using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using hypixel;
@@ -23,6 +24,9 @@ namespace Coflnet.Sky.Filter
         [DataMember(Name = "minProfit")]
         public int MinProfit;
 
+        [DataMember(Name = "minProfitPercent")]
+        public int MinProfitPercent;
+
         [DataMember(Name = "minVolume")]
         public int MinVolume;
 
@@ -46,6 +50,7 @@ namespace Coflnet.Sky.Filter
         /// <returns>true if it matches</returns>
         public bool MatchesSettings(FlipInstance flip)
         {
+
             if (flip.MedianPrice - flip.LastKnownCost < MinProfit)
                 return false;
             // don't show above lbin if not wanted
@@ -55,6 +60,10 @@ namespace Coflnet.Sky.Filter
                 return false;
             if (MaxCost != 0 && flip.LastKnownCost > MaxCost)
                 return false;
+            if ((flip.Profit / flip.LastKnownCost) * 100 < MinProfitPercent)
+            {
+                return false;
+            }
             if (flip.Auction == null)
                 return false;
 
