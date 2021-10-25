@@ -88,7 +88,7 @@ namespace Coflnet.Sky.Commands.MC
                         dev.Logger.Instance.Error(ex, "sending next update");
                     }
                 }, null, DateTime.Now - next, TimeSpan.FromMinutes(1));
-            });
+            }).ConfigureAwait(false);
         }
 
         protected override void OnOpen()
@@ -451,7 +451,9 @@ namespace Coflnet.Sky.Commands.MC
         public void UpdateSettings(SettingsChange settings)
         {
             var settingsSame = AreSettingsTheSame(settings);
-            using var span = tracer.BuildSpan("SettingsUpdate").AsChildOf(ConSpan.Context).StartActive();
+            using var span = tracer.BuildSpan("SettingsUpdate").AsChildOf(ConSpan.Context)
+                    .WithTag("premium", settings.Tier.ToString())
+                    .StartActive();
             if (this.Settings == DEFAULT_SETTINGS)
             {
                 Task.Run(async () => await ModGotAuthorised(settings));
@@ -503,7 +505,6 @@ namespace Coflnet.Sky.Commands.MC
             }
             else
                 FlipperService.Instance.AddNonConnection(this, false);
-            ConSpan.SetTag("premium", settings.Tier.ToString());
         }
 
         private void SendTimer()
