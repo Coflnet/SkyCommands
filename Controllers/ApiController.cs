@@ -39,6 +39,19 @@ namespace Coflnet.Hypixel.Controller
             var result = await Server.ExecuteCommandWithCache<string, List<SearchService.SearchResultItem>>("fullSearch", searchVal);
             return Ok(result);
         }
+
+
+        /// <summary>
+        /// Search player 
+        /// </summary>
+        /// <param name="playerName">The player name to search for</param>
+        /// <returns></returns>
+        [Route("search/player/{playerName}")]
+        [HttpGet]
+        public Task<IEnumerable<PlayerResult>> PlayerSearch(string playerName)
+        {
+            return hypixel.PlayerSearch.Instance.Search(playerName, 5);
+        }
     }
 }
 
