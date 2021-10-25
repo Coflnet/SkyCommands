@@ -89,7 +89,7 @@ namespace Coflnet.Sky.Commands.MC
                     {
                         dev.Logger.Instance.Error(ex, "sending next update");
                     }
-                }, null, DateTime.Now - next, TimeSpan.FromMinutes(1));
+                }, null, next -DateTime.Now, TimeSpan.FromMinutes(1));
             }).ConfigureAwait(false);
         }
 
