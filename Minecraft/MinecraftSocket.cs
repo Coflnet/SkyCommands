@@ -76,7 +76,9 @@ namespace Coflnet.Sky.Commands.MC
                 {
                     Console.WriteLine("next update");
                 };
-                Console.WriteLine("started timer to start at " + next);
+                while(next < DateTime.Now)
+                    next += TimeSpan.FromMinutes(1);
+                Console.WriteLine($"started timer to start at {next} now its {DateTime.Now}");
                 updateTimer = new System.Threading.Timer((e) =>
                 {
                     try
