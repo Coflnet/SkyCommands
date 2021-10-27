@@ -184,6 +184,8 @@ namespace hypixel
         /// <param name="flip"></param>
         private void DeliverFlip(FlipInstance flip)
         {
+            if(flip.Auction?.Start < DateTime.Now - TimeSpan.FromMinutes(3) && flip.Auction?.Start != default)
+                return; // skip old flips
             if (FlipIdLookup.ContainsKey(flip.UId))
                 return; // do not double deliver
             var tracer = OpenTracing.Util.GlobalTracer.Instance;
