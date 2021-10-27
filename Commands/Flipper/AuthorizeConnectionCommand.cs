@@ -12,15 +12,14 @@ namespace hypixel
         {
             var con = (data as SocketMessageData).Connection;
             var lastSettings = con.LastSettingsChange;
-            try
-            {
-                lastSettings.ConIds.Add(data.GetAs<long>().ToString());
-            }
-            catch (Exception)
-            {
-                lastSettings.ConIds.Add(data.GetAs<string>());
-            }
+            lastSettings.ConIds.Add(data.GetAs<string>());
+
             lastSettings.UserId = data.UserId;
+            if (data.User.HasPremium)
+            {
+                lastSettings.Tier = AccountTier.PREMIUM;
+                lastSettings.ExpiresAt = data.User.PremiumExpires;
+            }
             await FlipperService.Instance.UpdateSettings(lastSettings);
             await data.Ok();
         }
