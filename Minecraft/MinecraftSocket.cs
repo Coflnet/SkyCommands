@@ -523,6 +523,7 @@ namespace Coflnet.Sky.Commands.MC
             }
             SendMessage(
                 COFLNET + "Flips in 10 seconds",
+                null,
                 "The Hypixel API will update in 10 seconds. Get ready to receive the latest flips. "
                 + "(this is an automated message being sent 50 seconds after the last update)");
         }
