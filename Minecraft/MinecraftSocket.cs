@@ -58,7 +58,7 @@ namespace Coflnet.Sky.Commands.MC
                 {
                     Console.WriteLine("next update");
                 };
-                while(next < DateTime.Now)
+                while (next < DateTime.Now)
                     next += TimeSpan.FromMinutes(1);
                 Console.WriteLine($"started timer to start at {next} now its {DateTime.Now}");
                 updateTimer = new System.Threading.Timer((e) =>
@@ -71,7 +71,7 @@ namespace Coflnet.Sky.Commands.MC
                     {
                         dev.Logger.Instance.Error(ex, "sending next update");
                     }
-                }, null, next -DateTime.Now, TimeSpan.FromMinutes(1));
+                }, null, next - DateTime.Now, TimeSpan.FromMinutes(1));
             }).ConfigureAwait(false);
         }
 
@@ -271,7 +271,7 @@ namespace Coflnet.Sky.Commands.MC
             base.OnClose(e);
             FlipperService.Instance.RemoveConnection(this);
 
-            PingTimer.Dispose();
+
             ConSpan.Finish();
         }
 
@@ -281,6 +281,7 @@ namespace Coflnet.Sky.Commands.MC
             {
                 using var span = tracer.BuildSpan("removing").AsChildOf(ConSpan).StartActive();
                 FlipperService.Instance.RemoveConnection(this);
+                PingTimer.Dispose();
                 return;
             }
             try
@@ -328,7 +329,7 @@ namespace Coflnet.Sky.Commands.MC
 
         private void Error(Exception exception, string message = null)
         {
-            using var error = tracer.BuildSpan("error").WithTag("message",message).StartActive();
+            using var error = tracer.BuildSpan("error").WithTag("message", message).WithTag("error", "true").StartActive();
             AddExceptionLog(error, exception);
         }
 
@@ -336,7 +337,7 @@ namespace Coflnet.Sky.Commands.MC
         {
             error.Span.Log(e.Message);
             error.Span.Log(e.StackTrace);
-            if(e.InnerException != null)
+            if (e.InnerException != null)
                 AddExceptionLog(error, e.InnerException);
         }
 
@@ -348,22 +349,30 @@ namespace Coflnet.Sky.Commands.MC
 
         public bool SendFlip(FlipInstance flip)
         {
-            if (base.ConnectionState != WebSocketState.Open)
-                return false;
-            if (!flip.Bin) // no nonbin
-                return true;
-
-            if (Settings != null && !Settings.MatchesSettings(flip)
-                || flip.Sold)
+            try
             {
-                blockedFlipFilterCount++;
-                return true;
+                if (base.ConnectionState != WebSocketState.Open)
+                    return false;
+                if (!flip.Bin) // no nonbin
+                    return true;
+
+                if (Settings != null && !Settings.MatchesSettings(flip)
+                    || flip.Sold)
+                {
+                    blockedFlipFilterCount++;
+                    return true;
+                }
+
+                using var span = tracer.BuildSpan("Flip").WithTag("uuid", flip.Uuid).AsChildOf(ConSpan.Context).StartActive();
+                ModAdapter.SendFlip(flip);
+
+                PingTimer.Change(TimeSpan.FromSeconds(50), TimeSpan.FromSeconds(55));
             }
-
-            using var span = tracer.BuildSpan("Flip").WithTag("uuid", flip.Uuid).AsChildOf(ConSpan.Context).StartActive();
-            ModAdapter.SendFlip(flip);
-
-            PingTimer.Change(TimeSpan.FromSeconds(50), TimeSpan.FromSeconds(55));
+            catch (Exception e)
+            {
+                Error(e, "sending flip");
+                return false;
+            }
             return true;
         }
 
@@ -512,7 +521,10 @@ namespace Coflnet.Sky.Commands.MC
                 NextUpdateStart -= SendTimer;
                 return;
             }
-            SendMessage(COFLNET + "Flips in 10 seconds");
+            SendMessage(
+                COFLNET + "Flips in 10 seconds",
+                "The Hypixel API will update in 10 seconds. Get ready to receive the latest flips. "
+                + "(this is an automated message being sent 50 seconds after the last update)");
         }
 
         private string FindWhatsNew(FlipSettings current, FlipSettings newSettings)
@@ -523,7 +535,7 @@ namespace Coflnet.Sky.Commands.MC
                     return "min Profit to " + FormatPrice(newSettings.MinProfit);
                 if (current.MinProfit != newSettings.MinProfit)
                     return "max Cost to " + FormatPrice(newSettings.MaxCost);
-                if (current.BlackList?.Count < newSettings.BlackList.Count)
+                if (current.BlackList?.Count < newSettings.BlackList?.Count)
                     return $"blacklisted item";
                 if (current.WhiteList?.Count < newSettings.WhiteList.Count)
                     return $"whitelisted item";
