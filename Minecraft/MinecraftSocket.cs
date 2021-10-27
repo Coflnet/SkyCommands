@@ -7,29 +7,11 @@ using Coflnet.Sky.Filter;
 using hypixel;
 using Jaeger.Samplers;
 using Newtonsoft.Json;
-using RestSharp;
 using WebSocketSharp;
 using WebSocketSharp.Server;
 
 namespace Coflnet.Sky.Commands.MC
 {
-    public class NextUpdateRetriever
-    {
-        static RestClient client = new RestClient("http://" + SimplerConfig.SConfig.Instance["UPDATER_HOST"]);
-        public async Task<DateTime> Get()
-        {
-            try
-            {
-                var last = await client.ExecuteAsync<DateTime>(new RestRequest("/api/time"));
-                return last.Data + TimeSpan.FromSeconds(61);
-            }
-            catch (Exception e)
-            {
-                dev.Logger.Instance.Error(e, "getting next update time");
-                throw e;
-            }
-        }
-    }
     public partial class MinecraftSocket : WebSocketBehavior, IFlipConnection
     {
         public string McId;
@@ -151,7 +133,7 @@ namespace Coflnet.Sky.Commands.MC
                     SendMessage(COFLNET + $"§fFound and loaded settings for your connection\n"
                         + $" MinProfit: {FormatPrice(Settings.MinProfit)}  "
                         + $" MaxCost: {FormatPrice(Settings.MaxCost)}"
-                        + $" Blacklist-Size: {Settings.BlackList.Count}\n "
+                        + $" Blacklist-Size: {Settings?.BlackList?.Count ?? 0}\n "
                         + (Settings.BasedOnLBin ? $" Your profit is based on Lowest bin, please not that this is NOT the intended way to use this\n " : "")
                         + "§f: click this if you want to change a setting \n"
                         + "§8: nothing else to do have a nice day :)",
@@ -164,7 +146,7 @@ namespace Coflnet.Sky.Commands.MC
                 }
                 catch (Exception e)
                 {
-                    dev.Logger.Instance.Error(e, "loading modsocket");
+                    Error(e, "loading modsocket");
                 }
             }
             while (true)
@@ -272,7 +254,7 @@ namespace Coflnet.Sky.Commands.MC
                 }
                 catch (Exception ex)
                 {
-                    dev.Logger.Instance.Error(ex, "mod command");
+                    Error(ex, "mod command");
                 }
                 finally
                 {
@@ -342,6 +324,20 @@ namespace Coflnet.Sky.Commands.MC
             span.Span.Log(e.Message);
             OnClose(null);
             return span;
+        }
+
+        private void Error(Exception exception, string message = null)
+        {
+            using var error = tracer.BuildSpan("error").WithTag("message",message).StartActive();
+            AddExceptionLog(error, exception);
+        }
+
+        private void AddExceptionLog(OpenTracing.IScope error, Exception e)
+        {
+            error.Span.Log(e.Message);
+            error.Span.Log(e.StackTrace);
+            if(e.InnerException != null)
+                AddExceptionLog(error, e.InnerException);
         }
 
         public void Send(Response response)
@@ -480,7 +476,7 @@ namespace Coflnet.Sky.Commands.MC
             }
             catch (Exception e)
             {
-                dev.Logger.Instance.Error(e, "settings authorization");
+                Error(e, "settings authorization");
                 span.Span.Log(e.Message);
             }
 
