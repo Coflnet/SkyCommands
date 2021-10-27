@@ -13,7 +13,16 @@ namespace hypixel
         Counter loginCount = Metrics.CreateCounter("loginCount", "How often the login was executed (with a googleid)");
         public override async Task Execute(MessageData data)
         {
-            var token = await ValidateToken(data.GetAs<string>());
+            GoogleJsonWebSignature.Payload token;
+            try
+            {
+                token = await ValidateToken(data.GetAs<string>());
+            }
+            catch (Exception e)
+            {
+                data.LogError(e, "login error");
+                throw new CoflnetException("invalid_token", $"{e?.InnerException?.Message}");
+            }
 
             GoogleUser user;
             try
@@ -47,18 +56,8 @@ namespace hypixel
 
         public static async Task<GoogleJsonWebSignature.Payload> ValidateToken(string token)
         {
-            try
-            {
-                var tokenData = await GoogleJsonWebSignature.ValidateAsync(token);
-                Console.WriteLine("google user: " + tokenData?.Name);
-                return tokenData;
-            }
-            catch (Exception e)
-            {
-                throw new CoflnetException("invalid_token", $"{e?.InnerException?.Message}");
-            }
-
-
+            var tokenData = await GoogleJsonWebSignature.ValidateAsync(token);
+            return tokenData;
         }
     }
 }
