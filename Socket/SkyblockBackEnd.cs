@@ -130,7 +130,8 @@ namespace hypixel
             Commands.Add("newAuctions", new NewAuctionsCommand());
             Commands.Add("p", new PingCommand());
 
-
+            Commands.Add("trackNewFlip", new TrackNewFlipCommand());
+            Commands.Add("trackFlipEvent", new TrackFlipEventCommand());
 
         }
 
