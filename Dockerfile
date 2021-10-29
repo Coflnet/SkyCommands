@@ -18,8 +18,9 @@ WORKDIR /app
 
 COPY --from=build /build/SkyCommand/bin/release/net5.0/publish/ .
 RUN mkdir -p ah/files
+ENV ASPNETCORE_URLS=http://+:8000;http://+:80
 
-ENTRYPOINT ["dotnet", "SkyCommands.dll"]
+ENTRYPOINT ["dotnet", "SkyCommands.dll", "--hostBuilder:reloadConfigOnChange=false"]
 
 VOLUME /data
 
