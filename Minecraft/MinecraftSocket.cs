@@ -324,6 +324,7 @@ namespace Coflnet.Sky.Commands.MC
             var span = tracer.BuildSpan("Disconnect").WithTag("error", "true").AsChildOf(ConSpan.Context).StartActive();
             span.Span.Log(e.Message);
             OnClose(null);
+            PingTimer.Dispose();
             return span;
         }
 
