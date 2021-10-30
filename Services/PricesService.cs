@@ -29,7 +29,7 @@ namespace hypixel
         /// <returns></returns>
         public async Task<PriceSumary> GetSumary(string itemTag, Dictionary<string, string> filter)
         {
-            var id = ItemDetails.Instance.GetItemIdForName(itemTag);
+            int id = GetItemId(itemTag);
             var minTime = DateTime.Now.Subtract(TimeSpan.FromDays(1));
             var mainSelect = context.Auctions.Where(a => a.ItemId == id && a.End < DateTime.Now && a.End > minTime && a.HighestBidAmount > 0);
             filter["ItemId"] = id.ToString();
@@ -45,6 +45,39 @@ namespace hypixel
                 Mode = mode?.Key ?? 0,
                 Volume = auctions.Count > 0 ? auctions.Count() : 0
             };
+        }
+
+        private static int GetItemId(string itemTag)
+        {
+            return ItemDetails.Instance.GetItemIdForName(itemTag);
+        }
+
+        /// <summary>
+        /// Gets the latest known buy and sell price for an item per type 
+        /// </summary>
+        /// <param name="itemTag">The itemTag to get prices for</param>add 
+        /// <returns></returns>
+        public async Task<CurrentPrice> GetCurrentPrice(string itemTag)
+        {
+            var itemTask = ItemDetails.Instance.GetDetailsWithCache(itemTag);
+            int id = GetItemId(itemTag);
+            var item = await itemTask;
+            if (item.IsBazaar)
+            {
+                var quickStatus = await context.BazaarPrices
+                    .Where(p => p.ProductId == itemTag)
+                    .OrderByDescending(p => p.Id)
+                    .Select(p => p.QuickStatus)
+                    .FirstOrDefaultAsync();
+                return new CurrentPrice() { Buy = quickStatus.BuyPrice, Sell = quickStatus.SellPrice };
+            }
+            else
+            {
+                var lowestBins = await ItemPrices.GetLowestBin(itemTag, new Dictionary<string, string>());
+                var lowestPrice = lowestBins.FirstOrDefault()?.Price ?? 0;
+                return new CurrentPrice() { Buy = lowestPrice, Sell = lowestPrice == 0 ? 0 :lowestPrice * 0.99 };
+            }
+
         }
     }
 }

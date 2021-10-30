@@ -54,6 +54,20 @@ namespace Coflnet.Hypixel.Controller
         }
 
         /// <summary>
+        /// Gets the current (latest known) price for an item
+        /// </summary>
+        /// <param name="itemTag">The tag of the item/param>
+        /// <param name="query"></param>
+        /// <returns></returns>
+        [Route("item/price/{itemTag}/current")]
+        [HttpGet]
+        [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Any, NoStore = false)]
+        public async Task<CurrentPrice> GetCurrentPrice(string itemTag)
+        {
+            return await priceService.GetCurrentPrice(itemTag);
+        }
+
+        /// <summary>
         /// Returns all available filters with all available options
         /// </summary>
         /// <returns></returns>
