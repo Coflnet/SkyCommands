@@ -21,8 +21,8 @@ namespace Coflnet.Sky.Commands.MC
 
         protected string sessionId = "";
 
-        public FlipSettings Settings  => LastSettingsChange.Settings;
-        private SettingsChange LastSettingsChange {get;set;}
+        public FlipSettings Settings => LastSettingsChange.Settings;
+        private SettingsChange LastSettingsChange { get; set; } = new SettingsChange();
 
         public string Version { get; private set; }
         public OpenTracing.ITracer tracer = new Jaeger.Tracer.Builder("sky-commands-mod").WithSampler(new ConstSampler(true)).Build();
@@ -79,6 +79,18 @@ namespace Coflnet.Sky.Commands.MC
         protected override void OnOpen()
         {
             ConSpan = tracer.BuildSpan("connection").Start();
+            try
+            {
+                StartConnection();
+            }
+            catch (Exception e)
+            {
+                Error(e, "starting connection");
+            }
+        }
+
+        private void StartConnection()
+        {
             var args = System.Web.HttpUtility.ParseQueryString(Context.RequestUri.Query);
             Console.WriteLine(Context.RequestUri.Query);
             if (args["uuid"] == null && args["player"] == null)
@@ -202,7 +214,7 @@ namespace Coflnet.Sky.Commands.MC
                 else
                 {
                     Send(Response.Create("ping", 0));
-                    
+
                     UpdateConnectionTier(LastSettingsChange);
                 }
             }
@@ -275,7 +287,7 @@ namespace Coflnet.Sky.Commands.MC
         {
             base.OnClose(e);
             FlipperService.Instance.RemoveConnection(this);
-
+            ConSpan.Log(e?.Reason);
 
             ConSpan.Finish();
         }
