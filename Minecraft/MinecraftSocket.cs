@@ -466,6 +466,7 @@ namespace Coflnet.Sky.Commands.MC
             var settingsSame = AreSettingsTheSame(settings);
             using var span = tracer.BuildSpan("SettingsUpdate").AsChildOf(ConSpan.Context)
                     .WithTag("premium", settings.Tier.ToString())
+                    .WithTag("userId", settings.UserId.ToString())
                     .StartActive();
             if (this.Settings == DEFAULT_SETTINGS)
             {

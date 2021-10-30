@@ -13,6 +13,7 @@ namespace Coflnet.Sky.Commands.MC
                         .WithTag("message", arguments.Truncate(150))
                         .WithTag("error", "true")
                         .WithTag("settings", JsonConvert.SerializeObject(socket.Settings))
+                        .WithTag("mcId", JsonConvert.SerializeObject(socket.McId))
                         .AsChildOf(socket.ConSpan).StartActive();
             var spanId = reportSpan.Span.Context.SpanId.Truncate(6);
             reportSpan.Span.SetTag("id", spanId);
