@@ -88,6 +88,7 @@ namespace hypixel
 
             Commands.Add("subscribe", new PushSubscribeCommand());
             Commands.Add("unsubscribe", new DeleteSubscriptionCommand());
+            Commands.Add("unsubscribeAll", new DeleteAllSubscriptionsCommand());
             Commands.Add("subscriptions", new GetSubscriptionsCommand());
             Commands.Add("token", new RegisterPushTokenCommand());
             Commands.Add("addDevice", new RegisterPushTokenCommand());
