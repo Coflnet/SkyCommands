@@ -21,7 +21,8 @@ namespace Coflnet.Sky.Commands.MC
 
         protected string sessionId = "";
 
-        public FlipSettings Settings { get; set; }
+        public FlipSettings Settings  => LastSettingsChange.Settings;
+        private SettingsChange LastSettingsChange {get;set;}
 
         public string Version { get; private set; }
         public OpenTracing.ITracer tracer = new Jaeger.Tracer.Builder("sky-commands-mod").WithSampler(new ConstSampler(true)).Build();
@@ -106,7 +107,7 @@ namespace Coflnet.Sky.Commands.MC
             base.OnOpen();
 
             if (Settings == null)
-                Settings = DEFAULT_SETTINGS;
+                LastSettingsChange.Settings = DEFAULT_SETTINGS;
             FlipperService.Instance.AddNonConnection(this, false);
             SendMessage(COFLNET + "§fNOTE §7This is a development preview, it is NOT stable/bugfree", $"https://discord.gg/wvKXfTgCfb");
             System.Threading.Tasks.Task.Run(async () =>
@@ -127,7 +128,7 @@ namespace Coflnet.Sky.Commands.MC
             {
                 try
                 {
-                    this.Settings = cachedSettings.Settings;
+                    this.LastSettingsChange = cachedSettings;
                     UpdateConnectionTier(cachedSettings);
                     await SendAuthorizedHello(cachedSettings);
                     SendMessage(COFLNET + $"§fFound and loaded settings for your connection\n"
@@ -199,7 +200,11 @@ namespace Coflnet.Sky.Commands.MC
                     blockedFlipFilterCount = 0;
                 }
                 else
+                {
                     Send(Response.Create("ping", 0));
+                    
+                    UpdateConnectionTier(LastSettingsChange);
+                }
             }
             catch (Exception e)
             {
@@ -468,7 +473,7 @@ namespace Coflnet.Sky.Commands.MC
             }
             else if (!settingsSame)
                 SendMessage($"setting changed " + FindWhatsNew(this.Settings, settings.Settings));
-            Settings = settings.Settings;
+            LastSettingsChange = settings;
             UpdateConnectionTier(settings);
 
             CacheService.Instance.SaveInRedis(this.Id.ToString(), settings);
