@@ -278,9 +278,6 @@ namespace Coflnet.Sky.Commands.MC
                     waiting--;
                 }
             });
-
-
-
         }
 
         protected override void OnClose(CloseEventArgs e)
