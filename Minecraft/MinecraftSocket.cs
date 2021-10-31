@@ -40,6 +40,7 @@ namespace Coflnet.Sky.Commands.MC
         private int blockedFlipFilterCount;
 
         private static System.Threading.Timer updateTimer;
+        private static Prometheus.Counter sentFlips = Prometheus.Metrics.CreateCounter("sky_commands_sent_flips", "How many flip messages were sent");
 
         static MinecraftSocket()
         {
@@ -381,6 +382,7 @@ namespace Coflnet.Sky.Commands.MC
 
                 using var span = tracer.BuildSpan("Flip").WithTag("uuid", flip.Uuid).AsChildOf(ConSpan.Context).StartActive();
                 ModAdapter.SendFlip(flip);
+                sentFlips.Inc();
 
                 PingTimer.Change(TimeSpan.FromSeconds(50), TimeSpan.FromSeconds(55));
             }

@@ -6,7 +6,7 @@ namespace Coflnet.Sky.Commands.MC
     {
         public override Task Execute(MinecraftSocket socket, string arguments)
         {
-            socket.SendMessage(COFLNET + $"There are {hypixel.FlipperService.Instance.PremiumUserCount} connected to this server ");
+            socket.SendMessage(COFLNET + $"There are {hypixel.FlipperService.Instance.PremiumUserCount} users connected to this server");
             return Task.CompletedTask;
         }
     }
