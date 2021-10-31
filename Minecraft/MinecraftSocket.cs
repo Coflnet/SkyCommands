@@ -51,6 +51,7 @@ namespace Coflnet.Sky.Commands.MC
             Commands.Add<PurchaseConfirmCommand>();
             Commands.Add<ClickedCommand>();
             Commands.Add<ResetCommand>();
+            Commands.Add<OnlineCommand>();
 
             Task.Run(async () =>
             {
