@@ -188,6 +188,7 @@ namespace hypixel
                 return; // skip old flips
             if (FlipIdLookup.ContainsKey(flip.UId))
                 return; // do not double deliver
+            runtroughTime.Observe((DateTime.Now - flip.Auction.FindTime).TotalSeconds);
             var tracer = OpenTracing.Util.GlobalTracer.Instance;
             var span = OpenTracing.Util.GlobalTracer.Instance.BuildSpan("SendFlip");
             if (flip.Auction.TraceContext != null)
@@ -227,7 +228,6 @@ namespace hypixel
 
         private static void NotifyAll(FlipInstance flip, ConcurrentDictionary<long, IFlipConnection> subscribers)
         {
-            runtroughTime.Observe((DateTime.Now - flip.Auction.FindTime).TotalSeconds);
             if (flip.Auction != null && flip.Auction.NBTLookup == null)
                 flip.Auction.NBTLookup = NBT.CreateLookup(flip.Auction);
             foreach (var item in subscribers.Keys)
