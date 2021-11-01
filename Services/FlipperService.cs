@@ -294,7 +294,11 @@ namespace hypixel
             string[] topics = new string[] { ConsumeTopic };
 
             Console.WriteLine("starting to listen for new auctions via topic " + ConsumeTopic);
-            ConsumeBatch<FlipInstance>(topics, DeliverFlip);
+            ConsumeBatch<FlipInstance>(topics, flip=>{
+                Task.Run(()=>{
+                    DeliverFlip(flip);
+                });
+            });
             Console.WriteLine("ended listening");
         }
 
