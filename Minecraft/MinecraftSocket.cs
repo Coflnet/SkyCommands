@@ -154,9 +154,9 @@ namespace Coflnet.Sky.Commands.MC
                         + "§8: nothing else to do have a nice day :)",
                         "https://sky.coflnet.com/flipper");
                     Console.WriteLine($"loaded settings for {this.sessionId} " + JsonConvert.SerializeObject(cachedSettings));
-                    await Task.Delay(100);
-                    SendMessage(COFLNET + $"{McColorCodes.GREEN} click this to relink your account",
-                    GetAuthLink(stringId));
+                    await Task.Delay(500);
+                    SendMessage(COFLNET + $"{McColorCodes.DARK_GREEN} click this to relink your account",
+                    GetAuthLink(stringId),"You don't need to relink your account. \nThis is only here to allow you to link your mod to the website again should you notice your settings aren't updated");
                     return;
                 }
                 catch (Exception e)
@@ -194,13 +194,13 @@ namespace Coflnet.Sky.Commands.MC
                 builder[i] = '*';
             }
             var anonymisedEmail = builder.ToString();
-            SendMessage(COFLNET + $"Hello {mcName} ({anonymisedEmail})");
+            var messageStart = $"Hello {mcName} ({anonymisedEmail}) \n";
             if (cachedSettings.Tier != AccountTier.NONE && cachedSettings.ExpiresAt > DateTime.Now)
-                SendMessage(COFLNET + $"You have {cachedSettings.Tier.ToString()} until {cachedSettings.ExpiresAt}");
+                SendMessage(COFLNET + messageStart + $"You have {cachedSettings.Tier.ToString()} until {cachedSettings.ExpiresAt}");
             else
-                SendMessage(COFLNET + $"You use the free version of the flip finder");
+                SendMessage(COFLNET + messageStart + $"You use the free version of the flip finder");
 
-            await Task.Delay(200);
+            await Task.Delay(300);
         }
 
         private void SendPing()
