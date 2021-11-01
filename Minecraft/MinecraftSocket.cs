@@ -145,6 +145,8 @@ namespace Coflnet.Sky.Commands.MC
                     this.LastSettingsChange = cachedSettings;
                     UpdateConnectionTier(cachedSettings);
                     await SendAuthorizedHello(cachedSettings);
+                    // set them again
+                    this.LastSettingsChange = cachedSettings;
                     SendMessage(COFLNET + $"§fFound and loaded settings for your connection\n"
                         + $" MinProfit: {FormatPrice(Settings.MinProfit)}  "
                         + $" MaxCost: {FormatPrice(Settings.MaxCost)}"
