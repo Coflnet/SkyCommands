@@ -9,6 +9,7 @@ WORKDIR /build/SkyCommand
 COPY SkyCommands.csproj SkyCommands.csproj
 RUN dotnet restore
 COPY . .
+RUN dotnet test
 RUN touch /build/dev/keyfile.p12 
 RUN cp -n /build/dev/appsettings.json /build/dev/custom.conf.json
 RUN dotnet publish -c release

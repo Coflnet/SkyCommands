@@ -60,7 +60,7 @@ namespace Coflnet.Sky.Filter
                 return false;
             if (MaxCost != 0 && flip.LastKnownCost > MaxCost)
                 return false;
-            if ((flip.Profit / flip.LastKnownCost) * 100 < MinProfitPercent)
+            if (flip.LastKnownCost > 0 && (flip.Profit / flip.LastKnownCost) * 100 < MinProfitPercent)
             {
                 return false;
             }
