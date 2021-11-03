@@ -283,8 +283,7 @@ namespace hypixel
         {
             Console.WriteLine("listening to unavailibily topics");
             string[] topics = new string[] { Indexer.AuctionEndedTopic, Indexer.SoldAuctionTopic, Indexer.MissingAuctionsTopic };
-            ConsumeBatch<SaveAuction>(topics, AuctionSold);
-            return Task.CompletedTask;
+            return ConsumeBatch<SaveAuction>(topics, AuctionSold);
         }
 
         public async Task ListenToNewFlips()
@@ -294,7 +293,7 @@ namespace hypixel
             string[] topics = new string[] { ConsumeTopic };
 
             Console.WriteLine("starting to listen for new auctions via topic " + ConsumeTopic);
-            ConsumeBatch<FlipInstance>(topics, flip=>{
+            await ConsumeBatch<FlipInstance>(topics, flip=>{
                 Task.Run(()=>{
                     DeliverFlip(flip);
                 });
@@ -307,8 +306,7 @@ namespace hypixel
             string[] topics = new string[] { SettingsTopic };
 
             Console.WriteLine("starting to listen for config changes topic " + SettingsTopic);
-            ConsumeBatch<SettingsChange>(topics, UpdateSettingsInternal);
-            return Task.CompletedTask;
+            return ConsumeBatch<SettingsChange>(topics, UpdateSettingsInternal);
         }
 
         private void UpdateSettingsInternal(SettingsChange settings)
@@ -329,7 +327,7 @@ namespace hypixel
             Console.WriteLine("settings update: " + JSON.Stringify(settings));
         }
 
-        private void ConsumeBatch<T>(string[] topics, Action<T> work, int batchSize = 10)
+        private async Task ConsumeBatch<T>(string[] topics, Action<T> work, int batchSize = 10)
         {
             using (var c = new ConsumerBuilder<Ignore, T>(consumerConf).SetValueDeserializer(SerializerFactory.GetDeserializer<T>()).Build())
             {
@@ -342,9 +340,12 @@ namespace hypixel
                     {
                         try
                         {
-                            var cr = c.Consume(500);
+                            var cr = c.Consume(2000);
                             if (cr == null)
+                            {
+                                await Task.Delay(10);
                                 continue;
+                            }
                             if (cr.TopicPartitionOffset.Offset % 200 == 0)
                                 Console.WriteLine($"consumed {cr.TopicPartitionOffset.Topic} {cr.TopicPartitionOffset.Offset}");
                             work(cr.Message.Value);
