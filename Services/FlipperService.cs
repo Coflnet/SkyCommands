@@ -77,7 +77,7 @@ namespace hypixel
             //    return null;
             using (var p = new ProducerBuilder<string, SettingsChange>(producerConfig).SetValueSerializer(serializer).Build())
             {
-                await CacheService.Instance.SaveInRedis(cacheKey, settings, TimeSpan.FromMinutes(5));
+                await CacheService.Instance.SaveInRedis(cacheKey, settings, TimeSpan.FromDays(5));
                 return await p.ProduceAsync(SettingsTopic, new Message<string, SettingsChange> { Value = settings });
             }
         }
