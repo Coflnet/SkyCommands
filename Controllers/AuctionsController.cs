@@ -74,6 +74,18 @@ namespace Coflnet.Hypixel.Controller
 
             return Ok(result);
         }
+
+        /// <summary>
+        /// Get items that are in low supply
+        /// </summary>
+        /// <returns></returns>
+        [Route("auctions/supply/low")]
+        [HttpGet]
+        [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Any, NoStore = false)]
+        public async Task<IEnumerable<KeyValuePair<string, short>>> GetLowestBins()
+        {
+            return await IndexerClient.LowSupply();
+        }
     }
 }
 
