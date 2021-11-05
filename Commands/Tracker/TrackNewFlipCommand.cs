@@ -18,7 +18,7 @@ namespace hypixel
 
                 var request = new RestRequest("Tracker/newFlip/{auctionUUID}", Method.POST)
                     .AddJsonBody(args)
-                    .AddUrlSegment("auctionUUID", args.auctionUUID);
+                    .AddUrlSegment("auctionUUID", args.AuctionUUID);
 
                 await data.SendBack(new MessageData("newFlip", null));
             }
@@ -28,14 +28,20 @@ namespace hypixel
         public class Arguments
         {
             [Key("auctionUUID")]
-            public string auctionUUID;
+            public string AuctionUUID;
             [Key("targetPrice")]
-            public int targetPrice;
+            public int TargetPrice;
             [Key("finderType")]
-            public string finderType;
-            [Key("timestamp")]
-            public DateTime timestamp;
+            public FinderType FinderType;
 
+        }
+
+        public enum FinderType
+        {
+            FLIPPER = 1,
+            LOWEST_BIN = 2,
+            SNIPER = 4,
+            KI = 8
         }
     }
 }

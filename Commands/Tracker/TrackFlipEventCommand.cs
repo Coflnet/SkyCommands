@@ -17,7 +17,7 @@ namespace hypixel
 
                 var request = new RestRequest("Tracker/flipEvent/{auctionUUID}", Method.POST)
                     .AddJsonBody(args)
-                    .AddUrlSegment("auctionUUID", args.auctionUUID);
+                    .AddUrlSegment("auctionUUID", args.AuctionUUID);
 
                 await data.SendBack(new MessageData("flipEvent", null));
             }
@@ -27,20 +27,20 @@ namespace hypixel
         public class Arguments
         {
             [Key("playerUUID")]
-            public string playerUUID;
+            public string PlayerUUID;
             [Key("auctionUUID")]
-            public string auctionUUID;
-            [Key("event")]
-            public FlipTrackerEvent flipTrackerEvent;
+            public string AuctionUUID;
+            [Key("flipEventType")]
+            public FlipEventType FlipTrackerEvent;
 
         }
 
-        public enum FlipTrackerEvent
+        public enum FlipEventType
         {
-            PURCHASE_START = 1,
-            PURCHASE_CONFIRM = 2,
-            FLIP_RECEIVE = 4,
-            FLIP_CLICK = 8,
+            FLIP_RECEIVE = 1,
+            FLIP_CLICK = 2,
+            PURCHASE_START = 4,
+            PURCHASE_CONFIRM = 8,
             AUCTION_SOLD = 16
         }
     }
