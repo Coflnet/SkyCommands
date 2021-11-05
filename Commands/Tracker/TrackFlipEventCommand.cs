@@ -1,6 +1,8 @@
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using MessagePack;
 using Newtonsoft.Json;
+using RestSharp;
 
 namespace hypixel
 {
@@ -13,8 +15,9 @@ namespace hypixel
                 var args = data.GetAs<Arguments>();
                 var userId = data.UserId;
 
-                var request = new RestRequest("Tracker/flipEvent", Method.POST)
-                    .AddJsonBody(new FlipTrackingModel() { playerUUID = args.playerUUID, auctionUUID = args.auctionUUID, flipTrackerEvent = args.flipTrackerEvent, timestamp = args.timestamp });
+                var request = new RestRequest("Tracker/flipEvent/{auctionUUID}", Method.POST)
+                    .AddJsonBody(args)
+                    .AddUrlSegment("auctionUUID", args.auctionUUID);
 
                 await data.SendBack(new MessageData("flipEvent", null));
             }
@@ -26,26 +29,9 @@ namespace hypixel
             [Key("playerUUID")]
             public string playerUUID;
             [Key("auctionUUID")]
-            public int auctionUUID;
+            public string auctionUUID;
             [Key("event")]
             public FlipTrackerEvent flipTrackerEvent;
-            [Key("timestamp")]
-            public long timestamp
-            {
-                set
-                {
-                    if (value == 0)
-                    {
-                        End = DateTime.Now;
-                    }
-                    else
-                        End = value.ThisIsNowATimeStamp();
-                }
-                get
-                {
-                    return End.ToUnix();
-                }
-            }
 
         }
 
