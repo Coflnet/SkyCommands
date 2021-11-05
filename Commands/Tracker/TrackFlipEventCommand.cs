@@ -13,11 +13,12 @@ namespace hypixel
             using (var context = new HypixelContext())
             {
                 var args = data.GetAs<Arguments>();
-                var userId = data.UserId;
 
                 var request = new RestRequest("Tracker/flipEvent/{auctionUUID}", Method.POST)
                     .AddJsonBody(args)
                     .AddUrlSegment("auctionUUID", args.AuctionUUID);
+
+                var response = await TrackerClient.Client.ExecuteAsync(request);
 
                 await data.SendBack(new MessageData("flipEvent", null));
             }

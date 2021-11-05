@@ -14,11 +14,12 @@ namespace hypixel
             using (var context = new HypixelContext())
             {
                 var args = data.GetAs<Arguments>();
-                var userId = data.UserId;
 
                 var request = new RestRequest("Tracker/newFlip/{auctionUUID}", Method.POST)
                     .AddJsonBody(args)
                     .AddUrlSegment("auctionUUID", args.AuctionUUID);
+
+                var response = await TrackerClient.Client.ExecuteAsync(request);
 
                 await data.SendBack(new MessageData("newFlip", null));
             }
@@ -41,7 +42,7 @@ namespace hypixel
             FLIPPER = 1,
             LOWEST_BIN = 2,
             SNIPER = 4,
-            KI = 8
+            AI = 8
         }
     }
 }
