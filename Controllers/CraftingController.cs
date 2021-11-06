@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using RestSharp;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using  Coflnet.Sky.Crafts.Models;
+using Newtonsoft.Json;
 
 namespace Coflnet.Hypixel.Controller
 {
@@ -25,10 +27,11 @@ namespace Coflnet.Hypixel.Controller
 
         [Route("profit")]
         [HttpGet]
-        public async Task<string> GetProfitable(string playerProfile = null)
+        public async Task<IEnumerable<ProfitableCraft>> GetProfitable(string playerProfile = null)
         {
             var response = await  client.ExecuteAsync(new RestRequest("Crafts"));
-            return response.Content;
+            var crafts = JsonConvert.DeserializeObject<List<ProfitableCraft>>(response.Content);
+            return crafts;
         }
     }
 }
