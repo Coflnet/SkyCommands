@@ -27,7 +27,7 @@ namespace Coflnet.Hypixel.Controller
 
         [Route("profit")]
         [HttpGet]
-        public async Task<IEnumerable<ProfitableCraft>> GetProfitable(string playerProfile = null)
+        public async Task<IEnumerable<ProfitableCraft>> GetProfitable(string profile = null)
         {
             var response = await  client.ExecuteAsync(new RestRequest("Crafts"));
             var crafts = JsonConvert.DeserializeObject<List<ProfitableCraft>>(response.Content);
