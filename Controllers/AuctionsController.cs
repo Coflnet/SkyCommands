@@ -91,12 +91,14 @@ namespace Coflnet.Hypixel.Controller
             var result = new List<SupplyElement>();
             await Task.WhenAll(lowSupply.Select(async item=> 
             {
-                var data = await client.ExecuteAsync(new RestRequest("/api/item/price/"+item.Key));
+                var response = await client.ExecuteAsync(new RestRequest("/api/item/price/"+item.Key));
+                var data = JsonConvert.DeserializeObject<PriceSumary>(response.Content);
                 result.Add(new SupplyElement()
                 {
                     Supply = item.Value,
                     Tag = item.Key,
-                    Median = JsonConvert.DeserializeObject<PriceSumary>(data.Content).Med 
+                    Median = data.Med,
+                    Volume = data.Volume
                 });
             }));
             return result;
@@ -107,6 +109,7 @@ namespace Coflnet.Hypixel.Controller
             public string Tag;
             public long Supply;
             public long Median;
+            public long Volume;
         }
     }
 }
