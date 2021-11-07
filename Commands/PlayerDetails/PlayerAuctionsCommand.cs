@@ -18,6 +18,8 @@ namespace hypixel
                         .OrderByDescending(a=>a.Id)
                         .Skip(offset)
                         .Take(amount)
+                        .ToList()
+                        .OrderByDescending(a=>a.End)
                         .ToList();
 
                 return auctions.Select(a=>new AuctionResult(a));
