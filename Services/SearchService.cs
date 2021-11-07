@@ -181,7 +181,7 @@ namespace hypixel
             var playersTask = PlayerSearch.Instance.Search(search, targetAmount, false);
 
             var Results = new ConcurrentQueue<SearchResultItem>();
-            var searchTasks = new ConfiguredTaskAwaitable[3];
+            var searchTasks = new ConfiguredTaskAwaitable[4];
             Console.WriteLine("searching");
             var searchWords = search.Split(' ');
 
@@ -199,6 +199,11 @@ namespace hypixel
             {
                 await FindSimilarSearches(search, Results, searchWords);
             }, token).ConfigureAwait(false);
+            searchTasks[3] = Task.Run(async () =>
+            {
+                await SearchForAuctions(search, Results, searchWords);
+
+            }, token).ConfigureAwait(false);
             ComputeEnchantments(search, Results, searchWords);
 
 
@@ -214,6 +219,42 @@ namespace hypixel
 
             return Results;
             // return result.OrderBy(r => r.Name?.Length / 2 - r.HitCount - (r.Name?.ToLower() == search.ToLower() ? 10000000 : 0)).Take(targetAmount).ToList();
+        }
+
+        private static async Task SearchForAuctions(string search, ConcurrentQueue<SearchResultItem> Results, string[] searchWords)
+        {
+            if (searchWords.Count() > 1)
+                return;
+            if (search.Length == 32)
+            {
+                var auction = await AuctionService.Instance.GetAuctionAsync(search);
+                AddAuctionAsResult(Results, auction);
+            }
+            else if (search.Length == 12)
+            {
+                var key = NBT.GetLookupKey("uid");
+                var val = NBT.UidToLong(search);
+                using (var context = new HypixelContext())
+                {
+                    var auction = await context.Auctions
+                                .Where(a => a.NBTLookup.Where(l => l.KeyId == key && l.Value == val).Any())
+                                .FirstOrDefaultAsync();
+                    if (auction == null)
+                        return;
+                    AddAuctionAsResult(Results, auction);
+                }
+            }
+        }
+
+        private static void AddAuctionAsResult(ConcurrentQueue<SearchResultItem> Results, SaveAuction auction)
+        {
+            Results.Enqueue(new SearchResultItem()
+            {
+                HitCount = 1000000,
+                Type = "auction",
+                Name = auction.ItemName,
+                IconUrl = "https://sky.coflnet.com/static/icon/" + auction.Tag
+            });
         }
 
         private static async Task FindItems(string search, Task<IEnumerable<ItemDetails.ItemSearchResult>> itemTask, ConcurrentQueue<SearchResultItem> Results)
