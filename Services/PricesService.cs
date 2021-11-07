@@ -55,35 +55,61 @@ namespace hypixel
         /// <summary>
         /// Gets the latest known buy and sell price for an item per type 
         /// </summary>
-        /// <param name="itemTag">The itemTag to get prices for</param>add 
+        /// <param name="itemTag">The itemTag to get prices for</param>
+        /// <param name="count">For how many items the price should be retrieved</param>add 
         /// <returns></returns>
-        public async Task<CurrentPrice> GetCurrentPrice(string itemTag)
+        public async Task<CurrentPrice> GetCurrentPrice(string itemTag, int count = 1)
         {
             var itemTask = ItemDetails.Instance.GetDetailsWithCache(itemTag);
             int id = GetItemId(itemTag);
             var item = await itemTask;
             if (item.IsBazaar)
             {
-                var quickStatus = await context.BazaarPrices
+                var product = await context.BazaarPrices
                     .Where(p => p.ProductId == itemTag)
                     .OrderByDescending(p => p.Id)
-                    .Select(p => p.QuickStatus)
+                    .Include(p => p.BuySummery)
+                    .Include(p => p.QuickStatus)
                     .FirstOrDefaultAsync();
-                return new CurrentPrice() { Buy = quickStatus.BuyPrice, Sell = quickStatus.SellPrice };
+                if (count == 1)
+                    return new CurrentPrice() { Buy = product.QuickStatus.BuyPrice, Sell = product.QuickStatus.SellPrice };
+
+                return new CurrentPrice()
+                {
+                    Buy = GetBazaarCostForCount(product.BuySummery, count),
+                    Sell = product.QuickStatus.SellPrice,
+                    Available = product.BuySummery.Sum(b => b.Amount)
+                };
             }
             else
             {
                 var filter = new Dictionary<string, string>();
-                var lowestBins = await ItemPrices.GetLowestBin(itemTag, filter);
+                var lowestBins = await ItemPrices.GetLowestBin(itemTag, filter, count <= 2 ? 2 : count);
                 if (lowestBins.Count == 0)
                 {
                     var sumary = await GetSumary(itemTag, filter);
                     return new CurrentPrice() { Buy = sumary.Med, Sell = sumary.Min };
                 }
-                var lowestPrice = lowestBins.FirstOrDefault()?.Price ?? 0;
-                return new CurrentPrice() { Buy = lowestPrice, Sell = lowestPrice == 0 ? 0 : lowestPrice * 0.99 };
+                var cost = count == 1 ? lowestBins.FirstOrDefault().Price : lowestBins.Sum(a => a.Price);
+                return new CurrentPrice() { Buy = cost, Sell = lowestBins.FirstOrDefault()?.Price * 0.99 ?? 0, Available = lowestBins.Count };
             }
 
+        }
+
+        public double GetBazaarCostForCount(List<dev.BuyOrder> orders, int count)
+        {
+            var totalCost = 0d;
+            var alreadyAddedCount = 0;
+            foreach (var sellOrder in orders)
+            {
+                var toTake = sellOrder.Amount + alreadyAddedCount > count ? count - alreadyAddedCount : sellOrder.Amount;
+                totalCost += sellOrder.PricePerUnit * toTake;
+                alreadyAddedCount += toTake;
+                if (alreadyAddedCount >= count)
+                    return totalCost;
+            }
+
+            return -1;
         }
     }
 }
