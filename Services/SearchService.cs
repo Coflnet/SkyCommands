@@ -227,7 +227,7 @@ namespace hypixel
                 return;
             if (search.Length == 32)
             {
-                var auction = await AuctionService.Instance.GetAuctionAsync(search);
+                var auction = await AuctionService.Instance.GetAuctionAsync(search, a => a.Include(a => a.NBTLookup));
                 AddAuctionAsResult(Results, auction);
             }
             else if (search.Length == 12)
@@ -238,6 +238,7 @@ namespace hypixel
                 {
                     var auction = await context.Auctions
                                 .Where(a => a.NBTLookup.Where(l => l.KeyId == key && l.Value == val).Any())
+                                .Include(a => a.NBTLookup)
                                 .FirstOrDefaultAsync();
                     if (auction == null)
                         return;
@@ -248,13 +249,10 @@ namespace hypixel
 
         private static void AddAuctionAsResult(ConcurrentQueue<SearchResultItem> Results, SaveAuction auction)
         {
-            Results.Enqueue(new SearchResultItem()
-            {
-                HitCount = 1000000,
-                Type = "auction",
-                Name = auction.ItemName,
-                IconUrl = "https://sky.coflnet.com/static/icon/" + auction.Tag
-            });
+            var key = NBT.GetLookupKey("uid");
+            var filter = new Dictionary<string, string>();
+            filter["UId"] = auction.NBTLookup.Where(l => l.KeyId == key).FirstOrDefault().Value.ToString("X");
+            AddFilterResult(Results, filter, auction.ItemName, auction.Tag, 100_000);
         }
 
         private static async Task FindItems(string search, Task<IEnumerable<ItemDetails.ItemSearchResult>> itemTask, ConcurrentQueue<SearchResultItem> Results)
@@ -342,15 +340,20 @@ namespace hypixel
                     filter["EnchantLvl"] = lvl.ToString();
                 }
 
-                Results.Enqueue(new SearchResultItem
-                {
-                    HitCount = 10, // account for "Enchantment" suffix
-                    Name = resultText,
-                    Type = "filter",
-                    IconUrl = "https://sky.shiiyu.moe/item/ENCHANTED_BOOK",
-                    Id = "ENCHANTED_BOOK?itemFilter=" + Convert.ToBase64String(Encoding.UTF8.GetBytes(JSON.Stringify(filter)))
-                });
+                AddFilterResult(Results, filter, resultText, "ENCHANTED_BOOK");
             }
+        }
+
+        private static void AddFilterResult(ConcurrentQueue<SearchResultItem> Results, Dictionary<string, string> filter, string resultText, string itemTag, int hitCount = 10)
+        {
+            Results.Enqueue(new SearchResultItem
+            {
+                HitCount = hitCount, // account for "Enchantment" suffix
+                Name = resultText,
+                Type = "filter",
+                IconUrl = "https://sky.coflnet.com/static/icon/" + itemTag,
+                Id = itemTag + "?itemFilter=" + Convert.ToBase64String(Encoding.UTF8.GetBytes(JSON.Stringify(filter)))
+            });
         }
 
         class CacheItem
