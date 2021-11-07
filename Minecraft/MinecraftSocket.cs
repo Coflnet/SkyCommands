@@ -247,7 +247,7 @@ namespace Coflnet.Sky.Commands.MC
                 return;
             }
             using var span = tracer.BuildSpan("Command").AsChildOf(ConSpan.Context).StartActive();
-            base.OnMessage(e);
+            
             var a = JsonConvert.DeserializeObject<Response>(e.Data);
             if (a == null || a.type == null)
             {

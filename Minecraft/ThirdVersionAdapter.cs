@@ -24,6 +24,7 @@ namespace Coflnet.Sky.Commands.MC
                 new ChatPart(" ", openCommand, null)},
                 id = flip.Uuid,
                 worth = flip.Profit,
+                cost = flip.LastKnownCost,
                 sound = (string)null
             }));
             return true;

@@ -9,6 +9,8 @@ using Coflnet.Sky.Filter;
 using hypixel;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using RestSharp;
+using Newtonsoft.Json;
 
 namespace Coflnet.Hypixel.Controller
 {
@@ -82,9 +84,32 @@ namespace Coflnet.Hypixel.Controller
         [Route("auctions/supply/low")]
         [HttpGet]
         [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Any, NoStore = false)]
-        public async Task<IEnumerable<KeyValuePair<string, short>>> GetLowestBins()
+        public async Task<IEnumerable<SupplyElement>> GetLowestBins()
         {
-            return await IndexerClient.LowSupply();
+            var client = new RestClient("http://localhost:8000");
+            var lowSupply = await IndexerClient.LowSupply();
+            var result = new List<SupplyElement>();
+            await Task.WhenAll(lowSupply.Select(async item=> 
+            {
+                var response = await client.ExecuteAsync(new RestRequest("/api/item/price/"+item.Key));
+                var data = JsonConvert.DeserializeObject<PriceSumary>(response.Content);
+                result.Add(new SupplyElement()
+                {
+                    Supply = item.Value,
+                    Tag = item.Key,
+                    Median = data.Med,
+                    Volume = data.Volume
+                });
+            }));
+            return result;
+        }
+
+        public class SupplyElement
+        {
+            public string Tag;
+            public long Supply;
+            public long Median;
+            public long Volume;
         }
     }
 }

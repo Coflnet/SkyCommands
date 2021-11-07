@@ -1,5 +1,3 @@
-
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,6 +31,7 @@ namespace Coflnet.Hypixel.Controller
         /// <returns></returns>
         [Route("item/price/{itemTag}")]
         [HttpGet]
+        [ResponseCache(Duration = 1800, Location = ResponseCacheLocation.Any, NoStore = false)]
         public Task<PriceSumary> GetSumary(string itemTag, [FromQuery] IDictionary<string, string> query)
         {
             return priceService.GetSumary(itemTag, new Dictionary<string, string>(query));
@@ -117,4 +116,3 @@ namespace Coflnet.Hypixel.Controller
         }
     }
 }
-
