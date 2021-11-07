@@ -93,6 +93,8 @@ namespace Coflnet.Hypixel.Controller
             {
                 var response = await client.ExecuteAsync(new RestRequest("/api/item/price/"+item.Key));
                 var data = JsonConvert.DeserializeObject<PriceSumary>(response.Content);
+                if(data.Med < 1_000_000 && data.Volume > 0)
+                    return;
                 result.Add(new SupplyElement()
                 {
                     Supply = item.Value,
