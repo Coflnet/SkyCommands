@@ -73,9 +73,15 @@ namespace hypixel
             }
             else
             {
-                var lowestBins = await ItemPrices.GetLowestBin(itemTag, new Dictionary<string, string>());
+                var filter = new Dictionary<string, string>();
+                var lowestBins = await ItemPrices.GetLowestBin(itemTag, filter);
+                if (lowestBins.Count == 0)
+                {
+                    var sumary = await GetSumary(itemTag, filter);
+                    return new CurrentPrice() { Buy = sumary.Med, Sell = sumary.Min };
+                }
                 var lowestPrice = lowestBins.FirstOrDefault()?.Price ?? 0;
-                return new CurrentPrice() { Buy = lowestPrice, Sell = lowestPrice == 0 ? 0 :lowestPrice * 0.99 };
+                return new CurrentPrice() { Buy = lowestPrice, Sell = lowestPrice == 0 ? 0 : lowestPrice * 0.99 };
             }
 
         }
