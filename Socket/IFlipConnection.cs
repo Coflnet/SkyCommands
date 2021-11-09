@@ -15,6 +15,7 @@ namespace Coflnet.Sky.Commands
         bool SendSold(string uuid);
         FlipSettings Settings { get; }
         long Id { get; }
+        int UserId { get; }
 
         void UpdateSettings(SettingsChange settings);
     }

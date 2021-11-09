@@ -22,6 +22,7 @@ namespace Coflnet.Sky.Commands.MC
         protected string sessionId = "";
 
         public FlipSettings Settings => LastSettingsChange.Settings;
+        public int UserId => LastSettingsChange.UserId;
         private SettingsChange LastSettingsChange { get; set; } = new SettingsChange();
 
         public string Version { get; private set; }

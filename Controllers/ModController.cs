@@ -34,6 +34,9 @@ namespace Coflnet.Hypixel.Controller
         {
             return new List<CommandListEntry>()
             {
+                new CommandListEntry("report {message}","Creates an error report with an optional message"),
+                new CommandListEntry("online", "Tells you how many connections there are to the server"),
+                new CommandListEntry("reset", "Resets the mod (deletes everything)"),
                 new CommandListEntry("test","Returns a test response")
             };
         }
