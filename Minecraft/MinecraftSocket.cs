@@ -58,6 +58,7 @@ namespace Coflnet.Sky.Commands.MC
             Task.Run(async () =>
             {
                 var next = await new NextUpdateRetriever().Get();
+                
                 NextUpdateStart += () =>
                 {
                     Console.WriteLine("next update");
@@ -159,7 +160,7 @@ namespace Coflnet.Sky.Commands.MC
                     Console.WriteLine($"loaded settings for {this.sessionId} " + JsonConvert.SerializeObject(cachedSettings));
                     await Task.Delay(500);
                     SendMessage(COFLNET + $"{McColorCodes.DARK_GREEN} click this to relink your account",
-                    GetAuthLink(stringId),"You don't need to relink your account. \nThis is only here to allow you to link your mod to the website again should you notice your settings aren't updated");
+                    GetAuthLink(stringId), "You don't need to relink your account. \nThis is only here to allow you to link your mod to the website again should you notice your settings aren't updated");
                     return;
                 }
                 catch (Exception e)
@@ -248,7 +249,7 @@ namespace Coflnet.Sky.Commands.MC
                 return;
             }
             using var span = tracer.BuildSpan("Command").AsChildOf(ConSpan.Context).StartActive();
-            
+
             var a = JsonConvert.DeserializeObject<Response>(e.Data);
             if (a == null || a.type == null)
             {

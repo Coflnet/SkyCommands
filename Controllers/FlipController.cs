@@ -1,4 +1,6 @@
+using System;
 using System.Threading.Tasks;
+using Coflnet.Sky.Commands.MC;
 using Coflnet.Sky.Filter;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -32,11 +34,9 @@ namespace Coflnet.Hypixel.Controller
         /// <returns></returns>
         [Route("update/when")]
         [HttpGet]
-        public async Task<string> GetFlipTime()
+        public async Task<DateTime> GetFlipTime()
         {
-            var client = new RestClient("http://"+config["UPDATER_HOST"]);
-            var response = await client.ExecuteAsync(new RestRequest("/api/time"));
-            return response.Content;
+            return await new NextUpdateRetriever().Get();
         }
 
         /// <summary>
