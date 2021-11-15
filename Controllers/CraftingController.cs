@@ -50,6 +50,14 @@ namespace Coflnet.Hypixel.Controller
             }
             return list;
         }
+
+        [Route("recipe/{itemTag}")]
+        [HttpGet]
+        public async Task<Dictionary<string,string>> GetRecipe(string itemTag)
+        {
+            var response = await client.ExecuteAsync(new RestRequest($"Crafts/recipe/{itemTag}"));
+            return JsonConvert.DeserializeObject<Dictionary<string,string>>(response.Content);
+        }
     }
 
     public class CollectionElem
