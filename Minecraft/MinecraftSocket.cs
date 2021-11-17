@@ -527,7 +527,7 @@ namespace Coflnet.Sky.Commands.MC
 
         private void UpdateConnectionTier(SettingsChange settings)
         {
-            if (settings.Tier.HasFlag(AccountTier.PREMIUM) && settings.ExpiresAt > DateTime.Now)
+            if ((settings.Tier.HasFlag(AccountTier.PREMIUM) || settings.Tier.HasFlag(AccountTier.STARTER_PREMIUM)) && settings.ExpiresAt > DateTime.Now)
             {
                 FlipperService.Instance.AddConnection(this, false);
                 NextUpdateStart -= SendTimer;
@@ -535,6 +535,7 @@ namespace Coflnet.Sky.Commands.MC
             }
             else
                 FlipperService.Instance.AddNonConnection(this, false);
+            this.ConSpan.SetTag("tier",settings.Tier.ToString());
         }
 
         private void SendTimer()
