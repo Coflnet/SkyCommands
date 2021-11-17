@@ -11,7 +11,6 @@ RUN dotnet restore
 COPY . .
 RUN dotnet test
 RUN touch /build/dev/keyfile.p12 
-RUN cp -n /build/dev/appsettings.json /build/dev/custom.conf.json
 RUN dotnet publish -c release
 
 FROM mcr.microsoft.com/dotnet/aspnet:5.0
