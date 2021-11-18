@@ -54,6 +54,7 @@ namespace Coflnet.Sky.Commands.MC
             Commands.Add<ClickedCommand>();
             Commands.Add<ResetCommand>();
             Commands.Add<OnlineCommand>();
+            Commands.Add<BlacklistCommand>();
 
             Task.Run(async () =>
             {
