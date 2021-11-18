@@ -56,6 +56,10 @@ namespace Coflnet.Hypixel.Controller
         [HttpPost]
         public async Task<IActionResult> StartTopUp(string option)
         {
+            foreach (var item in Request.Headers)
+            {
+                Console.WriteLine(item.Key + ": " + String.Join(", ", item.Value));
+            }
             if (!TryGetUser(out GoogleUser user))
                 return Unauthorized("no googletoken header");
 

@@ -47,9 +47,9 @@ namespace hypixel
             };
         }
 
-        private static int GetItemId(string itemTag)
+        private static int GetItemId(string itemTag, bool forceget = true)
         {
-            return ItemDetails.Instance.GetItemIdForName(itemTag);
+            return ItemDetails.Instance.GetItemIdForName(itemTag, forceget);
         }
 
         /// <summary>
@@ -61,7 +61,9 @@ namespace hypixel
         public async Task<CurrentPrice> GetCurrentPrice(string itemTag, int count = 1)
         {
             var itemTask = ItemDetails.Instance.GetDetailsWithCache(itemTag);
-            int id = GetItemId(itemTag);
+            int id = GetItemId(itemTag, false);
+            if (id == 0)
+                return new CurrentPrice() { Available = -1 };
             var item = await itemTask;
             if (item.IsBazaar)
             {

@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RestSharp;
 using Newtonsoft.Json;
+using Microsoft.Extensions.Logging;
 
 namespace Coflnet.Hypixel.Controller
 {
@@ -20,11 +21,13 @@ namespace Coflnet.Hypixel.Controller
     {
         AuctionService auctionService;
         HypixelContext context;
+        ILogger<AuctionsController> logger;
 
-        public AuctionsController(AuctionService auctionService, HypixelContext context)
+        public AuctionsController(AuctionService auctionService, HypixelContext context, ILogger<AuctionsController> logger)
         {
             this.auctionService = auctionService;
             this.context = context;
+            this.logger = logger;
         }
 
         /// <summary>
@@ -89,19 +92,31 @@ namespace Coflnet.Hypixel.Controller
             var client = new RestClient("http://localhost:8000");
             var lowSupply = await IndexerClient.LowSupply();
             var result = new List<SupplyElement>();
-            await Task.WhenAll(lowSupply.Select(async item=> 
+            await Task.WhenAll(lowSupply.Select(async item =>
             {
-                var response = await client.ExecuteAsync(new RestRequest("/api/item/price/"+item.Key));
-                var data = JsonConvert.DeserializeObject<PriceSumary>(response.Content);
-                if(data.Med < 1_000_000 && data.Volume > 0)
-                    return;
-                result.Add(new SupplyElement()
+                try
                 {
-                    Supply = item.Value,
-                    Tag = item.Key,
-                    Median = data.Med,
-                    Volume = data.Volume
-                });
+                    var response = await client.ExecuteAsync(new RestRequest("/api/item/price/" + item.Key));
+                    if(response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
+                    {
+                        logger.LogInformation("been rate limited");
+                        return;
+                    }
+                    var data = JsonConvert.DeserializeObject<PriceSumary>(response.Content);
+                    if (data.Med < 1_000_000 && data.Volume > 0)
+                        return;
+                    result.Add(new SupplyElement()
+                    {
+                        Supply = item.Value,
+                        Tag = item.Key,
+                        Median = data.Med,
+                        Volume = data.Volume
+                    });
+                }
+                catch (Exception e)
+                {
+                    logger.LogError(e, "getting average price data for low supply page");
+                }
             }));
             return result;
         }
