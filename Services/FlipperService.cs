@@ -26,6 +26,22 @@ namespace hypixel
         private ConcurrentDictionary<long, IFlipConnection> SuperSubs = new ConcurrentDictionary<long, IFlipConnection>();
         public ConcurrentQueue<FlipInstance> Flipps = new ConcurrentQueue<FlipInstance>();
         private ConcurrentQueue<FlipInstance> SlowFlips = new ConcurrentQueue<FlipInstance>();
+
+        internal async Task ListenToLowPriced()
+        {
+            string[] topics = new string[] { ConsumeTopic };
+
+            await ConsumeBatch<LowPricedAuction>(topics, flip =>
+            {
+                if(flip.Auction.Start < DateTime.Now - TimeSpan.FromMinutes(3))
+                    return;
+                Task.Run(() =>
+                {
+                    DeliverLowPricedAuction(flip);
+                });
+            });
+        }
+
         /// <summary>
         /// Wherether or not a given <see cref="SaveAuction.UId"/> was a flip or not
         /// </summary>
@@ -35,7 +51,7 @@ namespace hypixel
         private static ProducerConfig producerConfig = new ProducerConfig { BootstrapServers = SimplerConfig.Config.Instance["KAFKA_HOST"] };
 
         private const string FoundFlippsKey = "foundFlipps";
-        public int PremiumUserCount => Subs.Select(s=>s.Value.UserId).Distinct().Count();
+        public int PremiumUserCount => Subs.Select(s => s.Value.UserId).Distinct().Count();
 
         static Prometheus.Histogram runtroughTime = Prometheus.Metrics.CreateHistogram("sky_commands_auction_to_flip_seconds", "Represents the time in seconds taken from loading the auction to sendingthe flip. (should be close to 0)",
             new Prometheus.HistogramConfiguration()
@@ -185,7 +201,7 @@ namespace hypixel
         /// <param name="flip"></param>
         private void DeliverFlip(FlipInstance flip)
         {
-            if(flip.Auction?.Start < DateTime.Now - TimeSpan.FromMinutes(3) && flip.Auction?.Start != default)
+            if (flip.Auction?.Start < DateTime.Now - TimeSpan.FromMinutes(3) && flip.Auction?.Start != default)
                 return; // skip old flips
             if (FlipIdLookup.ContainsKey(flip.UId))
                 return; // do not double deliver
@@ -217,6 +233,7 @@ namespace hypixel
             var span = OpenTracing.Util.GlobalTracer.Instance.BuildSpan("DeliverFlip")
                     .AsChildOf(tracer.Extract(BuiltinFormats.TextMap, flip.Auction.TraceContext));
             using var scope = span.StartActive();
+            runtroughTime.Observe((DateTime.Now - flip.Auction.FindTime).TotalSeconds);
 
             foreach (var item in Subs)
             {
@@ -292,8 +309,10 @@ namespace hypixel
             string[] topics = new string[] { ConsumeTopic };
 
             Console.WriteLine("starting to listen for new auctions via topic " + ConsumeTopic);
-            await ConsumeBatch<FlipInstance>(topics, flip=>{
-                Task.Run(()=>{
+            await ConsumeBatch<FlipInstance>(topics, flip =>
+            {
+                Task.Run(() =>
+                {
                     DeliverFlip(flip);
                 });
             });
@@ -472,5 +491,7 @@ namespace hypixel
         public long UId => AuctionService.Instance.GetId(this.Uuid);
         [IgnoreDataMember]
         public long Profit => MedianPrice - LastKnownCost;
+        [DataMember(Name = "finder")]
+        public LowPricedAuction.FinderType Finder;
     }
 }

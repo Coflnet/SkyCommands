@@ -3,6 +3,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
+using Coflnet.Sky.Commands.Helper;
 using Coflnet.Sky.Filter;
 using hypixel;
 using Jaeger.Samplers;
@@ -55,6 +56,7 @@ namespace Coflnet.Sky.Commands.MC
             Commands.Add<ResetCommand>();
             Commands.Add<OnlineCommand>();
             Commands.Add<BlacklistCommand>();
+            Commands.Add<SniperCommand>();
 
             Task.Run(async () =>
             {
@@ -373,6 +375,8 @@ namespace Coflnet.Sky.Commands.MC
         {
             try
             {
+                if(flip.Finder != LowPricedAuction.FinderType.UNKOWN && !Settings.AllowedFinders.HasFlag(flip.Finder))
+                    return true;
                 if (base.ConnectionState != WebSocketState.Open)
                     return false;
                 if (!flip.Bin) // no nonbin
@@ -497,6 +501,12 @@ namespace Coflnet.Sky.Commands.MC
             CacheService.Instance.SaveInRedis(this.Id.ToString(), settings);
         }
 
+        public Task UpdateSettings(Func<SettingsChange,SettingsChange> updatingFunc)
+        {
+            var newSettings = updatingFunc(this.LastSettingsChange);
+            return FlipperService.Instance.UpdateSettings(newSettings);
+        }
+
         private async Task<OpenTracing.IScope> ModGotAuthorised(SettingsChange settings)
         {
             var span = tracer.BuildSpan("Authorized").AsChildOf(ConSpan.Context).StartActive();
@@ -582,6 +592,13 @@ namespace Coflnet.Sky.Commands.MC
                 Auction = flip.Auction,
                 MedianPrice = flip.TargetPrice,
                 Uuid = flip.Auction.Uuid,
+                Bin = flip.Auction.Bin,
+                Interesting = PropertiesSelector.GetProperties(flip.Auction).OrderByDescending(a => a.Rating).Select(a => a.Value).ToList(),
+                Name = flip.Auction.ItemName,
+                Tag = flip.Auction.Tag,
+                Volume = flip.DailyVolume,
+                Rarity = flip.Auction.Tier,
+                Finder = flip.Finder
             });
         }
 

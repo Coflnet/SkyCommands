@@ -19,7 +19,7 @@ namespace Coflnet.Sky.Filter
         public bool Seller;
         [DataMember(Name = "volume")]
         public bool Volume;
-        [DataMember(Name = "exraFields")]
+        [DataMember(Name = "extraFields")]
         public int ExtraInfoMax;
         [DataMember(Name = "avgSellTime")]
         public bool AvgSellTime;

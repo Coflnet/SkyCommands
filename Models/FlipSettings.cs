@@ -39,6 +39,9 @@ namespace Coflnet.Sky.Filter
         [DataMember(Name = "mod")]
         public ModSettings ModSettings;
 
+        [DataMember(Name = "finders")]
+        public LowPricedAuction.FinderType AllowedFinders;
+
 
         private FlipFilter filter;
         private List<FlipFilter> blackListFilters;
