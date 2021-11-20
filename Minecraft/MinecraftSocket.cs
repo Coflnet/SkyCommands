@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -43,7 +44,16 @@ namespace Coflnet.Sky.Commands.MC
         private int blockedFlipFilterCount;
 
         private static System.Threading.Timer updateTimer;
-        private static Prometheus.Counter sentFlips = Prometheus.Metrics.CreateCounter("sky_commands_sent_flips", "How many flip messages were sent");
+
+        private ConcurrentDictionary<long, DateTime> SentFlips = new ConcurrentDictionary<long, DateTime>();
+        public ConcurrentQueue<BlockedElement> TopBlocked = new ConcurrentQueue<BlockedElement>();
+
+        public class BlockedElement
+        {
+            public FlipInstance Flip;
+            public string Reason;
+        }
+        private static Prometheus.Counter sentFlipsCount = Prometheus.Metrics.CreateCounter("sky_commands_sent_flips", "How many flip messages were sent");
 
         static MinecraftSocket()
         {
@@ -59,6 +69,7 @@ namespace Coflnet.Sky.Commands.MC
             Commands.Add<BlacklistCommand>();
             Commands.Add<SniperCommand>();
             Commands.Add<ExactCommand>();
+            Commands.Add<BlockedCommand>();
 
             Task.Run(async () =>
             {
@@ -149,8 +160,7 @@ namespace Coflnet.Sky.Commands.MC
             {
                 try
                 {
-                    if (cachedSettings.Settings.AllowedFinders == LowPricedAuction.FinderType.UNKOWN)
-                        cachedSettings.Settings.AllowedFinders = LowPricedAuction.FinderType.FLIPPER | LowPricedAuction.FinderType.SNIPER_MEDIAN | LowPricedAuction.FinderType.SNIPER;
+                    MigrateSettings(cachedSettings);
                     this.LastSettingsChange = cachedSettings;
                     UpdateConnectionTier(cachedSettings);
                     await SendAuthorizedHello(cachedSettings);
@@ -187,6 +197,13 @@ namespace Coflnet.Sky.Commands.MC
             }
         }
 
+        private static void MigrateSettings(SettingsChange cachedSettings)
+        {
+            if (cachedSettings.Settings.AllowedFinders == LowPricedAuction.FinderType.UNKOWN || cachedSettings.Version < 1)
+                cachedSettings.Settings.AllowedFinders = LowPricedAuction.FinderType.FLIPPER;
+            cachedSettings.Version = 1;
+        }
+
         private string GetAuthLink(string stringId)
         {
             return $"https://sky.coflnet.com/authmod?mcid={McId}&conId={HttpUtility.UrlEncode(stringId)}";
@@ -221,7 +238,7 @@ namespace Coflnet.Sky.Commands.MC
             {
                 if (blockedFlipFilterCount > 0)
                 {
-                    SendMessage(COFLNET + $"there were {blockedFlipFilterCount} flips blocked by your filter the last minute");
+                    SendMessage(COFLNET + $"there were {blockedFlipFilterCount} flips blocked by your filter the last minute", "/cofl blocked", "click to list the best 5 of the last min");
                     blockedFlipFilterCount = 0;
                 }
                 else
@@ -379,29 +396,52 @@ namespace Coflnet.Sky.Commands.MC
         {
             try
             {
-                if (Settings.AllowedFinders != LowPricedAuction.FinderType.UNKOWN && flip.Finder != LowPricedAuction.FinderType.UNKOWN
-                        && !Settings.AllowedFinders.HasFlag(flip.Finder))
-                    return true;
                 if (base.ConnectionState != WebSocketState.Open)
                     return false;
-                if (!flip.Bin) // no nonbin
+                // pre check already sent flips
+                if (SentFlips.ContainsKey(flip.UId))
+                    return true; // don't double send
+                if (Settings.AllowedFinders != LowPricedAuction.FinderType.UNKOWN && flip.Finder != LowPricedAuction.FinderType.UNKOWN
+                        && !Settings.AllowedFinders.HasFlag(flip.Finder))
+                {
+                    BlockedFlip(flip, "finder " + flip.Finder.ToString());
+                    return true;
+                }
+                if (!flip.Bin) // no nonbin 
                     return true;
 
-                if (Settings != null && !Settings.MatchesSettings(flip)
-                    || flip.Sold)
+                if (flip.Sold)
                 {
+                    BlockedFlip(flip, "sold");
+                    return true;
+                }
+                var isMatch = Settings.MatchesSettings(flip);
+                if (Settings != null && !isMatch.Item1)
+                {
+                    BlockedFlip(flip, isMatch.Item2);
                     blockedFlipFilterCount++;
                     return true;
                 }
 
+                // this check is down here to avoid filling up the list
+                if(!SentFlips.TryAdd(flip.UId, DateTime.Now))
+                    return true; // make sure flips are not sent twice
                 using var span = tracer.BuildSpan("Flip").WithTag("uuid", flip.Uuid).AsChildOf(ConSpan.Context).StartActive();
                 var settings = Settings;
                 await FlipperService.FillVisibilityProbs(flip, settings);
 
                 ModAdapter.SendFlip(flip);
-                sentFlips.Inc();
+                sentFlipsCount.Inc();
 
                 PingTimer.Change(TimeSpan.FromSeconds(50), TimeSpan.FromSeconds(55));
+                // remove dupplicates
+                if (SentFlips.Count > 300)
+                {
+                    foreach (var item in SentFlips.Where(i => i.Value < DateTime.Now - TimeSpan.FromMinutes(2)).ToList())
+                    {
+                        SentFlips.TryRemove(item.Key, out DateTime value);
+                    }
+                }
             }
             catch (Exception e)
             {
@@ -411,7 +451,24 @@ namespace Coflnet.Sky.Commands.MC
             return true;
         }
 
-       
+        private void BlockedFlip(FlipInstance flip, string reason)
+        {
+            Console.WriteLine("blocked " + reason);
+            if (TopBlocked.Count < 3 || TopBlocked.Min(elem => elem.Flip.Profit) < flip.Profit)
+            {
+                if(TopBlocked.Where(b=>b.Flip.Uuid == flip.Uuid).Any())
+                    return;
+                TopBlocked.Enqueue(new BlockedElement()
+                {
+                    Flip = flip,
+                    Reason = reason
+                });
+            }
+            if (TopBlocked.Count > 5)
+            {
+                TopBlocked.TryDequeue(out BlockedElement toRemove);
+            }
+        }
 
         public string GetFlipMsg(FlipInstance flip)
         {
@@ -420,7 +477,8 @@ namespace Coflnet.Sky.Commands.MC
             var priceColor = GetProfitColor((int)profit);
             var extraText = "\n" + String.Join(", ", flip.Interesting.Take(Settings.Visibility?.ExtraInfoMax ?? 0));
 
-            return $"\nFLIP: {GetRarityColor(flip.Rarity)}{flip.Name} {priceColor}{FormatPrice(flip.LastKnownCost)} -> {FormatPrice(targetPrice)} (+{FormatPrice(profit)}) §g[BUY]"
+            return $"\nFLIP: {GetRarityColor(flip.Rarity)}{flip.Name} {priceColor}{FormatPrice(flip.LastKnownCost)} -> {FormatPrice(targetPrice)} "
+                + $"(+{FormatPrice(profit)} {McColorCodes.GREEN}{FormatPrice(flip.ProfitPercentage)}%{priceColor}) §g[BUY]"
                 + extraText;
         }
 
@@ -570,6 +628,7 @@ namespace Coflnet.Sky.Commands.MC
                 null,
                 "The Hypixel API will update in 10 seconds. Get ready to receive the latest flips. "
                 + "(this is an automated message being sent 50 seconds after the last update)");
+            TopBlocked = new ConcurrentQueue<BlockedElement>();
         }
 
         private string FindWhatsNew(FlipSettings current, FlipSettings newSettings)

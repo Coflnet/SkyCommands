@@ -25,9 +25,9 @@ namespace Coflnet.Sky.Filter
                 BlackList = new List<ListEntry>() { new ListEntry() { filter = new Dictionary<string, string>() { { "Bin", "true" } } } }
             };
             var matches = settings.MatchesSettings(sampleFlip);
-            Assert.IsTrue(matches, "flip should match");
+            Assert.IsTrue(matches.Item1, "flip should match");
             sampleFlip.Auction.Bin = true;
-            Assert.IsFalse(settings.MatchesSettings(sampleFlip), "flip should not match");
+            Assert.IsFalse(settings.MatchesSettings(sampleFlip).Item1, "flip should not match");
         }
 
 
@@ -39,7 +39,7 @@ namespace Coflnet.Sky.Filter
                 BlackList = new List<ListEntry>() { new ListEntry() { filter = new Dictionary<string, string>() { { "Enchantment", "aiming" }, { "EnchantLvl", "1" } } } }
             };
             var matches = settings.MatchesSettings(sampleFlip);
-            Assert.IsTrue(matches, "flip should match");
+            Assert.IsTrue(matches.Item1, "flip should match");
         }
 
 

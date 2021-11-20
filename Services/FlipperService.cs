@@ -131,7 +131,6 @@ namespace hypixel
 
                     foreach (var item in toSendFlips)
                     {
-                        Console.WriteLine("sending history");
                         await con.SendFlip(item);
 
                         await Task.Delay(delay);
@@ -254,8 +253,6 @@ namespace hypixel
         {
             if (flip.Auction?.Start < DateTime.Now - TimeSpan.FromMinutes(3) && flip.Auction?.Start != default)
                 return; // skip old flips
-            if (FlipIdLookup.ContainsKey(flip.UId))
-                return; // do not double deliver
             runtroughTime.Observe((DateTime.Now - flip.Auction.FindTime).TotalSeconds);
             var tracer = OpenTracing.Util.GlobalTracer.Instance;
             var span = OpenTracing.Util.GlobalTracer.Instance.BuildSpan("SendFlip");
@@ -263,6 +260,7 @@ namespace hypixel
                 span = span.AsChildOf(tracer.Extract(BuiltinFormats.TextMap, flip.Auction.TraceContext));
             using var scope = span.StartActive();
 
+            flip.Finder = LowPricedAuction.FinderType.FLIPPER;
             await NotifyAll(flip, Subs);
             SlowFlips.Enqueue(flip);
             Flipps.Enqueue(flip);
@@ -278,8 +276,6 @@ namespace hypixel
 
         private async Task DeliverLowPricedAuction(LowPricedAuction flip)
         {
-            if (FlipIdLookup.ContainsKey(flip.UId))
-                return; // do not double deliver
             var tracer = OpenTracing.Util.GlobalTracer.Instance;
             var span = OpenTracing.Util.GlobalTracer.Instance.BuildSpan("DeliverFlip")
                     .AsChildOf(tracer.Extract(BuiltinFormats.TextMap, flip.Auction.TraceContext));
@@ -301,7 +297,7 @@ namespace hypixel
             {
                 try
                 {
-                    if (!await subscribers[item].SendFlip(flip))
+                    if (!subscribers.TryGetValue(item, out IFlipConnection connection) || !await connection.SendFlip(flip))
                         Unsubscribe(subscribers, item);
                 }
                 catch (Exception e)
@@ -491,6 +487,8 @@ namespace hypixel
     [DataContract]
     public class SettingsChange
     {
+        [DataMember(Name = "version")]
+        public int Version;
         [DataMember(Name = "settings")]
         public FlipSettings Settings = new FlipSettings();
         [DataMember(Name = "userId")]
@@ -565,6 +563,10 @@ namespace hypixel
         public long UId => AuctionService.Instance.GetId(this.Uuid);
         [IgnoreDataMember]
         public long Profit => MedianPrice - LastKnownCost;
+
+        [IgnoreDataMember]
+        public long ProfitPercentage => (Profit  * 100 / LastKnownCost);
+
         [DataMember(Name = "finder")]
         public LowPricedAuction.FinderType Finder;
     }
