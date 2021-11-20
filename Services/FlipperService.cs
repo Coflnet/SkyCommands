@@ -198,9 +198,11 @@ namespace hypixel
 
         public static async Task FillVisibilityProbs(FlipInstance flip, FlipSettings settings)
         {
+            if(settings == null || settings.Visibility == null)
+                return;
             if (settings.Visibility.Seller)
                 flip.SellerName = await PlayerSearch.Instance.GetNameWithCacheAsync(flip.Auction.AuctioneerId);
-            if ((settings.Visibility.LowestBin || settings.Visibility.SecondLowestBin) && flip.LowestBin <= 0)
+            if ((settings.Visibility.LowestBin || settings.Visibility.SecondLowestBin) && flip?.LowestBin <= 0)
             {
                 var lowestBin = await GetLowestBin(flip.Auction);
                 flip.LowestBin = lowestBin?.FirstOrDefault()?.Price;
