@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Coflnet.Sky;
 using Coflnet.Sky.Commands;
+using Coflnet.Sky.Commands.Helper;
 using Coflnet.Sky.Filter;
 using Confluent.Kafka;
 using OpenTracing.Propagation;
@@ -33,7 +34,7 @@ namespace hypixel
 
             await ConsumeBatch<LowPricedAuction>(topics, flip =>
             {
-                if(flip.Auction.Start < DateTime.Now - TimeSpan.FromMinutes(3))
+                if (flip.Auction.Start < DateTime.Now - TimeSpan.FromMinutes(3))
                     return;
                 Task.Run(() =>
                 {
@@ -122,12 +123,12 @@ namespace hypixel
 
         private void RemoveNonConnection(IFlipConnection con)
         {
-            SlowSubs.TryRemove(con.Id, out IFlipConnection value);
+            Unsubscribe(SlowSubs, con.Id);
         }
 
         public void RemoveConnection(IFlipConnection con)
         {
-            Subs.TryRemove(con.Id, out IFlipConnection value);
+            Unsubscribe(Subs, con.Id);
             RemoveNonConnection(con);
         }
 
@@ -138,11 +139,20 @@ namespace hypixel
         {
             Task.Run(async () =>
             {
-                foreach (var item in toSendFlips)
+                try
                 {
-                    con.SendFlip(item);
 
-                    await Task.Delay(delay);
+                    foreach (var item in toSendFlips)
+                    {
+                        Console.WriteLine("sending history");
+                        await con.SendFlip(item);
+
+                        await Task.Delay(delay);
+                    }
+                }
+                catch (Exception e)
+                {
+                    dev.Logger.Instance.Error(e, "sending history");
                 }
             }).ConfigureAwait(false);
         }
@@ -157,37 +167,91 @@ namespace hypixel
                 return;
             SoldAuctions[auction.UId] = auction.End;
             var auctionUUid = auction.Uuid;
-            NotifySubsInactiveAuction(auctionUUid);
+            Task.Run(() => NotifySubsInactiveAuction(auctionUUid));
         }
 
-        private void NotifySubsInactiveAuction(string auctionUUid)
+        private async Task NotifySubsInactiveAuction(string auctionUUid)
         {
             var inacive = new List<long>();
             foreach (var item in Subs)
             {
-                if (!item.Value.SendSold(auctionUUid))
+                if (!await item.Value.SendSold(auctionUUid))
                     inacive.Add(item.Key);
             }
             foreach (var item in SlowSubs)
             {
-                if (!item.Value.SendSold(auctionUUid))
+                if (!await item.Value.SendSold(auctionUUid))
                     inacive.Add(item.Key);
             }
 
             foreach (var item in inacive)
             {
-                SlowSubs.TryRemove(item, out IFlipConnection con);
-                Subs.TryRemove(item, out con);
+                Unsubscribe(SlowSubs, item);
+                Unsubscribe(Subs, item);
             }
+        }
+
+        public static FlipInstance LowPriceToFlip(LowPricedAuction flip)
+        {
+            return new FlipInstance()
+            {
+                LastKnownCost = (int)flip.Auction.StartingBid,
+                Auction = flip.Auction,
+                MedianPrice = flip.TargetPrice,
+                Uuid = flip.Auction.Uuid,
+                Bin = flip.Auction.Bin,
+                Interesting = PropertiesSelector.GetProperties(flip.Auction).OrderByDescending(a => a.Rating).Select(a => a.Value).ToList(),
+                Name = flip.Auction.ItemName,
+                Tag = flip.Auction.Tag,
+                Volume = flip.DailyVolume,
+                Rarity = flip.Auction.Tier,
+                Finder = flip.Finder,
+                LowestBin = flip.Finder == LowPricedAuction.FinderType.SNIPER ? flip.TargetPrice : 0
+            };
+        }
+
+        public static async Task FillVisibilityProbs(FlipInstance flip, FlipSettings settings)
+        {
+            if (settings.Visibility.Seller)
+                flip.SellerName = await PlayerSearch.Instance.GetNameWithCacheAsync(flip.Auction.AuctioneerId);
+            if ((settings.Visibility.LowestBin || settings.Visibility.SecondLowestBin) && flip.LowestBin <= 0)
+            {
+                var lowestBin = await GetLowestBin(flip.Auction);
+                flip.LowestBin = lowestBin?.FirstOrDefault()?.Price;
+                flip.SecondLowestBin = lowestBin?.Count >= 2 ? lowestBin[1].Price : 0L;
+            }
+        }
+
+        public static async Task<List<ItemPrices.AuctionPreview>> GetLowestBin(SaveAuction auction)
+        {
+            var filters = new Dictionary<string, string>();
+            var ulti = auction.Enchantments.Where(e => Coflnet.Sky.Constants.RelevantEnchants.Where(rel => rel.Type == e.Type && rel.Level <= e.Level).Any()).FirstOrDefault();
+            if (ulti != null)
+            {
+                filters["Enchantment"] = ulti.Type.ToString();
+                filters["EnchantLvl"] = ulti.Level.ToString();
+            }
+            if (Coflnet.Sky.Constants.RelevantReforges.Contains(auction.Reforge))
+            {
+                filters["Reforge"] = auction.Reforge.ToString();
+            }
+            filters["Rarity"] = auction.Tier.ToString();
+
+            var exactLowestTask = ItemPrices.GetLowestBin(auction.Tag, filters);
+            List<ItemPrices.AuctionPreview> lowestBin = await ItemPrices.GetLowestBin(auction.Tag, auction.Tier);
+            var exactLowest = await exactLowestTask;
+            if (exactLowest?.Count > 1)
+                return exactLowest;
+            return lowestBin;
         }
 
         /// <summary>
         /// Auction is no longer active for some reason
         /// </summary>
         /// <param name="uuid"></param>
-        public void AuctionInactive(string uuid)
+        public async Task AuctionInactive(string uuid)
         {
-            NotifySubsInactiveAuction(uuid);
+            await NotifySubsInactiveAuction(uuid);
             var uid = AuctionService.Instance.GetId(uuid);
             SoldAuctions[uid] = DateTime.Now;
         }
@@ -199,7 +263,7 @@ namespace hypixel
         /// (active on the light client)
         /// </summary>
         /// <param name="flip"></param>
-        private void DeliverFlip(FlipInstance flip)
+        private async Task DeliverFlip(FlipInstance flip)
         {
             if (flip.Auction?.Start < DateTime.Now - TimeSpan.FromMinutes(3) && flip.Auction?.Start != default)
                 return; // skip old flips
@@ -212,7 +276,7 @@ namespace hypixel
                 span = span.AsChildOf(tracer.Extract(BuiltinFormats.TextMap, flip.Auction.TraceContext));
             using var scope = span.StartActive();
 
-            NotifyAll(flip, Subs);
+            await NotifyAll(flip, Subs);
             SlowFlips.Enqueue(flip);
             Flipps.Enqueue(flip);
             FlipIdLookup[flip.UId] = true;
@@ -225,7 +289,7 @@ namespace hypixel
             }
         }
 
-        private void DeliverLowPricedAuction(LowPricedAuction flip)
+        private async Task DeliverLowPricedAuction(LowPricedAuction flip)
         {
             if (FlipIdLookup.ContainsKey(flip.UId))
                 return; // do not double deliver
@@ -235,14 +299,13 @@ namespace hypixel
             using var scope = span.StartActive();
             runtroughTime.Observe((DateTime.Now - flip.Auction.FindTime).TotalSeconds);
 
-            foreach (var item in Subs)
-            {
-                item.Value.SendFlip(flip);
-            }
+            await Task.WhenAll(Subs.Select(async item => {
+                await item.Value.SendFlip(flip);
+            }));
         }
 
 
-        private static void NotifyAll(FlipInstance flip, ConcurrentDictionary<long, IFlipConnection> subscribers)
+        private static async Task NotifyAll(FlipInstance flip, ConcurrentDictionary<long, IFlipConnection> subscribers)
         {
             if (flip.Auction != null && flip.Auction.NBTLookup == null)
                 flip.Auction.NBTLookup = NBT.CreateLookup(flip.Auction);
@@ -250,18 +313,21 @@ namespace hypixel
             {
                 try
                 {
-                    if (!subscribers[item].SendFlip(flip))
-                        subscribers.TryRemove(item, out IFlipConnection value);
+                    if (!await subscribers[item].SendFlip(flip))
+                        Unsubscribe(subscribers, item);
                 }
                 catch (Exception e)
                 {
                     Console.WriteLine($"Failed to send flip {e.Message} {e.StackTrace}");
-                    subscribers.TryRemove(item, out IFlipConnection value);
+                    Unsubscribe(subscribers, item);
                 }
             }
         }
 
-
+        private static void Unsubscribe(ConcurrentDictionary<long, IFlipConnection> subscribers, long item)
+        {
+            subscribers.TryRemove(item, out IFlipConnection value);
+        }
 
         public async Task ProcessSlowQueue()
         {
@@ -271,7 +337,7 @@ namespace hypixel
                 {
                     if (SoldAuctions.ContainsKey(flip.UId))
                         flip.Sold = true;
-                    NotifyAll(flip, SlowSubs);
+                    await NotifyAll(flip, SlowSubs);
                     if (flip.Uuid[0] == 'a')
                         Console.Write("sf+" + SlowSubs.Count);
                     LoadBurst.Enqueue(flip);
@@ -311,10 +377,7 @@ namespace hypixel
             Console.WriteLine("starting to listen for new auctions via topic " + ConsumeTopic);
             await ConsumeBatch<FlipInstance>(topics, flip =>
             {
-                Task.Run(() =>
-                {
-                    DeliverFlip(flip);
-                });
+                Task.Run(() => DeliverFlip(flip));
             });
             Console.WriteLine("ended listening");
         }

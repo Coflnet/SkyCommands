@@ -17,25 +17,26 @@ namespace hypixel
 
                 var lastSettings = con.LastSettingsChange;
 
+
+                if (!data.User.HasPremium)
+                    FlipperService.Instance.AddNonConnection(con);
+                else
+                {
+                    FlipperService.Instance.AddConnection(con);
+
+                    lastSettings.Tier = AccountTier.PREMIUM;
+                    lastSettings.ExpiresAt = data.User.PremiumExpires;
+                }
+
                 if (MessagePack.MessagePackSerializer.Serialize(con.Settings).SequenceEqual(MessagePack.MessagePackSerializer.Serialize(lastSettings.Settings)))
                     return; // nothing actually changed
                     
                 lastSettings.Settings = con.Settings;
                 lastSettings.UserId = data.UserId;
 
-                if (!data.User.HasPremium)
-                    FlipperService.Instance.AddNonConnection(con);
-                else
-                {
-                    Console.WriteLine("new premium con");
-                    FlipperService.Instance.AddConnection(con);
-
-                    lastSettings.Tier = AccountTier.PREMIUM;
-                    lastSettings.ExpiresAt = data.User.PremiumExpires;
-                }
                 await FlipperService.Instance.UpdateSettings(lastSettings);
             }
-            catch (CoflnetException)
+            catch (CoflnetException e)
             {
                 FlipperService.Instance.AddNonConnection(con);
             }

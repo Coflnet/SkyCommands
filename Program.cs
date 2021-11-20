@@ -8,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Coflnet.Sky.Filter;
+using Coflnet.Sky;
 
 namespace SkyCommands
 {
@@ -24,6 +25,7 @@ namespace SkyCommands
 
             hypixel.Program.RunIsolatedForever(FlipperService.Instance.ListentoUnavailableTopics, "flip wait");
             hypixel.Program.RunIsolatedForever(FlipperService.Instance.ListenToNewFlips, "flip wait");
+            hypixel.Program.RunIsolatedForever(FlipperService.Instance.ListenToLowPriced, "low priced auctions");
             hypixel.Program.RunIsolatedForever(FlipperService.Instance.ListenForSettingsChange, "settings sync");
 
             // hook up cache refreshing

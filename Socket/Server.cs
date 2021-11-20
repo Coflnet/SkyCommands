@@ -428,14 +428,25 @@ namespace hypixel
             }
         }
 
+        /// <summary>
+        /// keeps track of in flight cache commands
+        /// </summary>
+        private static ConcurrentDictionary<string,DateTime> RecentlyStartedCommands = new ConcurrentDictionary<string, DateTime>();
 
         public static async Task<TRes> ExecuteCommandWithCache<TReq, TRes>(string command, TReq reqdata)
         {
+            // wait up to half a second for the same response
+            while(RecentlyStartedCommands.TryGetValue(command, out DateTime value) && value.AddMilliseconds(500) < DateTime.Now)
+                await Task.Delay(30);
+            RecentlyStartedCommands[command] = DateTime.Now;
             var source = new TaskCompletionSource<TRes>();
             var data = new ProxyMessageData<TReq, TRes>(command, reqdata, source);
             if (!(await CacheService.Instance.TryFromCacheAsync(data)).IsFlagSet(CacheStatus.VALID))
                 await SkyblockBackEnd.Commands[command].Execute(data);
-            return await source.Task;
+            
+            var res = await source.Task;
+            RecentlyStartedCommands.TryRemove(command,out DateTime startTime);
+            return res;
         }
 
 

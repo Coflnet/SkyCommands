@@ -353,8 +353,9 @@ namespace hypixel
             Send(MessagePackSerializer.ToJson(data));
         }
 
-        public bool SendFlip(FlipInstance flip)
+        public async Task<bool> SendFlip(FlipInstance flip)
         {
+            await FlipperService.FillVisibilityProbs(flip,this.Settings);
             if (Settings == null || !Settings.MatchesSettings(flip))
                 return true;
             var data = new MessageData("flip", JSON.Stringify(flip), 60);
@@ -378,9 +379,9 @@ namespace hypixel
             return true;
         }
 
-        public bool SendSold(string uuid)
+        public Task<bool> SendSold(string uuid)
         {
-            return TrySendData(new MessageData("sold", uuid));
+            return Task.FromResult(TrySendData(new MessageData("sold", uuid)));
         }
 
         public void UpdateSettings(SettingsChange settings)
@@ -400,9 +401,9 @@ namespace hypixel
             }
         }
 
-        public bool SendFlip(LowPricedAuction flip)
+        public Task<bool> SendFlip(LowPricedAuction flip)
         {
-            return true;
+            return SendFlip(FlipperService.LowPriceToFlip(flip));
         }
     }
 }

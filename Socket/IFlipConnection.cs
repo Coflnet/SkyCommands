@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Coflnet.Sky.Filter;
 using hypixel;
 
@@ -10,9 +11,9 @@ namespace Coflnet.Sky.Commands
         /// </summary>
         /// <param name="flip"></param>
         /// <returns></returns>
-        bool SendFlip(hypixel.FlipInstance flip);
-        bool SendFlip(LowPricedAuction flip);
-        bool SendSold(string uuid);
+        Task<bool> SendFlip(hypixel.FlipInstance flip);
+        Task<bool> SendFlip(LowPricedAuction flip);
+        Task<bool> SendSold(string uuid);
         FlipSettings Settings { get; }
         long Id { get; }
         int UserId { get; }

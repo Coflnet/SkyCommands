@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -57,11 +58,12 @@ namespace Coflnet.Sky.Commands.MC
             Commands.Add<OnlineCommand>();
             Commands.Add<BlacklistCommand>();
             Commands.Add<SniperCommand>();
+            Commands.Add<ExactCommand>();
 
             Task.Run(async () =>
             {
                 var next = await new NextUpdateRetriever().Get();
-                
+
                 NextUpdateStart += () =>
                 {
                     Console.WriteLine("next update");
@@ -147,6 +149,8 @@ namespace Coflnet.Sky.Commands.MC
             {
                 try
                 {
+                    if (cachedSettings.Settings.AllowedFinders == LowPricedAuction.FinderType.UNKOWN)
+                        cachedSettings.Settings.AllowedFinders = LowPricedAuction.FinderType.FLIPPER;
                     this.LastSettingsChange = cachedSettings;
                     UpdateConnectionTier(cachedSettings);
                     await SendAuthorizedHello(cachedSettings);
@@ -371,11 +375,12 @@ namespace Coflnet.Sky.Commands.MC
             this.Send(json);
         }
 
-        public bool SendFlip(FlipInstance flip)
+        public async Task<bool> SendFlip(FlipInstance flip)
         {
             try
             {
-                if(flip.Finder != LowPricedAuction.FinderType.UNKOWN && !Settings.AllowedFinders.HasFlag(flip.Finder))
+                if (Settings.AllowedFinders != LowPricedAuction.FinderType.UNKOWN && flip.Finder != LowPricedAuction.FinderType.UNKOWN
+                        && !Settings.AllowedFinders.HasFlag(flip.Finder))
                     return true;
                 if (base.ConnectionState != WebSocketState.Open)
                     return false;
@@ -390,6 +395,9 @@ namespace Coflnet.Sky.Commands.MC
                 }
 
                 using var span = tracer.BuildSpan("Flip").WithTag("uuid", flip.Uuid).AsChildOf(ConSpan.Context).StartActive();
+                var settings = Settings;
+                await FlipperService.FillVisibilityProbs(flip, settings);
+
                 ModAdapter.SendFlip(flip);
                 sentFlips.Inc();
 
@@ -403,6 +411,7 @@ namespace Coflnet.Sky.Commands.MC
             return true;
         }
 
+       
 
         public string GetFlipMsg(FlipInstance flip)
         {
@@ -474,12 +483,12 @@ namespace Coflnet.Sky.Commands.MC
             return num.ToString("#,0");
         }
 
-        public bool SendSold(string uuid)
+        public Task<bool> SendSold(string uuid)
         {
             if (base.ConnectionState != WebSocketState.Open)
-                return false;
+                return Task.FromResult(false);
             // don't send extra messages
-            return true;
+            return Task.FromResult(true);
         }
 
         public void UpdateSettings(SettingsChange settings)
@@ -501,7 +510,7 @@ namespace Coflnet.Sky.Commands.MC
             CacheService.Instance.SaveInRedis(this.Id.ToString(), settings);
         }
 
-        public Task UpdateSettings(Func<SettingsChange,SettingsChange> updatingFunc)
+        public Task UpdateSettings(Func<SettingsChange, SettingsChange> updatingFunc)
         {
             var newSettings = updatingFunc(this.LastSettingsChange);
             return FlipperService.Instance.UpdateSettings(newSettings);
@@ -546,7 +555,7 @@ namespace Coflnet.Sky.Commands.MC
             }
             else
                 FlipperService.Instance.AddNonConnection(this, false);
-            this.ConSpan.SetTag("tier",settings.Tier.ToString());
+            this.ConSpan.SetTag("tier", settings.Tier.ToString());
         }
 
         private void SendTimer()
@@ -584,23 +593,11 @@ namespace Coflnet.Sky.Commands.MC
             return "";
         }
 
-        public bool SendFlip(LowPricedAuction flip)
+        public Task<bool> SendFlip(LowPricedAuction flip)
         {
-            return SendFlip(new FlipInstance()
-            {
-                LastKnownCost = (int)flip.Auction.StartingBid,
-                Auction = flip.Auction,
-                MedianPrice = flip.TargetPrice,
-                Uuid = flip.Auction.Uuid,
-                Bin = flip.Auction.Bin,
-                Interesting = PropertiesSelector.GetProperties(flip.Auction).OrderByDescending(a => a.Rating).Select(a => a.Value).ToList(),
-                Name = flip.Auction.ItemName,
-                Tag = flip.Auction.Tag,
-                Volume = flip.DailyVolume,
-                Rarity = flip.Auction.Tier,
-                Finder = flip.Finder
-            });
+            return SendFlip(FlipperService.LowPriceToFlip(flip));
         }
+
 
     }
 }
