@@ -435,8 +435,8 @@ namespace hypixel
 
         public static async Task<TRes> ExecuteCommandWithCache<TReq, TRes>(string command, TReq reqdata)
         {
-            // wait up to half a second for the same response
-            while(RecentlyStartedCommands.TryGetValue(command, out DateTime value) && value.AddMilliseconds(500) < DateTime.Now)
+            // wait a bit for the same response
+            while(RecentlyStartedCommands.TryGetValue(command, out DateTime value) && value.AddMilliseconds(100) < DateTime.Now)
                 await Task.Delay(30);
             RecentlyStartedCommands[command] = DateTime.Now;
             var source = new TaskCompletionSource<TRes>();
