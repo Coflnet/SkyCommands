@@ -130,7 +130,6 @@ namespace Coflnet.Sky.Commands.MC
             McId = args["player"] ?? args["uuid"];
             ConSpan.SetTag("uuid", McId);
             ConSpan.SetTag("version", Version);
-            Console.WriteLine(McId);
 
             string stringId;
             (this.Id, stringId) = ComputeConnectionId();
@@ -453,7 +452,6 @@ namespace Coflnet.Sky.Commands.MC
 
         private void BlockedFlip(FlipInstance flip, string reason)
         {
-            Console.WriteLine("blocked " + reason);
             if (TopBlocked.Count < 3 || TopBlocked.Min(elem => elem.Flip.Profit) < flip.Profit)
             {
                 if(TopBlocked.Where(b=>b.Flip.Uuid == flip.Uuid).Any())
