@@ -150,7 +150,7 @@ namespace Coflnet.Sky.Commands.MC
                 try
                 {
                     if (cachedSettings.Settings.AllowedFinders == LowPricedAuction.FinderType.UNKOWN)
-                        cachedSettings.Settings.AllowedFinders = LowPricedAuction.FinderType.FLIPPER;
+                        cachedSettings.Settings.AllowedFinders = LowPricedAuction.FinderType.FLIPPER | LowPricedAuction.FinderType.SNIPER_MEDIAN | LowPricedAuction.FinderType.SNIPER;
                     this.LastSettingsChange = cachedSettings;
                     UpdateConnectionTier(cachedSettings);
                     await SendAuthorizedHello(cachedSettings);
