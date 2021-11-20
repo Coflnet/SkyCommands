@@ -28,26 +28,13 @@ namespace hypixel
         public ConcurrentQueue<FlipInstance> Flipps = new ConcurrentQueue<FlipInstance>();
         private ConcurrentQueue<FlipInstance> SlowFlips = new ConcurrentQueue<FlipInstance>();
 
-        internal async Task ListenToLowPriced()
-        {
-            string[] topics = new string[] { ConsumeTopic };
-
-            await ConsumeBatch<LowPricedAuction>(topics, flip =>
-            {
-                if (flip.Auction.Start < DateTime.Now - TimeSpan.FromMinutes(3))
-                    return;
-                Task.Run(() =>
-                {
-                    DeliverLowPricedAuction(flip);
-                });
-            });
-        }
 
         /// <summary>
         /// Wherether or not a given <see cref="SaveAuction.UId"/> was a flip or not
         /// </summary>
         private ConcurrentDictionary<long, bool> FlipIdLookup = new ConcurrentDictionary<long, bool>();
         public static readonly string ConsumeTopic = SimplerConfig.Config.Instance["TOPICS:FLIP"];
+        public static readonly string LowPriceConsumeTopic = SimplerConfig.Config.Instance["TOPICS:LOW_PRICED"];
         public static readonly string SettingsTopic = SimplerConfig.Config.Instance["TOPICS:SETTINGS_CHANGE"];
         private static ProducerConfig producerConfig = new ProducerConfig { BootstrapServers = SimplerConfig.Config.Instance["KAFKA_HOST"] };
 
@@ -299,7 +286,8 @@ namespace hypixel
             using var scope = span.StartActive();
             runtroughTime.Observe((DateTime.Now - flip.Auction.FindTime).TotalSeconds);
 
-            await Task.WhenAll(Subs.Select(async item => {
+            await Task.WhenAll(Subs.Select(async item =>
+            {
                 await item.Value.SendFlip(flip);
             }));
         }
@@ -388,6 +376,29 @@ namespace hypixel
 
             Console.WriteLine("starting to listen for config changes topic " + SettingsTopic);
             return ConsumeBatch<SettingsChange>(topics, UpdateSettingsInternal);
+        }
+
+
+        internal async Task ListenToLowPriced()
+        {
+            string[] topics = new string[] { LowPriceConsumeTopic };
+
+            await ConsumeBatch<LowPricedAuction>(topics, flip =>
+            {
+                if (flip.Auction.Start < DateTime.Now - TimeSpan.FromMinutes(3))
+                    return;
+                Task.Run(async () =>
+                {
+                    try
+                    {
+                        await DeliverLowPricedAuction(flip);
+                    }
+                    catch (Exception e)
+                    {
+                        dev.Logger.Instance.Error(e, "delivering low priced auction");
+                    }
+                });
+            });
         }
 
         private void UpdateSettingsInternal(SettingsChange settings)

@@ -418,7 +418,7 @@ namespace Coflnet.Sky.Commands.MC
             var targetPrice = Settings.BasedOnLBin ? (flip.LowestBin ?? 0) : flip.MedianPrice;
             var profit = targetPrice - flip.LastKnownCost;
             var priceColor = GetProfitColor((int)profit);
-            var extraText = String.Join(",", flip.Interesting.Take(Settings.Visibility?.ExtraInfoMax ?? 0));
+            var extraText = "\n" + String.Join(", ", flip.Interesting.Take(Settings.Visibility?.ExtraInfoMax ?? 0));
 
             return $"\nFLIP: {GetRarityColor(flip.Rarity)}{flip.Name} {priceColor}{FormatPrice(flip.LastKnownCost)} -> {FormatPrice(targetPrice)} (+{FormatPrice(profit)}) §g[BUY]"
                 + extraText;
