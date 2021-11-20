@@ -401,7 +401,8 @@ namespace Coflnet.Sky.Commands.MC
                 if (SentFlips.ContainsKey(flip.UId))
                     return true; // don't double send
                 if (Settings.AllowedFinders != LowPricedAuction.FinderType.UNKOWN && flip.Finder != LowPricedAuction.FinderType.UNKOWN
-                        && !Settings.AllowedFinders.HasFlag(flip.Finder))
+                        && !Settings.AllowedFinders.HasFlag(flip.Finder)
+                        && (int)flip.Finder != 3)
                 {
                     BlockedFlip(flip, "finder " + flip.Finder.ToString());
                     return true;
