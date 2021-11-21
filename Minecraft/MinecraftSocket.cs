@@ -483,7 +483,7 @@ namespace Coflnet.Sky.Commands.MC
             var extraText = "\n" + String.Join(", ", flip.Interesting.Take(Settings.Visibility?.ExtraInfoMax ?? 0));
 
             return $"\nFLIP: {GetRarityColor(flip.Rarity)}{flip.Name} {priceColor}{FormatPrice(flip.LastKnownCost)} -> {FormatPrice(targetPrice)} "
-                + $"(+{FormatPrice(profit)} {McColorCodes.GREEN}{FormatPrice(flip.ProfitPercentage)}%{priceColor}) §g[BUY]"
+                + $"(+{FormatPrice(profit)} {McColorCodes.DARK_RED}{FormatPrice(flip.ProfitPercentage)}%{priceColor}) §g[BUY]"
                 + extraText;
         }
 

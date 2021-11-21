@@ -200,7 +200,7 @@ namespace hypixel
         {
             if(settings == null || settings.Visibility == null)
                 return;
-            if (settings.Visibility.Seller)
+            if (settings.Visibility.Seller && flip.SellerName == null)
                 flip.SellerName = await PlayerSearch.Instance.GetNameWithCacheAsync(flip.Auction.AuctioneerId);
 
             return;
