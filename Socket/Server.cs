@@ -80,7 +80,7 @@ namespace hypixel
                         var tracer = OpenTracing.Util.GlobalTracer.Instance;
                         var builder = tracer.BuildSpan("GET:" + e.Request.RawUrl.Trim('/').Split('/', '?').FirstOrDefault())
                                     .WithTag("route", e.Request.RawUrl)
-                                    .AsChildOf(tracer.Extract(BuiltinFormats.HttpHeaders,new HeaderMap(e.Request.Headers)));
+                                    .AsChildOf(tracer.Extract(BuiltinFormats.HttpHeaders, new HeaderMap(e.Request.Headers)));
 
                         using (var scope = builder.StartActive(true))
                         {
@@ -357,7 +357,6 @@ namespace hypixel
                       ip = req.RemoteEndPoint.Address.ToString();
                   Console.WriteLine($"rc {data.Type} {data.Data.Truncate(20)}");
                   await Limiter.WaitUntilAllowed(ip); */
-                Console.Write($"r {data.Type} {data.Data.Truncate(15)} ");
                 //ExecuteCommandWithCache
                 if (SkyblockBackEnd.Commands.TryGetValue(data.Type, out Command command))
                 {
@@ -431,22 +430,29 @@ namespace hypixel
         /// <summary>
         /// keeps track of in flight cache commands
         /// </summary>
-        private static ConcurrentDictionary<string,DateTime> RecentlyStartedCommands = new ConcurrentDictionary<string, DateTime>();
+        private static ConcurrentDictionary<string, DateTime> RecentlyStartedCommands = new ConcurrentDictionary<string, DateTime>();
 
         public static async Task<TRes> ExecuteCommandWithCache<TReq, TRes>(string command, TReq reqdata)
         {
-            // wait a bit for the same response
-            while(RecentlyStartedCommands.TryGetValue(command, out DateTime value) && value.AddMilliseconds(100) < DateTime.Now)
-                await Task.Delay(30);
-            RecentlyStartedCommands[command] = DateTime.Now;
             var source = new TaskCompletionSource<TRes>();
             var data = new ProxyMessageData<TReq, TRes>(command, reqdata, source);
-            if (!(await CacheService.Instance.TryFromCacheAsync(data)).IsFlagSet(CacheStatus.VALID))
-                await SkyblockBackEnd.Commands[command].Execute(data);
-            
-            var res = await source.Task;
-            RecentlyStartedCommands.TryRemove(command,out DateTime startTime);
-            return res;
+            // wait a bit for the same response
+            var key = command + data.Data;
+            while (RecentlyStartedCommands.TryGetValue(key, out DateTime value) && value.AddMilliseconds(100) < DateTime.Now)
+                await Task.Delay(30);
+            RecentlyStartedCommands[key] = DateTime.Now;
+            try
+            {
+                if (!(await CacheService.Instance.TryFromCacheAsync(data)).IsFlagSet(CacheStatus.VALID))
+                    await SkyblockBackEnd.Commands[command].Execute(data);
+                return await source.Task;
+
+            }
+            finally
+            {
+                RecentlyStartedCommands.TryRemove(key, out DateTime startTime);
+            }
+
         }
 
 

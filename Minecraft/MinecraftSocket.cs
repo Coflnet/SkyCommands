@@ -99,18 +99,25 @@ namespace Coflnet.Sky.Commands.MC
         protected override void OnOpen()
         {
             ConSpan = tracer.BuildSpan("connection").Start();
-            try
+            base.OnOpen();
+            Task.Run(() =>
             {
-                StartConnection();
-            }
-            catch (Exception e)
-            {
-                Error(e, "starting connection");
-            }
+                using var openSpan = tracer.BuildSpan("open").AsChildOf(ConSpan).StartActive();
+                try
+                {
+                    StartConnection(openSpan);
+                }
+                catch (Exception e)
+                {
+                    Error(e, "starting connection");
+                }
+            }).ConfigureAwait(false);
+
         }
 
-        private void StartConnection()
+        private void StartConnection(OpenTracing.IScope openSpan)
         {
+            SendMessage(COFLNET + "§fNOTE §7This is a development preview, it is NOT stable/bugfree", $"https://discord.gg/wvKXfTgCfb", System.Net.Dns.GetHostName());
             var args = System.Web.HttpUtility.ParseQueryString(Context.RequestUri.Query);
             Console.WriteLine(Context.RequestUri.Query);
             if (args["uuid"] == null && args["player"] == null)
@@ -135,12 +142,10 @@ namespace Coflnet.Sky.Commands.MC
             (this.Id, stringId) = ComputeConnectionId();
             ConSpan.SetTag("conId", stringId);
 
-            base.OnOpen();
 
             if (Settings == null)
                 LastSettingsChange.Settings = DEFAULT_SETTINGS;
             FlipperService.Instance.AddNonConnection(this, false);
-            SendMessage(COFLNET + "§fNOTE §7This is a development preview, it is NOT stable/bugfree", $"https://discord.gg/wvKXfTgCfb");
             System.Threading.Tasks.Task.Run(async () =>
             {
                 await SetupConnectionSettings(stringId);
@@ -424,7 +429,7 @@ namespace Coflnet.Sky.Commands.MC
                 }
 
                 // this check is down here to avoid filling up the list
-                if(!SentFlips.TryAdd(flip.UId, DateTime.Now))
+                if (!SentFlips.TryAdd(flip.UId, DateTime.Now))
                     return true; // make sure flips are not sent twice
                 using var span = tracer.BuildSpan("Flip").WithTag("uuid", flip.Uuid).AsChildOf(ConSpan.Context).StartActive();
                 var settings = Settings;
@@ -455,7 +460,7 @@ namespace Coflnet.Sky.Commands.MC
         {
             if (TopBlocked.Count < 3 || TopBlocked.Min(elem => elem.Flip.Profit) < flip.Profit)
             {
-                if(TopBlocked.Where(b=>b.Flip.Uuid == flip.Uuid).Any())
+                if (TopBlocked.Where(b => b.Flip.Uuid == flip.Uuid).Any())
                     return;
                 TopBlocked.Enqueue(new BlockedElement()
                 {
@@ -565,6 +570,7 @@ namespace Coflnet.Sky.Commands.MC
             UpdateConnectionTier(settings);
 
             CacheService.Instance.SaveInRedis(this.Id.ToString(), settings);
+            span.Span.Log(JSON.Stringify(settings));
         }
 
         public Task UpdateSettings(Func<SettingsChange, SettingsChange> updatingFunc)

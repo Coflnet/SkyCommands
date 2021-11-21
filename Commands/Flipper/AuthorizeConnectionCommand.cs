@@ -11,6 +11,12 @@ namespace hypixel
         public override async Task Execute(MessageData data)
         {
             var con = (data as SocketMessageData).Connection;
+            if (con.LastSettingsChange == null)
+            {
+                var settings = await CacheService.Instance.GetFromRedis<SettingsChange>("uflipset" + data.UserId);
+                if (settings != null)
+                    con.LastSettingsChange = settings;
+            }
             var lastSettings = con.LastSettingsChange;
             lastSettings.ConIds.Add(data.GetAs<string>());
 

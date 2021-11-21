@@ -14,7 +14,7 @@ namespace Coflnet.Sky.Commands.MC
             }
             socket.SendMessage(socket.TopBlocked.Select(b=>
                 new ChatPart(
-                    $"{b.Flip.Name} (+{socket.FormatPrice(b.Flip.Profit)}) got blocked because {b.Reason}",
+                    $"{b.Flip.Name} (+{socket.FormatPrice(b.Flip.Profit)}) got blocked because {b.Reason.Replace("SNIPER","experimental flip finder")}",
                     "https://sky.coflnet.com/auction/"+b.Flip.Uuid,
                     "Click to open"))
                     .Append(new ChatPart(){text=COFLNET + "These are high profit examples of blocked flips."}).ToArray());

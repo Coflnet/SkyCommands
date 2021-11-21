@@ -15,7 +15,7 @@ namespace hypixel
             public List<Result> Results { get; set; }
         }
 
-        public override System.Threading.Tasks.Task Execute(MessageData data)
+        public override async System.Threading.Tasks.Task Execute(MessageData data)
         {
             ItemSearchQuery details = GetQuery(data);
 
@@ -25,12 +25,11 @@ namespace hypixel
 
             int hourAmount = DetermineHourAmount(details);
 
-            var fromDB = ItemPrices.Instance.GetPriceFor(details);
-            fromDB.Wait();
+            var fromDB = await ItemPrices.Instance.GetPriceFor(details);
 
             var result = new List<Result>();
 
-            result.AddRange(fromDB.Result.Prices.Select(p=>new Result()
+            result.AddRange(fromDB.Prices.Select(p=>new Result()
             {
                 Count = p.Volume,
                 Price = (int)p.Avg,
@@ -45,7 +44,7 @@ namespace hypixel
                 maxAge = A_DAY;
             }
 
-            return data.SendBack(data.Create("itemResponse", response, maxAge));
+            await data.SendBack(data.Create("itemResponse", response, maxAge));
         }
 
         public static ItemSearchQuery GetQuery(MessageData data)

@@ -65,7 +65,7 @@ namespace hypixel
                     return "";
                 }
 
-                var playerName = PlayerSearch.Instance.GetNameWithCache(result.AuctioneerId);
+                var playerName = await PlayerSearch.Instance.GetNameWithCacheAsync(result.AuctioneerId);
                 title = $"Auction for {result.ItemName} by {playerName}";
                 description = await GetAuctionDescription(result, title);
 
@@ -91,7 +91,7 @@ namespace hypixel
                 }
 
                 await WriteStart(res, headerStart);
-                keyword = PlayerSearch.Instance.GetNameWithCache(parameter);
+                keyword = await PlayerSearch.Instance.GetNameWithCacheAsync(parameter);
                 title = $"{keyword} Auctions and bids";
                 description = $"Auctions and bids for {keyword} in hypixel skyblock.";
 
@@ -114,7 +114,7 @@ namespace hypixel
                     return res.RedirectSkyblock(parameter, "item", keyword);
                 if (!ItemDetails.Instance.TagLookup.ContainsKey(parameter))
                 {
-                    return RedirectToItem(res, ref parameter, ref keyword);
+                    return await RedirectToItem(res, parameter, keyword);
                 }
                 await WriteStart(res, headerStart);
                 keyword = ItemDetails.TagToName(parameter);
@@ -165,16 +165,15 @@ namespace hypixel
             return newHtml;
         }
 
-        private static string RedirectToItem(RequestContext res, ref string parameter, ref string keyword)
+        private static async  Task<string> RedirectToItem(RequestContext res, string parameter, string keyword)
         {
             var upperCased = parameter.ToUpper();
             if (ItemDetails.Instance.TagLookup.ContainsKey(upperCased))
                 return res.RedirectSkyblock(upperCased, "item");
             // likely not a tag
             parameter = HttpUtility.UrlDecode(parameter);
-            var thread = ItemDetails.Instance.Search(parameter, 1);
-            thread.Wait();
-            var item = thread.Result.FirstOrDefault();
+            var thread = await ItemDetails.Instance.Search(parameter, 1);
+            var item = thread.FirstOrDefault();
             keyword = item?.Name;
             parameter = item?.Tag;
             return res.RedirectSkyblock(parameter, "item", keyword);
@@ -352,7 +351,7 @@ namespace hypixel
             sb.Append("<br>Recent auctions: <ul>");
             foreach (var item in result)
             {
-                sb.Append($"<li><a href=\"/auction/{item.Uuid}\">auction by {PlayerSearch.Instance.GetNameWithCache(item.Seller)}</a></li>");
+                sb.Append($"<li><a href=\"/auction/{item.Uuid}\">auction by {await PlayerSearch.Instance.GetNameWithCacheAsync(item.Seller)}</a></li>");
             }
             sb.Append("</ul>");
             return sb.ToString();

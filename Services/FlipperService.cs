@@ -202,6 +202,8 @@ namespace hypixel
                 return;
             if (settings.Visibility.Seller)
                 flip.SellerName = await PlayerSearch.Instance.GetNameWithCacheAsync(flip.Auction.AuctioneerId);
+
+            return;
             if ((settings.Visibility.LowestBin || settings.Visibility.SecondLowestBin) && flip?.LowestBin <= 0)
             {
                 var lowestBin = await GetLowestBin(flip.Auction);
@@ -414,7 +416,6 @@ namespace hypixel
             {
                 item.UpdateSettings(settings);
             }
-            Console.WriteLine("settings update: " + JSON.Stringify(settings));
         }
 
         private async Task ConsumeBatch<T>(string[] topics, Action<T> work, int batchSize = 10)

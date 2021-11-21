@@ -26,11 +26,11 @@ namespace hypixel
         private int updateCount = 0;
         public static SearchService Instance { get; private set; }
 
-        public void AddPopularSite(string type, string id)
+        public async Task AddPopularSite(string type, string id)
         {
             string title = "";
             if (type == "player")
-                title = PlayerSearch.Instance.GetNameWithCache(id) + " auctions hypixel skyblock";
+                title = await PlayerSearch.Instance.GetNameWithCacheAsync(id) + " auctions hypixel skyblock";
             else if (type == "item")
                 title = ItemDetails.TagToName(id) + " price hypixel skyblock";
             var entry = new PopularSite(title, $"{type}/{id}");

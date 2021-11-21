@@ -5,7 +5,7 @@ namespace hypixel
 {
     public class TrackSearchCommand : Command
     {
-        public override Task Execute(MessageData data)
+        public override async Task Execute(MessageData data)
         {
             var hit = data.GetAs<Request>();
             if(hit.Type=="player" && hit.Id.Length == 32)
@@ -13,11 +13,10 @@ namespace hypixel
             else 
                 ItemDetails.Instance.AddHitFor(hit.Id);
 
-            SearchService.Instance.AddPopularSite(hit.Type,hit.Id);
-            return data.Ok();
+            await SearchService.Instance.AddPopularSite(hit.Type,hit.Id);
+            await data.Ok();
             
             TrackingService.Instance.TrackPage($"http://sky.coflnet.com/{hit.Type}/{hit.Id}",$"{hit.Type}/{hit.Id}",data);
-            return Task.CompletedTask;
         }
         [MessagePackObject]
         public class Request
