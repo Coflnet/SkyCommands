@@ -439,7 +439,7 @@ namespace Coflnet.Sky.Commands.MC
                 ModAdapter.SendFlip(flip);
                 sentFlipsCount.Inc();
 
-                PingTimer.Change(TimeSpan.FromSeconds(50), TimeSpan.FromSeconds(55));
+                PingTimer.Change(TimeSpan.FromSeconds(20), TimeSpan.FromSeconds(55));
                 // remove dupplicates
                 if (SentFlips.Count > 300)
                 {
