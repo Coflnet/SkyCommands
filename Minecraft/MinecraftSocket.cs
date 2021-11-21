@@ -70,6 +70,8 @@ namespace Coflnet.Sky.Commands.MC
             Commands.Add<SniperCommand>();
             Commands.Add<ExactCommand>();
             Commands.Add<BlockedCommand>();
+            Commands.Add<ExperimentalCommand>();
+            Commands.Add<NormalCommand>();
 
             Task.Run(async () =>
             {
@@ -243,7 +245,7 @@ namespace Coflnet.Sky.Commands.MC
             {
                 if (blockedFlipFilterCount > 0)
                 {
-                    SendMessage(COFLNET + $"there were {blockedFlipFilterCount} flips blocked by your filter the last minute", "/cofl blocked", "click to list the best 5 of the last min");
+                    SendMessage(COFLNET + $"there were {blockedFlipFilterCount} flips blocked by your filter the last minute");//, "/cofl blocked", "click to list the best 5 of the last min");
                     blockedFlipFilterCount = 0;
                 }
                 else

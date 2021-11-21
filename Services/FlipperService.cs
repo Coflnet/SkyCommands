@@ -204,7 +204,7 @@ namespace hypixel
                 flip.SellerName = await PlayerSearch.Instance.GetNameWithCacheAsync(flip.Auction.AuctioneerId);
 
             return;
-            if ((settings.Visibility.LowestBin || settings.Visibility.SecondLowestBin) && flip?.LowestBin <= 0)
+            if (flip.LowestBin == 0 && (settings.Visibility.LowestBin || settings.Visibility.SecondLowestBin) && flip?.LowestBin <= 0)
             {
                 var lowestBin = await GetLowestBin(flip.Auction);
                 flip.LowestBin = lowestBin?.FirstOrDefault()?.Price;
