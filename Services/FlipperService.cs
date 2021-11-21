@@ -281,8 +281,9 @@ namespace hypixel
         private async Task DeliverLowPricedAuction(LowPricedAuction flip)
         {
             var tracer = OpenTracing.Util.GlobalTracer.Instance;
-            var span = OpenTracing.Util.GlobalTracer.Instance.BuildSpan("DeliverFlip")
-                    .AsChildOf(tracer.Extract(BuiltinFormats.TextMap, flip.Auction.TraceContext));
+            var span = OpenTracing.Util.GlobalTracer.Instance.BuildSpan("DeliverFlip");
+            if(flip.Auction.TraceContext != null)
+                    span = span.AsChildOf(tracer.Extract(BuiltinFormats.TextMap, flip.Auction.TraceContext));
             using var scope = span.StartActive();
             runtroughTime.Observe((DateTime.Now - flip.Auction.FindTime).TotalSeconds);
 
