@@ -23,5 +23,9 @@ namespace Coflnet.Sky.Filter
         public int ExtraInfoMax;
         [DataMember(Name = "avgSellTime")]
         public bool AvgSellTime;
+        [DataMember(Name = "profitPercent")]
+        public bool ProfitPercentage;
+        [DataMember(Name = "profit")]
+        public bool Profit;
     }
 }
