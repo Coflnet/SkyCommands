@@ -187,6 +187,7 @@ namespace Coflnet.Sky.Commands.MC
                 catch (Exception e)
                 {
                     Error(e, "loading modsocket");
+                    SendMessage(COFLNET + $"Your settings could not be loaded, please relink again :)");
                 }
             }
             while (true)
