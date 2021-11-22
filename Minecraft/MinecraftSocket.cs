@@ -379,10 +379,14 @@ namespace Coflnet.Sky.Commands.MC
             return span;
         }
 
-        private void Error(Exception exception, string message = null)
+        private string Error(Exception exception, string message = null, string additionalLog = null)
         {
             using var error = tracer.BuildSpan("error").WithTag("message", message).WithTag("error", "true").StartActive();
             AddExceptionLog(error, exception);
+            if (additionalLog != null)
+                error.Span.Log(additionalLog);
+
+            return error.Span.Context.TraceId;
         }
 
         private void AddExceptionLog(OpenTracing.IScope error, Exception e)
@@ -423,7 +427,16 @@ namespace Coflnet.Sky.Commands.MC
                     BlockedFlip(flip, "sold");
                     return true;
                 }
-                var isMatch = Settings.MatchesSettings(flip);
+                var isMatch = (false, "");
+                try
+                {
+                    isMatch = Settings.MatchesSettings(flip);
+                }
+                catch (Exception e)
+                {
+                    var id = Error(e, "matching flip settings", JSON.Stringify(flip) + "\n" + JSON.Stringify(Settings));
+                    dev.Logger.Instance.Error(e, "minecraft socket flip settings matching " + id);
+                }
                 if (Settings != null && !isMatch.Item1)
                 {
                     BlockedFlip(flip, isMatch.Item2);
