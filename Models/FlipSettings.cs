@@ -57,7 +57,7 @@ namespace Coflnet.Sky.Filter
             long profit = flip.MedianPrice - flip.LastKnownCost;
             if(BasedOnLBin)
                 profit = (flip.LowestBin ?? 0) - flip.LastKnownCost;
-            if (flip.MedianPrice - profit < MinProfit)
+            if (profit < MinProfit)
                 return (false, "minProfit");
             if (flip.Volume < MinVolume)
                 return (false, "minVolume");
