@@ -479,11 +479,11 @@ namespace Coflnet.Sky.Commands.MC
 
         public string GetFlipMsg(FlipInstance flip)
         {
-            var targetPrice = Settings.BasedOnLBin ? (flip.LowestBin ?? 0) : flip.MedianPrice;
+            var targetPrice = (Settings.BasedOnLBin ? (flip.LowestBin ?? 0) : flip.MedianPrice) * 98 / 100; // lowest bin and tax
             var profit = targetPrice - flip.LastKnownCost;
             var priceColor = GetProfitColor((int)profit);
             var extraText = "\n" + String.Join(", ", flip.Interesting.Take(Settings.Visibility?.ExtraInfoMax ?? 0));
-            var textAfterProfit = Settings.Visibility.ProfitPercentage ? $" {McColorCodes.DARK_RED}{FormatPrice(flip.ProfitPercentage)}%{priceColor}" : "";
+            var textAfterProfit = Settings.Visibility.ProfitPercentage ? $" {McColorCodes.DARK_RED}{FormatPrice((profit  * 100 / flip.LastKnownCost))}%{priceColor}" : "";
 
             return $"\nFLIP: {GetRarityColor(flip.Rarity)}{flip.Name} {priceColor}{FormatPrice(flip.LastKnownCost)} -> {FormatPrice(targetPrice)} "
                 + $"(+{FormatPrice(profit)}{textAfterProfit}) §g[BUY]"

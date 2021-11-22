@@ -54,17 +54,16 @@ namespace Coflnet.Sky.Filter
         /// <returns>true if it matches</returns>
         public (bool, string) MatchesSettings(FlipInstance flip)
         {
-
-            if (flip.MedianPrice - flip.LastKnownCost < MinProfit)
-                return (false, "minProfit");
-            // don't show above lbin if not wanted
-            if (BasedOnLBin && flip.LowestBin - flip.LastKnownCost < MinProfit)
+            long profit = flip.MedianPrice - flip.LastKnownCost;
+            if(BasedOnLBin)
+                profit = (flip.LowestBin ?? 0) - flip.LastKnownCost;
+            if (flip.MedianPrice - profit < MinProfit)
                 return (false, "minProfit");
             if (flip.Volume < MinVolume)
                 return (false, "minVolume");
             if (MaxCost != 0 && flip.LastKnownCost > MaxCost)
                 return (false, "maxCost");
-            if (flip.LastKnownCost > 0 && flip.ProfitPercentage < MinProfitPercent)
+            if (flip.LastKnownCost > 0 && (profit * 100 / flip.LastKnownCost) < MinProfitPercent)
             {
                 return (false, "profit Percentage");
             }

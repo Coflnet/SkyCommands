@@ -287,10 +287,10 @@ namespace hypixel
             using var scope = span.StartActive();
             runtroughTime.Observe((DateTime.Now - flip.Auction.FindTime).TotalSeconds);
 
-            await Task.WhenAll(Subs.Select(async item =>
+            foreach (var item in Subs)
             {
                 await item.Value.SendFlip(flip);
-            }));
+            }
         }
 
 
@@ -366,6 +366,8 @@ namespace hypixel
             Console.WriteLine("starting to listen for new auctions via topic " + ConsumeTopic);
             await ConsumeBatch<FlipInstance>(topics, flip =>
             {
+                if(flip.MedianPrice - flip.LastKnownCost < 50_000)
+                    return;
                 Task.Run(() => DeliverFlip(flip));
             });
             Console.WriteLine("ended listening");
@@ -387,6 +389,9 @@ namespace hypixel
             await ConsumeBatch<LowPricedAuction>(topics, flip =>
             {
                 if (flip.Auction.Start < DateTime.Now - TimeSpan.FromMinutes(3))
+                    return;
+                
+                if (flip.TargetPrice - flip.Auction.StartingBid < 50_000)
                     return;
                 Task.Run(async () =>
                 {
