@@ -26,7 +26,7 @@ namespace Coflnet.Sky.Commands.MC
 
         public FlipSettings Settings => LastSettingsChange.Settings;
         public int UserId => LastSettingsChange.UserId;
-        private SettingsChange LastSettingsChange { get; set; } = new SettingsChange();
+        private SettingsChange LastSettingsChange { get; set; } = new SettingsChange() { Settings = DEFAULT_SETTINGS };
 
         public string Version { get; private set; }
         public OpenTracing.ITracer tracer = new Jaeger.Tracer.Builder("sky-commands-mod").WithSampler(new ConstSampler(true)).Build();
@@ -483,7 +483,7 @@ namespace Coflnet.Sky.Commands.MC
             var profit = targetPrice - flip.LastKnownCost;
             var priceColor = GetProfitColor((int)profit);
             var extraText = "\n" + String.Join(", ", flip.Interesting.Take(Settings.Visibility?.ExtraInfoMax ?? 0));
-            var textAfterProfit = Settings.Visibility.ProfitPercentage ? $" {McColorCodes.DARK_RED}{FormatPrice((profit * 100 / flip.LastKnownCost))}%{priceColor}" : "";
+            var textAfterProfit = (Settings?.Visibility?.ProfitPercentage ?? false) ? $" {McColorCodes.DARK_RED}{FormatPrice((profit * 100 / flip.LastKnownCost))}%{priceColor}" : "";
 
             return $"\nFLIP: {GetRarityColor(flip.Rarity)}{flip.Name} {priceColor}{FormatPrice(flip.LastKnownCost)} -> {FormatPrice(targetPrice)} "
                 + $"(+{FormatPrice(profit)}{textAfterProfit}) §g[BUY]"
