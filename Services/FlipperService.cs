@@ -198,7 +198,7 @@ namespace hypixel
 
         public static async Task FillVisibilityProbs(FlipInstance flip, FlipSettings settings)
         {
-            if(settings == null || settings.Visibility == null)
+            if (settings == null || settings.Visibility == null)
                 return;
             if (settings.Visibility.Seller && flip.SellerName == null)
                 flip.SellerName = await PlayerSearch.Instance.GetNameWithCacheAsync(flip.Auction.AuctioneerId);
@@ -282,8 +282,8 @@ namespace hypixel
         {
             var tracer = OpenTracing.Util.GlobalTracer.Instance;
             var span = OpenTracing.Util.GlobalTracer.Instance.BuildSpan("DeliverFlip");
-            if(flip.Auction.TraceContext != null)
-                    span = span.AsChildOf(tracer.Extract(BuiltinFormats.TextMap, flip.Auction.TraceContext));
+            if (flip.Auction.TraceContext != null)
+                span = span.AsChildOf(tracer.Extract(BuiltinFormats.TextMap, flip.Auction.TraceContext));
             using var scope = span.StartActive();
             runtroughTime.Observe((DateTime.Now - flip.Auction.FindTime).TotalSeconds);
 
@@ -366,9 +366,19 @@ namespace hypixel
             Console.WriteLine("starting to listen for new auctions via topic " + ConsumeTopic);
             await ConsumeBatch<FlipInstance>(topics, flip =>
             {
-                if(flip.MedianPrice - flip.LastKnownCost < 50_000)
+                if (flip.MedianPrice - flip.LastKnownCost < 50_000)
                     return;
-                Task.Run(() => DeliverFlip(flip));
+                Task.Run(async () =>
+                {
+                    try
+                    {
+                        await DeliverFlip(flip);
+                    }
+                    catch (Exception e)
+                    {
+                        dev.Logger.Instance.Error(e, "delivering flip");
+                    }
+                });
             });
             Console.WriteLine("ended listening");
         }
@@ -390,7 +400,7 @@ namespace hypixel
             {
                 if (flip.Auction.Start < DateTime.Now - TimeSpan.FromMinutes(3))
                     return;
-                
+
                 if (flip.TargetPrice - flip.Auction.StartingBid < 50_000)
                     return;
                 Task.Run(async () =>
@@ -574,7 +584,7 @@ namespace hypixel
         public long Profit => MedianPrice - LastKnownCost;
 
         [IgnoreDataMember]
-        public long ProfitPercentage => (Profit  * 100 / LastKnownCost);
+        public long ProfitPercentage => (Profit * 100 / LastKnownCost);
 
         [DataMember(Name = "finder")]
         public LowPricedAuction.FinderType Finder;
