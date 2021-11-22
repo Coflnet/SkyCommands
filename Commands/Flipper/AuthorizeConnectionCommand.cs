@@ -16,9 +16,12 @@ namespace hypixel
                 var settings = await CacheService.Instance.GetFromRedis<SettingsChange>("uflipset" + data.UserId);
                 if (settings != null)
                     con.LastSettingsChange = settings;
+                else 
+                    con.LastSettingsChange = new SettingsChange();
             }
             var lastSettings = con.LastSettingsChange;
-            lastSettings.ConIds.Add(data.GetAs<string>());
+            var newId = data.GetAs<string>();
+            lastSettings.ConIds.Add(newId);
 
             lastSettings.UserId = data.UserId;
             if (data.User.HasPremium)
@@ -26,7 +29,10 @@ namespace hypixel
                 lastSettings.Tier = AccountTier.PREMIUM;
                 lastSettings.ExpiresAt = data.User.PremiumExpires;
             }
-            await FlipperService.Instance.UpdateSettings(lastSettings);
+            data.Span.SetTag("conId", newId);
+            var result = await FlipperService.Instance.UpdateSettings(lastSettings);
+            data.Log("status: " + result.Status);
+            data.Log("delivered " + result.Offset.Value);
             await data.Ok();
         }
     }
