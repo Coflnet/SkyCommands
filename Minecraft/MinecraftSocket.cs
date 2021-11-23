@@ -184,6 +184,10 @@ namespace Coflnet.Sky.Commands.MC
                     await Task.Delay(500);
                     SendMessage(COFLNET + $"{McColorCodes.DARK_GREEN} click this to relink your account",
                     GetAuthLink(stringId), "You don't need to relink your account. \nThis is only here to allow you to link your mod to the website again should you notice your settings aren't updated");
+                    await Task.Delay(5000);
+                    if (cachedSettings.Settings.AllowedFinders.HasFlag(LowPricedAuction.FinderType.SNIPER))
+                        SendMessage(COFLNET + $"Experimental flips got enabled, if you want to opt out please type /cofl normal or click this",
+                        "/cofl normal", "Please give some feedback about them");
                     return;
                 }
                 catch (Exception e)
@@ -206,9 +210,9 @@ namespace Coflnet.Sky.Commands.MC
 
         private static void MigrateSettings(SettingsChange cachedSettings)
         {
-            if (cachedSettings.Settings.AllowedFinders == LowPricedAuction.FinderType.UNKOWN || cachedSettings.Version < 1)
-                cachedSettings.Settings.AllowedFinders = LowPricedAuction.FinderType.FLIPPER;
-            cachedSettings.Version = 1;
+            if (cachedSettings.Settings.AllowedFinders == LowPricedAuction.FinderType.UNKOWN || cachedSettings.Version < 2)
+                cachedSettings.Settings.AllowedFinders = LowPricedAuction.FinderType.FLIPPER | LowPricedAuction.FinderType.SNIPER_MEDIAN | LowPricedAuction.FinderType.SNIPER; ;
+            cachedSettings.Version = 2;
         }
 
         private string GetAuthLink(string stringId)
