@@ -496,15 +496,18 @@ namespace Coflnet.Sky.Commands.MC
 
         public string GetFlipMsg(FlipInstance flip)
         {
-            var targetPrice = (Settings.BasedOnLBin ? (flip.LowestBin ?? 0) : flip.MedianPrice) * 98 / 100; // lowest bin and tax
-            var profit = targetPrice - flip.LastKnownCost;
+            GetPrice(flip, out long targetPrice, out long profit);
             var priceColor = GetProfitColor((int)profit);
-            var extraText = "\n" + String.Join(", ", flip.Interesting.Take(Settings.Visibility?.ExtraInfoMax ?? 0));
             var textAfterProfit = (Settings?.Visibility?.ProfitPercentage ?? false) ? $" {McColorCodes.DARK_RED}{FormatPrice((profit * 100 / flip.LastKnownCost))}%{priceColor}" : "";
 
             return $"\nFLIP: {GetRarityColor(flip.Rarity)}{flip.Name} {priceColor}{FormatPrice(flip.LastKnownCost)} -> {FormatPrice(targetPrice)} "
-                + $"(+{FormatPrice(profit)}{textAfterProfit}) §g[BUY]"
-                + extraText;
+                + $"(+{FormatPrice(profit)}{textAfterProfit}) §g[BUY]";
+        }
+
+        public void GetPrice(FlipInstance flip, out long targetPrice, out long profit)
+        {
+            targetPrice = (Settings.BasedOnLBin ? (flip.LowestBin ?? 0) : flip.MedianPrice) * 98 / 100;
+            profit = targetPrice * 98 / 100 - flip.LastKnownCost;
         }
 
         public string GetRarityColor(Tier rarity)

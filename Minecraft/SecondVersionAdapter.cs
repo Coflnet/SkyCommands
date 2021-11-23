@@ -17,10 +17,11 @@ namespace Coflnet.Sky.Commands.MC
         {
             var message = socket.GetFlipMsg(flip);
             var openCommand = "/viewauction " + flip.Uuid;
+            var extraText = "\n" + String.Join(", ", flip.Interesting.Take(socket.Settings.Visibility?.ExtraInfoMax ?? 0));
             SendMessage(new ChatPart(message, openCommand, string.Join('\n', flip.Interesting.Select(s => "・" + s)) + "\n" + flip.SellerName),
                 new ChatPart("[?]", "/cofl reference " + flip.Uuid, "Get reference auctions"),
                 new ChatPart(" -", "/cofl blacklist " + flip.Tag, "Blacklist this item type \n(make sure not to open the website)"),
-                new ChatPart(" ", openCommand, null));
+                new ChatPart(extraText, openCommand, null));
 
             if (socket.Settings.ModSettings?.PlaySoundOnFlip ?? false && flip.Profit > 1_000_000)
                 SendSound("note.pling", (float)(1 / (Math.Sqrt((float)flip.Profit / 1_000_000) + 1)));
