@@ -20,6 +20,7 @@ namespace Coflnet.Sky.Commands.MC
                         .AsChildOf(socket.ConSpan).StartActive();
                         
             reportSpan.Span.Log(JsonConvert.SerializeObject(socket.Settings));
+            reportSpan.Span.Log(JsonConvert.SerializeObject(socket.TopBlocked));
             var spanId = reportSpan.Span.Context.SpanId.Truncate(6);
             reportSpan.Span.SetTag("id", spanId);
 
