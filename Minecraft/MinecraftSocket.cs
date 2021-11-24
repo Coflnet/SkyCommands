@@ -210,9 +210,12 @@ namespace Coflnet.Sky.Commands.MC
 
         private static void MigrateSettings(SettingsChange cachedSettings)
         {
-            if (cachedSettings.Settings.AllowedFinders == LowPricedAuction.FinderType.UNKOWN || cachedSettings.Version < 2)
-                cachedSettings.Settings.AllowedFinders = LowPricedAuction.FinderType.FLIPPER | LowPricedAuction.FinderType.SNIPER_MEDIAN | LowPricedAuction.FinderType.SNIPER; ;
-            cachedSettings.Version = 2;
+            var currentVersion = 3;
+            if(cachedSettings.Version >= currentVersion)
+                return;
+            if (cachedSettings.Settings.AllowedFinders == LowPricedAuction.FinderType.UNKOWN )
+                cachedSettings.Settings.AllowedFinders = LowPricedAuction.FinderType.FLIPPER | LowPricedAuction.FinderType.SNIPER_MEDIAN | LowPricedAuction.FinderType.SNIPER;
+            cachedSettings.Version = currentVersion;
         }
 
         private string GetAuthLink(string stringId)
@@ -440,6 +443,7 @@ namespace Coflnet.Sky.Commands.MC
                 {
                     var id = Error(e, "matching flip settings", JSON.Stringify(flip) + "\n" + JSON.Stringify(Settings));
                     dev.Logger.Instance.Error(e, "minecraft socket flip settings matching " + id);
+                    BlockedFlip(flip, "Error " + e.Message);
                 }
                 if (Settings != null && !isMatch.Item1)
                 {

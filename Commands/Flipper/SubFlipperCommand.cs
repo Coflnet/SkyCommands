@@ -34,7 +34,7 @@ namespace hypixel
                 lastSettings.Settings = con.Settings;
                 lastSettings.UserId = data.UserId;
                 if(lastSettings.Settings.AllowedFinders == Coflnet.Sky.LowPricedAuction.FinderType.UNKOWN)
-                    lastSettings.Settings.AllowedFinders = Coflnet.Sky.LowPricedAuction.FinderType.FLIPPER | Coflnet.Sky.LowPricedAuction.FinderType.SNIPER;
+                    lastSettings.Settings.AllowedFinders = Coflnet.Sky.LowPricedAuction.FinderType.FLIPPER | Coflnet.Sky.LowPricedAuction.FinderType.SNIPER | Coflnet.Sky.LowPricedAuction.FinderType.SNIPER_MEDIAN;
 
                 await FlipperService.Instance.UpdateSettings(lastSettings);
             }
