@@ -54,9 +54,8 @@ namespace Coflnet.Sky.Filter
         /// <returns>true if it matches</returns>
         public (bool, string) MatchesSettings(FlipInstance flip)
         {
-            long profit = flip.MedianPrice - flip.LastKnownCost;
-            if(BasedOnLBin)
-                profit = (flip.LowestBin ?? 0) - flip.LastKnownCost;
+            GetPrice(flip, out long targetPrice, out long profit);
+
             if (profit < MinProfit)
                 return (false, "minProfit");
             if (flip.Volume < MinVolume)
@@ -90,6 +89,18 @@ namespace Coflnet.Sky.Filter
             if (filter == null)
                 filter = new FlipFilter(this.Filters);
             return (filter.IsMatch(flip), "general filter");
+        }
+
+        /// <summary>
+        /// Calculates the displayed price and profit
+        /// </summary>
+        /// <param name="flip"></param>
+        /// <param name="targetPrice"></param>
+        /// <param name="profit"></param>
+        public void GetPrice(FlipInstance flip, out long targetPrice, out long profit)
+        {
+            targetPrice = (BasedOnLBin ? (flip.LowestBin ?? 0) : flip.MedianPrice);
+            profit = targetPrice * 98 / 100 - flip.LastKnownCost;
         }
     }
 }
