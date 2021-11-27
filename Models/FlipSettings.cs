@@ -43,6 +43,12 @@ namespace Coflnet.Sky.Filter
         [DataMember(Name = "finders")]
         public LowPricedAuction.FinderType AllowedFinders;
 
+        /// <summary>
+        /// The initiating party that sent the change
+        /// </summary>
+        [DataMember(Name = "changer")]
+        public string Changer;
+
 
         private FlipFilter filter;
         private List<FlipFilter> blackListFilters;
