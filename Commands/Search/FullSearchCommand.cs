@@ -25,14 +25,19 @@ namespace hypixel
             var pullTask = Task.Run(async () =>
             {
                 Console.WriteLine($"Started task " + watch.Elapsed);
-                while (results.Result.TryDequeue(out SearchService.SearchResultItem r))
+                while (!cancelationSource.IsCancellationRequested)
                 {
-                    result.Add(r);
-                    if (result.Count > 15)
-                        return; // return early
+                    while (results.Result.TryDequeue(out SearchService.SearchResultItem r))
+                    {
+                        result.Add(r);
+                        if (result.Count > 15)
+                            return; // return early
 
-                    Task.Run(() => LoadPreview(watch, r), cancelationSource.Token).ConfigureAwait(false);
+                        var lastTask = Task.Run(() => LoadPreview(watch, r), cancelationSource.Token).ConfigureAwait(false);
+                    }
+                    await Task.Delay(20);
                 }
+
             }, cancelationSource.Token);
 
             data.Log($"Waiting half a second " + watch.Elapsed);
