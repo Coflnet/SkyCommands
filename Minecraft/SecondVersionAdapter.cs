@@ -20,9 +20,10 @@ namespace Coflnet.Sky.Commands.MC
             var extraText = "\n" + String.Join(", ", flip.Interesting.Take(socket.Settings.Visibility?.ExtraInfoMax ?? 0));
             SendMessage(new ChatPart(message, openCommand, string.Join('\n', flip.Interesting.Select(s => "・" + s)) + "\n" + flip.SellerName),
                 new ChatPart("[?]", "/cofl reference " + flip.Uuid, "Get reference auctions"),
-                new ChatPart(" -", "/cofl blacklist " + flip.Tag, "Blacklist this item type \n(make sure not to open the website)"),
+                new ChatPart(" ↑", $"/cofl rate {flip.Uuid} {flip.Finder} up", "Vote this flip up"),
+                new ChatPart("↓ ", $"/cofl rate {flip.Uuid} {flip.Finder} down", "Vote this flip down"),
                 new ChatPart(extraText, openCommand, null));
-
+ 
             if (socket.Settings.ModSettings?.PlaySoundOnFlip ?? false && flip.Profit > 1_000_000)
                 SendSound("note.pling", (float)(1 / (Math.Sqrt((float)flip.Profit / 1_000_000) + 1)));
             return true;

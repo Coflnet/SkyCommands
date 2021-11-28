@@ -14,4 +14,6 @@ namespace Coflnet.Sky.Commands.MC
             socket.SendMessage(COFLNET + $"You opted in into experimental flips");
         }
     }
+
+    
 }

@@ -47,6 +47,7 @@ namespace Coflnet.Sky.Commands.MC
 
         private ConcurrentDictionary<long, DateTime> SentFlips = new ConcurrentDictionary<long, DateTime>();
         public ConcurrentQueue<BlockedElement> TopBlocked = new ConcurrentQueue<BlockedElement>();
+        public ConcurrentQueue<FlipInstance> LastSent = new ConcurrentQueue<FlipInstance>();
 
         public class BlockedElement
         {
@@ -71,6 +72,7 @@ namespace Coflnet.Sky.Commands.MC
             Commands.Add<ExactCommand>();
             Commands.Add<BlockedCommand>();
             Commands.Add<ExperimentalCommand>();
+            Commands.Add<RateCommand>();
             Commands.Add<NormalCommand>();
 
             Task.Run(async () =>
@@ -176,7 +178,7 @@ namespace Coflnet.Sky.Commands.MC
                         + $" MinProfit: {FormatPrice(Settings.MinProfit)}  "
                         + $" MaxCost: {FormatPrice(Settings.MaxCost)}"
                         + $" Blacklist-Size: {Settings?.BlackList?.Count ?? 0}\n "
-                        + (Settings.BasedOnLBin ? $" Your profit is based on Lowest bin, please not that this is NOT the intended way to use this\n " : "")
+                        + (Settings.BasedOnLBin ? $" Your profit is based on Lowest bin, please note that this is NOT the intended way to use this\n " : "")
                         + "§f: click this if you want to change a setting \n"
                         + "§8: nothing else to do have a nice day :)",
                         "https://sky.coflnet.com/flipper");
@@ -459,6 +461,7 @@ namespace Coflnet.Sky.Commands.MC
                 await FlipperService.FillVisibilityProbs(flip, settings);
 
                 ModAdapter.SendFlip(flip);
+                LastSent.Enqueue(flip);
                 sentFlipsCount.Inc();
 
                 PingTimer.Change(TimeSpan.FromSeconds(20), TimeSpan.FromSeconds(55));
@@ -470,6 +473,8 @@ namespace Coflnet.Sky.Commands.MC
                         SentFlips.TryRemove(item.Key, out DateTime value);
                     }
                 }
+                if(LastSent.Count > 30)
+                    LastSent.TryDequeue(out _);
             }
             catch (Exception e)
             {

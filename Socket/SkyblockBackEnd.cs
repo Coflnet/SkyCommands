@@ -103,7 +103,9 @@ namespace hypixel
             Commands.Add("accountInfo", new AccountInfoCommand());
 
 
-
+            Commands.Add("getCoflOwned",new GetCoflOwnerShipCommand());
+            Commands.Add("getCoflBalance",new GetCoflBalanceCommand());
+            Commands.Add("transferCofl",new TransferCoinsCommand());
             Commands.Add("getProducts", new GetProductsCommand());
             Commands.Add("getPrices", new GetPricesCommand());
             Commands.Add("gPurchase", new GooglePurchaseCommand());
