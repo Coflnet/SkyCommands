@@ -31,9 +31,14 @@ namespace Coflnet.Sky.Commands.Helper
 
         }
 
+        private static Dictionary<Enchantment.EnchantmentType,byte> RelEnchantLookup = null;
+
         public static IEnumerable<Property> GetProperties(SaveAuction auction)
         {
             var properties = new List<Property>();
+
+            if(RelEnchantLookup == null)
+                RelEnchantLookup = Sky.Constants.RelevantEnchants.ToDictionary(r=>r.Type,r=>r.Level);
 
 
             var data = auction.FlatenedNBT;
@@ -63,7 +68,7 @@ namespace Coflnet.Sky.Commands.Helper
 
             var isBook = auction.Tag == "ENCHANTED_BOOK";
 
-            properties.AddRange(auction.Enchantments.Where(e => isBook || Constants.RelevantEnchants.Where(en => en.Type == e.Type && en.Level <= e.Level).Any() || e.Level > 5).Select(e => new Property()
+            properties.AddRange(auction.Enchantments?.Where(e => (!RelEnchantLookup.ContainsKey(e.Type) && e.Level >= 6) || (RelEnchantLookup.TryGetValue(e.Type, out byte lvl)) && e.Level >= lvl).Select(e => new Property()
             {
                 Value = $"{ItemDetails.TagToName(e.Type.ToString())}: {e.Level}",
                 Rating = 2 + e.Level + (e.Type.ToString().StartsWith("ultimate") ? 5 : 0) + (e.Type == Enchantment.EnchantmentType.infinite_quiver ? -3 : 0)
