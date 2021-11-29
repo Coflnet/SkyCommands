@@ -213,9 +213,9 @@ namespace Coflnet.Sky.Commands.MC
         private static void MigrateSettings(SettingsChange cachedSettings)
         {
             var currentVersion = 3;
-            if(cachedSettings.Version >= currentVersion)
+            if (cachedSettings.Version >= currentVersion)
                 return;
-            if (cachedSettings.Settings.AllowedFinders == LowPricedAuction.FinderType.UNKOWN )
+            if (cachedSettings.Settings.AllowedFinders == LowPricedAuction.FinderType.UNKOWN)
                 cachedSettings.Settings.AllowedFinders = LowPricedAuction.FinderType.FLIPPER | LowPricedAuction.FinderType.SNIPER_MEDIAN | LowPricedAuction.FinderType.SNIPER;
             cachedSettings.Version = currentVersion;
         }
@@ -473,7 +473,7 @@ namespace Coflnet.Sky.Commands.MC
                         SentFlips.TryRemove(item.Key, out DateTime value);
                     }
                 }
-                if(LastSent.Count > 30)
+                if (LastSent.Count > 30)
                     LastSent.TryDequeue(out _);
             }
             catch (Exception e)
@@ -558,7 +558,7 @@ namespace Coflnet.Sky.Commands.MC
         /// <returns></returns>
         private static string FormatPriceShort(long num)
         {
-            if(num <= 0) // there was an issue with flips attempting to be devided by 0
+            if (num <= 0) // there was an issue with flips attempting to be devided by 0
                 return "0";
             // Ensure number has max 3 significant digits (no rounding up can happen)
             long i = (long)Math.Pow(10, (int)Math.Max(0, Math.Log10(num) - 2));
@@ -594,7 +594,11 @@ namespace Coflnet.Sky.Commands.MC
                 Task.Run(async () => await ModGotAuthorised(settings));
             }
             else if (!settingsSame)
-                SendMessage($"setting changed " + FindWhatsNew(this.Settings, settings.Settings));
+            {
+                var changed = FindWhatsNew(this.Settings, settings.Settings);
+                SendMessage($"setting changed " + changed);
+                span.Span.Log(changed);
+            }
             LastSettingsChange = settings;
             UpdateConnectionTier(settings);
 
@@ -673,17 +677,40 @@ namespace Coflnet.Sky.Commands.MC
                     return "min Profit to " + FormatPrice(newSettings.MinProfit);
                 if (current.MinProfit != newSettings.MinProfit)
                     return "max Cost to " + FormatPrice(newSettings.MaxCost);
+                if (current.MinProfitPercent != newSettings.MinProfitPercent)
+                    return "min profit percentage to " + FormatPrice(newSettings.MinProfitPercent);
                 if (current.BlackList?.Count < newSettings.BlackList?.Count)
-                    return $"blacklisted item";
+                    return $"blacklisted item " + ItemDetails.TagToName(newSettings.BlackList.Last().ItemTag);
                 if (current.WhiteList?.Count < newSettings.WhiteList.Count)
-                    return $"whitelisted item";
+                    return $"whitelisted item " + ItemDetails.TagToName(newSettings.BlackList.Last().ItemTag);
+                foreach (var prop in current.Visibility?.GetType().GetFields())
+                {
+                    if (prop.GetValue(current.Visibility).ToString() != prop.GetValue(newSettings.Visibility).ToString())
+                    {
+                        return GetEnableMessage(newSettings.Visibility, prop);
+                    }
+                }
+                foreach (var prop in current.ModSettings?.GetType().GetFields())
+                {
+                    if (prop.GetValue(current.ModSettings).ToString() != prop.GetValue(newSettings.ModSettings).ToString())
+                    {
+                        return GetEnableMessage(newSettings.ModSettings, prop);
+                    }
+                }
             }
             catch (Exception e)
             {
-                this.ConSpan.Log(e.StackTrace);
+                Error(e, "updating settings");
             }
 
             return "";
+        }
+
+        private static string GetEnableMessage(object newSettings, System.Reflection.FieldInfo prop)
+        {
+            if (prop.GetValue(newSettings).Equals(true))
+                return prop.Name + " got enabled";
+            return prop.Name + " was disabled";
         }
 
         public Task<bool> SendFlip(LowPricedAuction flip)
