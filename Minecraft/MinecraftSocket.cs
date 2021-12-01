@@ -683,20 +683,22 @@ namespace Coflnet.Sky.Commands.MC
                     return $"blacklisted item " + ItemDetails.TagToName(newSettings.BlackList.Last().ItemTag);
                 if (current.WhiteList?.Count < newSettings.WhiteList.Count)
                     return $"whitelisted item " + ItemDetails.TagToName(newSettings.BlackList.Last().ItemTag);
-                foreach (var prop in current.Visibility?.GetType().GetFields())
-                {
-                    if (prop.GetValue(current.Visibility).ToString() != prop.GetValue(newSettings.Visibility).ToString())
+                if (current.Visibility != null)
+                    foreach (var prop in current.Visibility?.GetType().GetFields())
                     {
-                        return GetEnableMessage(newSettings.Visibility, prop);
+                        if (prop.GetValue(current.Visibility).ToString() != prop.GetValue(newSettings.Visibility).ToString())
+                        {
+                            return GetEnableMessage(newSettings.Visibility, prop);
+                        }
                     }
-                }
-                foreach (var prop in current.ModSettings?.GetType().GetFields())
-                {
-                    if (prop.GetValue(current.ModSettings).ToString() != prop.GetValue(newSettings.ModSettings).ToString())
+                if (current.ModSettings != null)
+                    foreach (var prop in current.ModSettings?.GetType().GetFields())
                     {
-                        return GetEnableMessage(newSettings.ModSettings, prop);
+                        if (prop.GetValue(current.ModSettings).ToString() != prop.GetValue(newSettings.ModSettings).ToString())
+                        {
+                            return GetEnableMessage(newSettings.ModSettings, prop);
+                        }
                     }
-                }
             }
             catch (Exception e)
             {
