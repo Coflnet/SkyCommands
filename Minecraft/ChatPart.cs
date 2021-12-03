@@ -10,7 +10,7 @@ namespace Coflnet.Sky.Commands.MC
         {
         }
 
-        public ChatPart(string text, string onClick, string hover)
+        public ChatPart(string text, string onClick = null, string hover = null)
         {
             this.text = text;
             this.onClick = onClick;

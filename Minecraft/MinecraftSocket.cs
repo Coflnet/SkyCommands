@@ -216,7 +216,7 @@ namespace Coflnet.Sky.Commands.MC
             if (cachedSettings.Version >= currentVersion)
                 return;
             if (cachedSettings.Settings.AllowedFinders == LowPricedAuction.FinderType.UNKOWN)
-                cachedSettings.Settings.AllowedFinders = LowPricedAuction.FinderType.FLIPPER | LowPricedAuction.FinderType.SNIPER_MEDIAN | LowPricedAuction.FinderType.SNIPER;
+                cachedSettings.Settings.AllowedFinders = LowPricedAuction.FinderType.FLIPPER;
             cachedSettings.Version = currentVersion;
         }
 
@@ -283,7 +283,7 @@ namespace Coflnet.Sky.Commands.MC
 
         protected override void OnMessage(MessageEventArgs e)
         {
-            if (waiting > 3)
+            if (waiting > 2)
             {
                 SendMessage(COFLNET + $"You are executing to many commands please wait a bit");
                 return;
@@ -306,7 +306,10 @@ namespace Coflnet.Sky.Commands.MC
                 return;
 
             if (!Commands.TryGetValue(a.type.ToLower(), out McCommand command))
+            {
                 SendMessage($"The command '{a.type}' is not know. Please check your spelling ;)");
+                return;
+            }
 
             Task.Run(async () =>
             {
@@ -509,8 +512,8 @@ namespace Coflnet.Sky.Commands.MC
             var priceColor = GetProfitColor((int)profit);
             var textAfterProfit = (Settings?.Visibility?.ProfitPercentage ?? false) ? $" {McColorCodes.DARK_RED}{FormatPrice((profit * 100 / flip.LastKnownCost))}%{priceColor}" : "";
 
-            return $"\nFLIP: {GetRarityColor(flip.Rarity)}{flip.Name} {priceColor}{FormatPrice(flip.LastKnownCost)} -> {FormatPrice(targetPrice)} "
-                + $"(+{FormatPrice(profit)}{textAfterProfit}) §g[BUY]";
+            return $"\n{(flip.Finder.HasFlag(LowPricedAuction.FinderType.SNIPER) ? "SNIPE" : "FLIP")}: {GetRarityColor(flip.Rarity)}{flip.Name} {priceColor}{FormatPrice(flip.LastKnownCost)} -> {FormatPrice(targetPrice)} "
+                + $"(+{FormatPrice(profit)}{textAfterProfit}) §g";
         }
 
         public string GetRarityColor(Tier rarity)
