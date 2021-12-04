@@ -196,7 +196,8 @@ namespace hypixel
                 Volume = flip.DailyVolume,
                 Rarity = flip.Auction.Tier,
                 Finder = flip.Finder,
-                LowestBin = flip.Finder == LowPricedAuction.FinderType.SNIPER ? flip.TargetPrice : 0
+                LowestBin = flip.Finder == LowPricedAuction.FinderType.SNIPER ? flip.TargetPrice : 0,
+                Context = flip.AdditionalProps
             };
         }
 
@@ -589,6 +590,9 @@ namespace hypixel
 
         [IgnoreDataMember]
         public long ProfitPercentage => (Profit * 100 / LastKnownCost);
+
+        [IgnoreDataMember]
+        public Dictionary<string, string> Context { get; set; }
 
         [DataMember(Name = "finder")]
         public LowPricedAuction.FinderType Finder;

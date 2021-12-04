@@ -15,6 +15,8 @@ namespace Coflnet.Sky.Commands.MC
             var rating = args[2];
             using var span = socket.tracer.BuildSpan("vote").WithTag("type", rating).WithTag("finder", finder).WithTag("uuid", uuid).AsChildOf(socket.ConSpan).StartActive();
             var bad = socket.LastSent.Where(s => s.Uuid == uuid).FirstOrDefault();
+            span.Span.Log(JSON.Stringify(bad));
+            span.Span.Log(JSON.Stringify(bad.Context));
 
 
             if (rating == "down")
@@ -40,7 +42,6 @@ namespace Coflnet.Sky.Commands.MC
             }
             await Task.Delay(1000);
             var based = await Server.ExecuteCommandWithCache<string, IEnumerable<BasedOnCommand.Response>>("flipBased", uuid);
-            span.Span.Log(JSON.Stringify(bad));
             span.Span.Log(string.Join('\n', based.Select(b => $"{b.ItemName} {b.highestBid} {b.uuid}")));
         }
 

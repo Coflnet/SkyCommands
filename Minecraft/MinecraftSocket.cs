@@ -621,7 +621,7 @@ namespace Coflnet.Sky.Commands.MC
             LastSettingsChange = settings;
             UpdateConnectionTier(settings);
 
-            CacheService.Instance.SaveInRedis(this.Id.ToString(), settings);
+            CacheService.Instance.SaveInRedis(this.Id.ToString(), settings, TimeSpan.FromDays(3));
             span.Span.Log(JSON.Stringify(settings));
         }
 
