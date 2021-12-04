@@ -17,11 +17,12 @@ namespace Coflnet.Sky.Commands.MC
         {
             var message = socket.GetFlipMsg(flip);
             var openCommand = "/viewauction " + flip.Uuid;
-            var extraText = "\n" + String.Join(", ", flip.Interesting.Take(socket.Settings.Visibility?.ExtraInfoMax ?? 0));
+            var extraText = "\n" + String.Join(McColorCodes.DARK_GRAY + ", " + McColorCodes.WHITE, flip.Interesting.Take(socket.Settings.Visibility?.ExtraInfoMax ?? 0));
+            
             SendMessage(new ChatPart(message, openCommand, string.Join('\n', flip.Interesting.Select(s => "・" + s)) + "\n" + flip.SellerName),
-                new ChatPart("[?]", "/cofl reference " + flip.Uuid, "Get reference auctions"),
-                new ChatPart(" ↑", $"/cofl rate {flip.Uuid} {flip.Finder} up", "Vote this flip up"),
-                new ChatPart("↓ ", $"/cofl rate {flip.Uuid} {flip.Finder} down", "Vote this flip down"),
+                new ChatPart(" [?]", "/cofl reference " + flip.Uuid, "Get reference auctions"),
+                new ChatPart(" ❤", $"/cofl rate {flip.Uuid} {flip.Finder} up", "Vote this flip up"),
+                new ChatPart("✖ ", $"/cofl rate {flip.Uuid} {flip.Finder} down", "Vote this flip down"),
                 new ChatPart(extraText, openCommand, null));
  
             if (socket.Settings.ModSettings?.PlaySoundOnFlip ?? false && flip.Profit > 1_000_000)

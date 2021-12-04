@@ -320,7 +320,8 @@ namespace Coflnet.Sky.Commands.MC
                 }
                 catch (Exception ex)
                 {
-                    Error(ex, "mod command");
+                    var id = Error(ex, "mod command");
+                    SendMessage(COFLNET + $"An error occured why processing your command. The error was recorded and will be investigated soon. You can reffer to it by {id}", "http://" + id, "click to open the id as link (and be able to copy)");
                 }
                 finally
                 {
@@ -461,11 +462,15 @@ namespace Coflnet.Sky.Commands.MC
                     return true; // make sure flips are not sent twice
                 using var span = tracer.BuildSpan("Flip").WithTag("uuid", flip.Uuid).AsChildOf(ConSpan.Context).StartActive();
                 var settings = Settings;
+                span.Span.Log("settings");
                 await FlipperService.FillVisibilityProbs(flip, settings);
+                span.Span.Log("filled probs");
 
                 ModAdapter.SendFlip(flip);
+                span.Span.Log("sent");
                 LastSent.Enqueue(flip);
                 sentFlipsCount.Inc();
+                span.Span.Log("after inc");
 
                 PingTimer.Change(TimeSpan.FromSeconds(20), TimeSpan.FromSeconds(55));
                 // remove dupplicates
@@ -512,8 +517,19 @@ namespace Coflnet.Sky.Commands.MC
             var priceColor = GetProfitColor((int)profit);
             var textAfterProfit = (Settings?.Visibility?.ProfitPercentage ?? false) ? $" {McColorCodes.DARK_RED}{FormatPrice((profit * 100 / flip.LastKnownCost))}%{priceColor}" : "";
 
-            return $"\n{(flip.Finder.HasFlag(LowPricedAuction.FinderType.SNIPER) ? "SNIPE" : "FLIP")}: {GetRarityColor(flip.Rarity)}{flip.Name} {priceColor}{FormatPrice(flip.LastKnownCost)} -> {FormatPrice(targetPrice)} "
-                + $"(+{FormatPrice(profit)}{textAfterProfit}) §g";
+            var builder = new StringBuilder(80);
+
+            builder.Append($"\n{(flip.Finder.HasFlag(LowPricedAuction.FinderType.SNIPER) ? "SNIPE" : "FLIP")}: {GetRarityColor(flip.Rarity)}{flip.Name} {priceColor}{FormatPrice(flip.LastKnownCost)} -> {FormatPrice(targetPrice)} "
+                + $"(+{FormatPrice(profit)}{textAfterProfit}) §g");
+            if (Settings.Visibility?.MedianPrice ?? false)
+                builder.Append(McColorCodes.GRAY + " Med: " + McColorCodes.AQUA + FormatPrice(flip.MedianPrice));
+            if (Settings.Visibility?.LowestBin ?? false)
+                builder.Append(McColorCodes.GRAY + " LBin: " + McColorCodes.AQUA + FormatPrice(flip.LowestBin ?? 0));
+            if (Settings.Visibility?.Volume ?? false)
+                builder.Append(McColorCodes.GRAY + " Vol: " + McColorCodes.AQUA + flip.Volume.ToString("0.#"));
+            if (Settings.Visibility?.Seller ?? false && flip.SellerName != null)
+                builder.Append(McColorCodes.GRAY + " From: " + McColorCodes.AQUA + flip.SellerName);
+            return builder.ToString();
         }
 
         public string GetRarityColor(Tier rarity)

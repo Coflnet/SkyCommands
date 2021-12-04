@@ -16,11 +16,11 @@ namespace Coflnet.Sky.Commands.MC
             using var span = socket.tracer.BuildSpan("vote").WithTag("type", rating).WithTag("finder", finder).WithTag("uuid", uuid).AsChildOf(socket.ConSpan).StartActive();
             var bad = socket.LastSent.Where(s => s.Uuid == uuid).FirstOrDefault();
 
-            socket.SendMessage(COFLNET + $"Thanks for your feedback, you voted this flip " + rating, "/cofl undo", "We will try to improve the flips accordingly");
+
             if (rating == "down")
             {
                 Blacklist(socket, bad);
-                socket.SendMessage(new ChatPart(COFLNET + "Please help us better understand why this flip is bad\n", null, "you can also send free text with /cofl report"),
+                socket.SendMessage(new ChatPart(COFLNET + "Thanks for your feedback, Please help us better understand why this flip is bad\n", null, "you can also send free text with /cofl report"),
                     new ChatPart(" * Its overpriced\n", "/cofl report overpriced "),
                     new ChatPart(" * This item sells slowly\n", "/cofl report slow sell"),
                     new ChatPart(" * I blacklisted this before\n", "/cofl report blacklist broken"),
@@ -28,13 +28,17 @@ namespace Coflnet.Sky.Commands.MC
             }
             else if (rating == "up")
             {
-                socket.SendMessage(new ChatPart(COFLNET + "Please help us better understand why this flip is good\n"),
+                socket.SendMessage(new ChatPart(COFLNET + "Thanks for your feedback, Please help us better understand why this flip is good\n"),
                                     new ChatPart(" * it isn't I mis-clicked \n", "/cofl report overpriced "),
                                     new ChatPart(" * This item sells fast\n", "/cofl report slow sell"),
-                                    new ChatPart(" * High profit margin\n", "/cofl report slow sell"),
+                                    new ChatPart(" * High profit\n", "/cofl report slow sell"),
                                     new ChatPart(" * Something else \n", null, "please send /cofl report with further information"));
             }
-
+            else
+            {
+                socket.SendMessage(COFLNET + $"Thanks for your feedback, you voted this flip " + rating, "/cofl undo", "We will try to improve the flips accordingly");
+            }
+            await Task.Delay(1000);
             var based = await Server.ExecuteCommandWithCache<string, IEnumerable<BasedOnCommand.Response>>("flipBased", uuid);
             span.Span.Log(JSON.Stringify(bad));
             span.Span.Log(string.Join('\n', based.Select(b => $"{b.ItemName} {b.highestBid} {b.uuid}")));
