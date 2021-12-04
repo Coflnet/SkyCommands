@@ -26,6 +26,7 @@ namespace Coflnet.Sky.Commands.MC
                     new ChatPart(" * Its overpriced\n", "/cofl report overpriced "),
                     new ChatPart(" * This item sells slowly\n", "/cofl report slow sell"),
                     new ChatPart(" * I blacklisted this before\n", "/cofl report blacklist broken"),
+                    new ChatPart(" * This item is manipulated\n", "/cofl report manipulated item"),
                     new ChatPart(" * Reference auctions are wrong \n", "/cofl report reference auctions are wrong ", "please send /cofl report with further information"));
             }
             else if (rating == "up")
