@@ -175,21 +175,17 @@ namespace Coflnet.Sky.Commands.MC
                     // set them again
                     this.LastSettingsChange = cachedSettings;
                     SendMessage(COFLNET + $"§fFound and loaded settings for your connection\n"
-                        + $" MinProfit: {FormatPrice(Settings.MinProfit)}  "
-                        + $" MaxCost: {FormatPrice(Settings.MaxCost)}"
-                        + $" Blacklist-Size: {Settings?.BlackList?.Count ?? 0}\n "
-                        + (Settings.BasedOnLBin ? $" Your profit is based on Lowest bin, please note that this is NOT the intended way to use this\n " : "")
-                        + "§f: click this if you want to change a setting \n"
+                        + $"{McColorCodes.GRAY} MinProfit: {McColorCodes.AQUA}{FormatPrice(Settings.MinProfit)}  "
+                        + $"{McColorCodes.GRAY} MaxCost: {McColorCodes.AQUA}{FormatPrice(Settings.MaxCost)}"
+                        + $"{McColorCodes.GRAY} Blacklist-Size: {McColorCodes.AQUA}{Settings?.BlackList?.Count ?? 0}\n "
+                        + (Settings.BasedOnLBin ? $"{McColorCodes.RED} Your profit is based on Lowest bin, please note that this is NOT the intended way to use this\n " : "")
+                        + $"{McColorCodes.AQUA}: click this if you want to change a setting \n"
                         + "§8: nothing else to do have a nice day :)",
                         "https://sky.coflnet.com/flipper");
                     Console.WriteLine($"loaded settings for {this.sessionId} " + JsonConvert.SerializeObject(cachedSettings));
                     await Task.Delay(500);
                     SendMessage(COFLNET + $"{McColorCodes.DARK_GREEN} click this to relink your account",
                     GetAuthLink(stringId), "You don't need to relink your account. \nThis is only here to allow you to link your mod to the website again should you notice your settings aren't updated");
-                    await Task.Delay(5000);
-                    if (cachedSettings.Settings.AllowedFinders.HasFlag(LowPricedAuction.FinderType.SNIPER))
-                        SendMessage(COFLNET + $"Experimental flips got enabled, if you want to opt out please type /cofl normal or click this",
-                        "/cofl normal", "Please give some feedback about them");
                     return;
                 }
                 catch (Exception e)
@@ -198,11 +194,12 @@ namespace Coflnet.Sky.Commands.MC
                     SendMessage(COFLNET + $"Your settings could not be loaded, please relink again :)");
                 }
             }
+            var index = 1;
             while (true)
             {
                 SendMessage(COFLNET + "§lPlease click this [LINK] to login and configure your flip filters §8(you won't receive real time flips until you do)",
                     GetAuthLink(stringId));
-                await Task.Delay(TimeSpan.FromSeconds(60));
+                await Task.Delay(TimeSpan.FromSeconds(60 * index));
 
                 if (Settings != DEFAULT_SETTINGS)
                     return;
