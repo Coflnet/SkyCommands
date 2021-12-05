@@ -31,14 +31,14 @@ namespace Coflnet.Sky.Commands.Helper
 
         }
 
-        private static Dictionary<Enchantment.EnchantmentType,byte> RelEnchantLookup = null;
+        private static Dictionary<Enchantment.EnchantmentType, byte> RelEnchantLookup = null;
 
         public static IEnumerable<Property> GetProperties(SaveAuction auction)
         {
             var properties = new List<Property>();
 
-            if(RelEnchantLookup == null)
-                RelEnchantLookup = Sky.Constants.RelevantEnchants.ToDictionary(r=>r.Type,r=>r.Level);
+            if (RelEnchantLookup == null)
+                RelEnchantLookup = Sky.Constants.RelevantEnchants.ToDictionary(r => r.Type, r => r.Level);
 
 
             var data = auction.FlatenedNBT;
@@ -65,6 +65,8 @@ namespace Coflnet.Sky.Commands.Helper
                 properties.Add(new Property($"Kills: {ItemDetails.TagToName(data["spider_kills"])}", 15));
             if (data.ContainsKey("zombie_kills"))
                 properties.Add(new Property($"Kills: {ItemDetails.TagToName(data["zombie_kills"])}", 15));
+
+            properties.AddRange(data.Where(p => p.Value == "PERFECT" || p.Value == "FLAWLESS").Select(p => new Property($"{p.Value} gem", p.Value == "PERFECT" ? 14 : 7)));
 
             var isBook = auction.Tag == "ENCHANTED_BOOK";
 
