@@ -14,7 +14,7 @@ namespace Coflnet.Sky.Commands.MC
             var finder = args[1];
             var rating = args[2];
             using var span = socket.tracer.BuildSpan("vote").WithTag("type", rating).WithTag("finder", finder).WithTag("uuid", uuid).AsChildOf(socket.ConSpan).StartActive();
-            var bad = socket.LastSent.Where(s => s.Uuid == uuid).FirstOrDefault();
+            var bad = socket.GetFlip(uuid);
             span.Span.Log(JSON.Stringify(bad));
             span.Span.Log(JSON.Stringify(bad.Context));
 
@@ -32,9 +32,9 @@ namespace Coflnet.Sky.Commands.MC
             else if (rating == "up")
             {
                 socket.SendMessage(new ChatPart(COFLNET + "Thanks for your feedback, Please help us better understand why this flip is good\n"),
-                                    new ChatPart(" * it isn't I mis-clicked \n", "/cofl report overpriced "),
-                                    new ChatPart(" * This item sells fast\n", "/cofl report slow sell"),
-                                    new ChatPart(" * High profit\n", "/cofl report slow sell"),
+                                    new ChatPart(" * it isn't I mis-clicked \n", "/cofl report misclicked "),
+                                    new ChatPart(" * This item sells fast\n", "/cofl report fast sell"),
+                                    new ChatPart(" * High profit\n", "/cofl report high profit"),
                                     new ChatPart(" * Something else \n", null, "please send /cofl report with further information"));
             }
             else

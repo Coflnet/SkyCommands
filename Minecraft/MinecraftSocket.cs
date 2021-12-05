@@ -739,6 +739,10 @@ namespace Coflnet.Sky.Commands.MC
             return SendFlip(FlipperService.LowPriceToFlip(flip));
         }
 
+        public FlipInstance GetFlip(string uuid)
+        {
+            return LastSent.Where(s => s.Uuid == uuid).FirstOrDefault();
+        }
 
     }
 }
