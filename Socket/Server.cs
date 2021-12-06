@@ -430,28 +430,37 @@ namespace hypixel
         /// <summary>
         /// keeps track of in flight cache commands
         /// </summary>
-        private static ConcurrentDictionary<string, DateTime> RecentlyStartedCommands = new ConcurrentDictionary<string, DateTime>();
+        private static ConcurrentDictionary<string, SemaphoreSlim> RecentlyStartedCommands = new ConcurrentDictionary<string, SemaphoreSlim>();
+
 
         public static async Task<TRes> ExecuteCommandWithCache<TReq, TRes>(string command, TReq reqdata)
         {
             var source = new TaskCompletionSource<TRes>();
             var data = new ProxyMessageData<TReq, TRes>(command, reqdata, source);
-            // wait a bit for the same response
             var key = command + data.Data;
-            while (RecentlyStartedCommands.TryGetValue(key, out DateTime value) && value.AddMilliseconds(100) < DateTime.Now)
-                await Task.Delay(30);
-            RecentlyStartedCommands[key] = DateTime.Now;
-            try
-            {
-                if (!(await CacheService.Instance.TryFromCacheAsync(data)).IsFlagSet(CacheStatus.VALID))
-                    await SkyblockBackEnd.Commands[command].Execute(data);
-                return await source.Task;
 
-            }
-            finally
+            if (!(await CacheService.Instance.TryFromCacheAsync(data)).IsFlagSet(CacheStatus.VALID))
             {
-                RecentlyStartedCommands.TryRemove(key, out DateTime startTime);
+                try
+                {
+                    // wait a bit for the same response
+                    if (RecentlyStartedCommands.TryGetValue(key, out SemaphoreSlim value))
+                    {
+                        await value.WaitAsync(200);
+                        // if it is available now, return it
+                        if ((await CacheService.Instance.TryFromCacheAsync(data)).IsFlagSet(CacheStatus.VALID))
+                            return await source.Task;
+                    }
+                    RecentlyStartedCommands[key] = new SemaphoreSlim(1, 1);
+
+                    await SkyblockBackEnd.Commands[command].Execute(data);
+                }
+                finally
+                {
+                    RecentlyStartedCommands.TryRemove(key, out SemaphoreSlim startTime);
+                }
             }
+            return await source.Task;
 
         }
 

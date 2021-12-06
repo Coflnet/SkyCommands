@@ -208,7 +208,6 @@ namespace hypixel
             if (settings.Visibility.Seller && flip.SellerName == null)
                 flip.SellerName = await PlayerSearch.Instance.GetNameWithCacheAsync(flip.Auction.AuctioneerId);
 
-            return;
             if (flip.LowestBin == 0 && (settings.Visibility.LowestBin || settings.Visibility.SecondLowestBin) && flip?.LowestBin <= 0)
             {
                 var lowestBin = await GetLowestBin(flip.Auction);
@@ -290,12 +289,11 @@ namespace hypixel
             if (flip.Auction.TraceContext != null)
                 span = span.AsChildOf(tracer.Extract(BuiltinFormats.TextMap, flip.Auction.TraceContext));
             using var scope = span.StartActive();
-            runtroughTime.Observe((DateTime.Now - flip.Auction.FindTime).TotalSeconds);
-
-            foreach (var item in Subs)
-            {
-                await item.Value.SendFlip(flip);
-            }
+            var time = (DateTime.Now - flip.Auction.FindTime).TotalSeconds;
+            runtroughTime.Observe(time);
+            if(time > 5)
+                scope.Span.SetTag("slow",true);
+            await Task.WhenAll(Subs.Select(async item => await item.Value.SendFlip(flip)));
         }
 
 
