@@ -441,6 +441,8 @@ namespace Coflnet.Sky.Commands.MC
                 try
                 {
                     isMatch = Settings.MatchesSettings(flip);
+                    if(flip.Context == null)
+                        flip.Context = new Dictionary<string, string>();
                     flip.Context["match"] = isMatch.Item2;
                 }
                 catch (Exception e)
