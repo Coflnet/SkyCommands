@@ -347,8 +347,8 @@ namespace hypixel
                     return;
                 } */
 
-                if ((await CacheService.Instance.TryFromCacheAsync(data)).IsFlagSet(CacheStatus.VALID))
-                    return;
+                //if ((await CacheService.Instance.TryFromCacheAsync(data)).IsFlagSet(CacheStatus.VALID))
+                //    return;
 
                 /*  var ip = req.Headers["Cf-Connecting-Ip"];
                   if(ip == null)
@@ -358,11 +358,12 @@ namespace hypixel
                   Console.WriteLine($"rc {data.Type} {data.Data.Truncate(20)}");
                   await Limiter.WaitUntilAllowed(ip); */
                 //ExecuteCommandWithCache
+
                 if (SkyblockBackEnd.Commands.TryGetValue(data.Type, out Command command))
                 {
                     try
                     {
-                        await command.Execute(data);
+                        await ExecuteWithCacheInternal(data);
 
                         // TODO make this work again
                         if (!data.CompletionSource.Task.Wait(TimeSpan.FromSeconds(30)))
@@ -437,8 +438,15 @@ namespace hypixel
         {
             var source = new TaskCompletionSource<TRes>();
             var data = new ProxyMessageData<TReq, TRes>(command, reqdata, source);
-            var key = command + data.Data;
 
+            await ExecuteWithCacheInternal(data);
+            return await source.Task;
+
+        }
+
+        private static async Task ExecuteWithCacheInternal(MessageData data)
+        {
+            var key = data.Type + data.Data;
             if (!(await CacheService.Instance.TryFromCacheAsync(data)).IsFlagSet(CacheStatus.VALID))
             {
                 try
@@ -447,23 +455,28 @@ namespace hypixel
                     if (RecentlyStartedCommands.TryGetValue(key, out SemaphoreSlim value))
                     {
                         await value.WaitAsync(200);
+                        OpenTracing.Util.GlobalTracer.Instance.ActiveSpan?.SetTag("cache", "waited");
                         // if it is available now, return it
                         if ((await CacheService.Instance.TryFromCacheAsync(data)).IsFlagSet(CacheStatus.VALID))
-                            return await source.Task;
+                        {
+                            return;
+                        }
                     }
                     RecentlyStartedCommands[key] = new SemaphoreSlim(1, 1);
 
-                    await SkyblockBackEnd.Commands[command].Execute(data);
+                    OpenTracing.Util.GlobalTracer.Instance.ActiveSpan?.Log("miss");
+                    await SkyblockBackEnd.Commands[data.Type].Execute(data);
                 }
                 finally
                 {
                     RecentlyStartedCommands.TryRemove(key, out SemaphoreSlim startTime);
                 }
             }
-            return await source.Task;
-
+            else
+            {
+                OpenTracing.Util.GlobalTracer.Instance.ActiveSpan?.SetTag("cache", "hit");
+            }
         }
-
 
         private static async Task PrintStatus(RequestContext res)
         {

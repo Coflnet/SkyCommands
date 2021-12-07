@@ -32,8 +32,6 @@ namespace hypixel
                     .AddQueryParameter("cid", "1234567890abcdef")
                     .AddQueryParameter("pf_srv", genMs));
 
-
-            Console.WriteLine($"took {((int)time.TotalMilliseconds)}");
         }
 
         public void TrackPage(string url, string title, MessageData data)

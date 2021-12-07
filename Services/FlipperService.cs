@@ -197,7 +197,7 @@ namespace hypixel
                 Rarity = flip.Auction.Tier,
                 Finder = flip.Finder,
                 LowestBin = flip.Finder == LowPricedAuction.FinderType.SNIPER ? flip.TargetPrice : 0,
-                Context = flip.AdditionalProps
+                Context = new Dictionary<string, string>(flip.AdditionalProps)
             };
         }
 

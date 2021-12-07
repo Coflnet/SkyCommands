@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using Coflnet.Sky.Commands.Services;
 
 namespace hypixel
 {

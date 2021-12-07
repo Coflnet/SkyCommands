@@ -173,7 +173,6 @@ namespace hypixel
         private static Regex RomanNumber = new Regex("^[IVX]+$");
         private static async Task<ConcurrentQueue<SearchResultItem>> CreateResponse(string search, CancellationToken token)
         {
-            Console.WriteLine("beginsearch");
             var result = new List<SearchResultItem>();
 
             //var singlePlayer = PlayerSearch.Instance.FindDirect(search);
@@ -182,7 +181,6 @@ namespace hypixel
 
             var Results = new ConcurrentQueue<SearchResultItem>();
             var searchTasks = new ConfiguredTaskAwaitable[4];
-            Console.WriteLine("searching");
             var searchWords = search.Split(' ');
 
             searchTasks[0] = Task.Run(async () =>

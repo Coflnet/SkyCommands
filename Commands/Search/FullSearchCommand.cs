@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using MessagePack;
 using Newtonsoft.Json;
+using Coflnet.Sky.Commands.Services;
 
 namespace hypixel
 {
