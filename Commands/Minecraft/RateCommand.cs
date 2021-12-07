@@ -41,7 +41,7 @@ namespace Coflnet.Sky.Commands.MC
             {
                 socket.SendMessage(COFLNET + $"Thanks for your feedback, you voted this flip " + rating, "/cofl undo", "We will try to improve the flips accordingly");
             }
-            await Task.Delay(1000);
+            await Task.Delay(3000);
             var based = await Server.ExecuteCommandWithCache<string, IEnumerable<BasedOnCommand.Response>>("flipBased", uuid);
             span.Span.Log(string.Join('\n', based.Select(b => $"{b.ItemName} {b.highestBid} {b.uuid}")));
         }

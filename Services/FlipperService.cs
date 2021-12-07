@@ -291,9 +291,12 @@ namespace hypixel
             using var scope = span.StartActive();
             var time = (DateTime.Now - flip.Auction.FindTime).TotalSeconds;
             runtroughTime.Observe(time);
-            if(time > 5)
-                scope.Span.SetTag("slow",true);
-            await Task.WhenAll(Subs.Select(async item => await item.Value.SendFlip(flip)));
+            if (time > 5)
+                scope.Span.SetTag("slow", true);
+            foreach (var item in Subs)
+            {
+                await item.Value.SendFlip(flip);
+            } //Subs.Select(async item => await item.Value.SendFlip(flip)));
         }
 
 

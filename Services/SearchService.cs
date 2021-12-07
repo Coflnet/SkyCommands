@@ -257,9 +257,7 @@ namespace hypixel
 
         private static async Task FindItems(string search, Task<IEnumerable<ItemDetails.ItemSearchResult>> itemTask, ConcurrentQueue<SearchResultItem> Results)
         {
-            Console.WriteLine("scheduled item wait");
             var items = await itemTask;
-            Console.WriteLine("awaited item wait");
             if (items.Count() == 0)// && singlePlayer.Result == null)
                 items = await ItemDetails.Instance.FindClosest(search);
 
@@ -267,18 +265,15 @@ namespace hypixel
             {
                 Results.Enqueue(item);
             }
-            Console.WriteLine("done item wait");
         }
 
         private static async Task FindPlayers(Task<IEnumerable<PlayerResult>> playersTask, ConcurrentQueue<SearchResultItem> Results)
         {
-            Console.WriteLine("scheduled player wait");
             var playerList = (await playersTask);
             foreach (var item in playerList.Select(player => new SearchResultItem(player)))
                 Results.Enqueue(item);
             if (playerList.Count() == 1)
                 await IndexerClient.TriggerNameUpdate(playerList.First().UUid);
-            Console.WriteLine("done player wait");
         }
 
         private static async Task FindSimilarSearches(string search, ConcurrentQueue<SearchResultItem> Results, string[] searchWords)
@@ -286,7 +281,6 @@ namespace hypixel
             if (search.Length <= 2)
                 return;
             await Task.Delay(1);
-            Console.WriteLine("scheduled last cache wait");
             foreach (var item in await CoreServer.ExecuteCommandWithCache<string, List<SearchResultItem>>("fullSearch", search.Substring(0, search.Length - 2)))
                 Results.Enqueue(item);
             if (searchWords.Count() == 1 || String.IsNullOrWhiteSpace(searchWords.Last()))
