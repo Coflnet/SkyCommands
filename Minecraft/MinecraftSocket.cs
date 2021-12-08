@@ -18,6 +18,7 @@ namespace Coflnet.Sky.Commands.MC
     public partial class MinecraftSocket : WebSocketBehavior, IFlipConnection
     {
         public string McId;
+        public string McUuid = "00000000000000000";
         public static string COFLNET = "[§1C§6oflnet§f]§7: ";
 
         public long Id { get; private set; }
@@ -224,7 +225,9 @@ namespace Coflnet.Sky.Commands.MC
 
         private async Task SendAuthorizedHello(SettingsChange cachedSettings)
         {
-            var mcName = this.McId.Length == 32 ? (await PlayerService.Instance.GetPlayer(this.McId)).Name : this.McId;
+            var player = await PlayerService.Instance.GetPlayer(this.McId);
+            var mcName = this.McId.Length == 32 ? player.Name : this.McId;
+            McUuid = player.UuId;
             var user = UserService.Instance.GetUserById(cachedSettings.UserId);
             var length = user.Email.Length < 10 ? 3 : 6;
             var builder = new StringBuilder(user.Email);
@@ -462,17 +465,18 @@ namespace Coflnet.Sky.Commands.MC
                     return true; // make sure flips are not sent twice
                 using var span = tracer.BuildSpan("Flip").WithTag("uuid", flip.Uuid).AsChildOf(ConSpan.Context).StartActive();
                 var settings = Settings;
-                span.Span.Log("settings");
                 await FlipperService.FillVisibilityProbs(flip, settings);
-                span.Span.Log("filled probs");
 
                 ModAdapter.SendFlip(flip);
+
                 span.Span.Log("sent");
                 LastSent.Enqueue(flip);
                 sentFlipsCount.Inc();
-                span.Span.Log("after inc");
 
                 PingTimer.Change(TimeSpan.FromSeconds(20), TimeSpan.FromSeconds(55));
+                await FlipTrackingService.Instance.ReceiveFlip(flip.Auction.Uuid,McUuid);
+                span.Span.Log("after inc");
+                
                 // remove dupplicates
                 if (SentFlips.Count > 300)
                 {

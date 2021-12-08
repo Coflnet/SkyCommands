@@ -16,11 +16,12 @@ namespace Coflnet.Sky.Commands.MC
             using var span = socket.tracer.BuildSpan("vote").WithTag("type", rating).WithTag("finder", finder).WithTag("uuid", uuid).AsChildOf(socket.ConSpan).StartActive();
             var bad = socket.GetFlip(uuid);
             span.Span.Log(JSON.Stringify(bad));
-            span.Span.Log(JSON.Stringify(bad.Context));
+            span.Span.Log(JSON.Stringify(bad?.Context));
 
 
             if (rating == "down")
             {
+                if(bad != null)
                 Blacklist(socket, bad);
                 socket.SendMessage(new ChatPart(COFLNET + "Thanks for your feedback, Please help us better understand why this flip is bad\n", null, "you can also send free text with /cofl report"),
                     new ChatPart(" * Its overpriced\n", "/cofl report overpriced "),
@@ -28,6 +29,7 @@ namespace Coflnet.Sky.Commands.MC
                     new ChatPart(" * I blacklisted this before\n", "/cofl report blacklist broken"),
                     new ChatPart(" * This item is manipulated\n", "/cofl report manipulated item"),
                     new ChatPart(" * Reference auctions are wrong \n", "/cofl report reference auctions are wrong ", "please send /cofl report with further information"));
+                await FlipTrackingService.Instance.DownVote(uuid, socket.McUuid);
             }
             else if (rating == "up")
             {
@@ -36,6 +38,7 @@ namespace Coflnet.Sky.Commands.MC
                                     new ChatPart(" * This item sells fast\n", "/cofl report fast sell"),
                                     new ChatPart(" * High profit\n", "/cofl report high profit"),
                                     new ChatPart(" * Something else \n", null, "please send /cofl report with further information"));
+                await FlipTrackingService.Instance.UpVote(uuid, socket.McUuid);
             }
             else
             {
