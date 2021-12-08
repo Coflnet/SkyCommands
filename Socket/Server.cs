@@ -454,7 +454,7 @@ namespace hypixel
                     // wait a bit for the same response
                     if (RecentlyStartedCommands.TryGetValue(key, out SemaphoreSlim value))
                     {
-                        await value.WaitAsync(200);
+                        await value.WaitAsync(400);
                         OpenTracing.Util.GlobalTracer.Instance.ActiveSpan?.SetTag("cache", "waited");
                         // if it is available now, return it
                         if ((await CacheService.Instance.TryFromCacheAsync(data)).IsFlagSet(CacheStatus.VALID))
@@ -469,7 +469,8 @@ namespace hypixel
                 }
                 finally
                 {
-                    RecentlyStartedCommands.TryRemove(key, out SemaphoreSlim startTime);
+                    if (RecentlyStartedCommands.TryRemove(key, out SemaphoreSlim startTime) && startTime.CurrentCount == 0)
+                        startTime.Release();
                 }
             }
             else

@@ -25,7 +25,6 @@ namespace hypixel
             var result = new ConcurrentBag<SearchService.SearchResultItem>();
             var pullTask = Task.Run(async () =>
             {
-                Console.WriteLine($"Started task " + watch.Elapsed);
                 while (!cancelationSource.IsCancellationRequested)
                 {
                     while (results.Result.TryDequeue(out SearchService.SearchResultItem r))

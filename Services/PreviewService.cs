@@ -60,10 +60,10 @@ namespace Coflnet.Sky.Commands.Services
             return new Preview()
             {
                 Id = tag,
-                Image = Convert.ToBase64String(response.RawBytes),
+                Image = response.RawBytes == null ? null : Convert.ToBase64String(response.RawBytes),
                 ImageUrl = uri.ToString(),
                 Name = details.Names.FirstOrDefault(),
-                MimeType = response.ContentType
+                MimeType = response?.ContentType
             };
         }
 
