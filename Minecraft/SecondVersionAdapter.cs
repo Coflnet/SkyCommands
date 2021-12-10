@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using hypixel;
 
@@ -19,11 +20,23 @@ namespace Coflnet.Sky.Commands.MC
             var openCommand = "/viewauction " + flip.Uuid;
             var extraText = "\n" + String.Join(McColorCodes.DARK_GRAY + ", " + McColorCodes.WHITE, flip.Interesting.Take(socket.Settings.Visibility?.ExtraInfoMax ?? 0));
             
-            SendMessage(new ChatPart(message, openCommand, string.Join('\n', flip.Interesting.Select(s => "・" + s)) + "\n" + flip.SellerName),
+
+
+            var parts = new List<ChatPart>(){
+                new ChatPart(message, openCommand, string.Join('\n', flip.Interesting.Select(s => "・" + s)) + "\n" + flip.SellerName),
                 new ChatPart(" [?]", "/cofl reference " + flip.Uuid, "Get reference auctions"),
                 new ChatPart(" ❤", $"/cofl rate {flip.Uuid} {flip.Finder} up", "Vote this flip up"),
                 new ChatPart("✖ ", $"/cofl rate {flip.Uuid} {flip.Finder} down", "Vote this flip down"),
-                new ChatPart(extraText, openCommand, null));
+                new ChatPart(extraText, openCommand, null)
+            };
+
+
+            if (socket.Settings.Visibility?.Seller ?? false && flip.SellerName != null)
+            {
+                parts.Insert(1,new ChatPart(McColorCodes.GRAY + " From: " + McColorCodes.AQUA + flip.SellerName, $"/ah {flip.SellerName}", $"{McColorCodes.GRAY}Open the ah for {McColorCodes.AQUA} {flip.SellerName}"));
+            }
+
+            SendMessage(parts.ToArray());
  
             if (socket.Settings.ModSettings?.PlaySoundOnFlip ?? false && flip.Profit > 1_000_000)
                 SendSound("note.pling", (float)(1 / (Math.Sqrt((float)flip.Profit / 1_000_000) + 1)));

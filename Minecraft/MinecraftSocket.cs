@@ -531,8 +531,6 @@ namespace Coflnet.Sky.Commands.MC
                 builder.Append(McColorCodes.GRAY + " LBin: " + McColorCodes.AQUA + FormatPrice(flip.LowestBin ?? 0));
             if (Settings.Visibility?.Volume ?? false)
                 builder.Append(McColorCodes.GRAY + " Vol: " + McColorCodes.AQUA + flip.Volume.ToString("0.#"));
-            if (Settings.Visibility?.Seller ?? false && flip.SellerName != null)
-                builder.Append(McColorCodes.GRAY + " From: " + McColorCodes.AQUA + flip.SellerName);
             return builder.ToString();
         }
 
