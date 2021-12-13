@@ -62,15 +62,16 @@ namespace Coflnet.Hypixel.Controller
         /// <param name="price">Sugested target price</param>
         /// <returns></returns>
         [Route("track/purchase/{auctionId}")]
-        [HttpGet]
+        [HttpPost]
         public async Task TrackExternalFlip(string auctionId, string finder, string playerId, int price = -1)
         {
-            await Sky.Commands.FlipTrackingService.Instance.NewFlip(new LowPricedAuction(){
-                Auction = new hypixel.SaveAuction(){Uuid = auctionId},
+            await Sky.Commands.FlipTrackingService.Instance.NewFlip(new LowPricedAuction()
+            {
+                Auction = new hypixel.SaveAuction() { Uuid = auctionId },
                 Finder = finder.ToLower() == "tfm" ? LowPricedAuction.FinderType.TFM : LowPricedAuction.FinderType.EXTERNAL,
                 TargetPrice = price
             });
-            await Sky.Commands.FlipTrackingService.Instance.ReceiveFlip(auctionId,playerId);
+            await Sky.Commands.FlipTrackingService.Instance.ReceiveFlip(auctionId, playerId);
         }
 
         /// <summary>
@@ -81,11 +82,12 @@ namespace Coflnet.Hypixel.Controller
         /// <param name="price">Suggested target price</param>
         /// <returns></returns>
         [Route("track/found/{auctionId}")]
-        [HttpGet]
+        [HttpPost]
         public async Task TrackExternalFlip(string auctionId, string finder, int price = -1)
         {
-            await Sky.Commands.FlipTrackingService.Instance.NewFlip(new LowPricedAuction(){
-                Auction = new hypixel.SaveAuction(){Uuid = auctionId},
+            await Sky.Commands.FlipTrackingService.Instance.NewFlip(new LowPricedAuction()
+            {
+                Auction = new hypixel.SaveAuction() { Uuid = auctionId },
                 Finder = finder.ToLower() == "tfm" ? LowPricedAuction.FinderType.TFM : LowPricedAuction.FinderType.EXTERNAL,
                 TargetPrice = price
             });
