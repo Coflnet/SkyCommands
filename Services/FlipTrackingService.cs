@@ -66,9 +66,9 @@ namespace Coflnet.Sky.Commands
             }
         }
 
-        private async Task NewFlip(LowPricedAuction flip)
+        public async Task NewFlip(LowPricedAuction flip)
         {
-            await flipTracking.TrackerFlipAuctionIdPostAsync(flip.Auction.Uuid, new FlipTracker.Client.Model.Flip()
+            var res = await flipTracking.TrackerFlipAuctionIdPostAsync(flip.Auction.Uuid, new FlipTracker.Client.Model.Flip()
             {
                 FinderType = (FlipTracker.Client.Model.FinderType?)flip.Finder,
                 TargetPrice = flip.TargetPrice
