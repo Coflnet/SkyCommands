@@ -290,7 +290,6 @@ namespace hypixel
                 span = span.AsChildOf(tracer.Extract(BuiltinFormats.TextMap, flip.Auction.TraceContext));
             using var scope = span.StartActive();
             var time = (DateTime.Now - flip.Auction.FindTime).TotalSeconds;
-            runtroughTime.Observe(time);
             if (time > 5)
                 scope.Span.SetTag("slow", true);
             foreach (var item in Subs)
@@ -409,6 +408,8 @@ namespace hypixel
 
                 if (flip.TargetPrice - flip.Auction.StartingBid < 50_000)
                     return;
+                var time = (DateTime.Now - flip.Auction.FindTime).TotalSeconds;
+                runtroughTime.Observe(time);
                 Task.Run(async () =>
                 {
                     try
