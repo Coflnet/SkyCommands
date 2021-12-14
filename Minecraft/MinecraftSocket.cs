@@ -701,9 +701,9 @@ namespace Coflnet.Sky.Commands.MC
                 if (current.MinProfitPercent != newSettings.MinProfitPercent)
                     return "min profit percentage to " + FormatPrice(newSettings.MinProfitPercent);
                 if (current.BlackList?.Count < newSettings.BlackList?.Count)
-                    return $"blacklisted item " + ItemDetails.TagToName(newSettings.BlackList.Last().ItemTag);
-                if (current.WhiteList?.Count < newSettings.WhiteList.Count)
-                    return $"whitelisted item " + ItemDetails.TagToName(newSettings.BlackList.Last().ItemTag);
+                    return $"blacklisted item " + ItemDetails.TagToName(newSettings.BlackList?.Last()?.ItemTag);
+                if (current.WhiteList?.Count < newSettings.WhiteList?.Count)
+                    return $"whitelisted item " + ItemDetails.TagToName(newSettings.BlackList?.Last()?.ItemTag);
                 if (current.Visibility != null)
                     foreach (var prop in current.Visibility?.GetType().GetFields())
                     {
