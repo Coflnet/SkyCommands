@@ -292,6 +292,10 @@ namespace hypixel
             var time = (DateTime.Now - flip.Auction.FindTime).TotalSeconds;
             if (time > 5)
                 scope.Span.SetTag("slow", true);
+            
+            if (flip.Auction != null && flip.Auction.NBTLookup == null)
+                flip.Auction.NBTLookup = NBT.CreateLookup(flip.Auction);
+                
             foreach (var item in Subs)
             {
                 await item.Value.SendFlip(flip);

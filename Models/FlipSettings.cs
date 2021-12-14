@@ -52,6 +52,8 @@ namespace Coflnet.Sky.Filter
 
         private FlipFilter filter;
         private List<FlipFilter> blackListFilters;
+        private ListMatcher BlackListMatcher;
+        private ListMatcher WhiteListMatcher;
 
         /// <summary>
         /// Determines if a flip matches a the <see cref="Filters"/>> of this instance
@@ -76,20 +78,21 @@ namespace Coflnet.Sky.Filter
                 return (false, "auction not set");
 
             if (WhiteList != null)
-                foreach (var item in WhiteList)
-                {
-                    if (item.ItemTag != null && flip.Tag == item.ItemTag || (item.filter != null && item.MatchesSettings(flip)))
-                        return (false, "whitelist");
-                }
+            {
+                if(WhiteListMatcher == null)
+                    WhiteListMatcher = new ListMatcher(WhiteList);
+                var match = WhiteListMatcher.IsMatch(flip);
+                if(match.Item1)
+                    return (true, "whitelist " + match.Item2);
+            }
+                
             if (BlackList != null)
             {
-                foreach (var item in BlackList)
-                {
-                    if (flip.Tag != null && flip.Tag == item.ItemTag)
-                        return (false, "blacklist for " + item.ItemTag);
-                    if (item.filter != null && item.filter.Count > 0 && item.MatchesSettings(flip))
-                        return (false, $"filter blacklist for {item.filter.Keys.First()}: {item.filter.Values.First()}");
-                }
+                if(BlackListMatcher == null)
+                    BlackListMatcher = new ListMatcher(BlackList);
+                var match = BlackListMatcher.IsMatch(flip);
+                if(match.Item1)
+                    return (false, "blacklist " + match.Item2);
             }
 
             if (filter == null)
@@ -108,5 +111,36 @@ namespace Coflnet.Sky.Filter
             targetPrice = (BasedOnLBin ? (flip.LowestBin ?? 0) : flip.MedianPrice);
             profit = targetPrice * 98 / 100 - flip.LastKnownCost;
         }
+
+
+        public class ListMatcher
+        {
+            private HashSet<string> Ids = new HashSet<string>();
+            private List<ListEntry> RemainingFilters = new List<ListEntry>();
+
+            public ListMatcher(List<ListEntry> BlackList)
+            {
+                foreach (var item in BlackList)
+                {
+                    if(item.filter == null || item.filter.Count == 0)
+                        Ids.Add(item.ItemTag);
+                    else 
+                        RemainingFilters.Add(item);
+                }
+            }
+
+            public (bool,string) IsMatch(FlipInstance flip)
+            {
+                if(Ids.Contains(flip.Tag))
+                    return (true, "for "+ flip.Tag);
+                foreach (var item in RemainingFilters)
+                {
+                    if (item.MatchesSettings(flip))
+                        return (true, $"filter for {item.filter.Keys.First()}: {item.filter.Values.First()}");
+                }
+                return (false,"no match");
+            }
+        }
     }
+
 }

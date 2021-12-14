@@ -14,8 +14,13 @@ namespace Coflnet.Sky.Filter
             Volume = 10,
             Auction = new SaveAuction()
             {
-                Bin = false
+                Bin = false,
+                Enchantments = new List<Enchantment>(){
+                    new Enchantment(Enchantment.EnchantmentType.critical,4)
+                },
+                FlatenedNBT = new Dictionary<string, string>() { { "candy", "3" } }
             }
+
         };
         [Test]
         public void IsMatch()
@@ -43,5 +48,42 @@ namespace Coflnet.Sky.Filter
         }
 
 
+        [Test]
+        public void EnchantmentBlacklistMatch()
+        {
+            var settings = new FlipSettings()
+            {
+                BlackList = new List<ListEntry>() { new ListEntry() { filter = new Dictionary<string, string>() { { "Enchantment", "critical" }, { "EnchantLvl", "4" } } } }
+            };
+            var matches = settings.MatchesSettings(sampleFlip);
+            Assert.IsFalse(matches.Item1, "flip should not match");
+        }
+
+        [Test]
+        public void CandyBlacklistMatch()
+        {
+            NBT.Instance = new NBTMock();
+            sampleFlip.Auction.NBTLookup = new List<NBTLookup>() { new NBTLookup(1, 2) };
+            var settings = new FlipSettings()
+            {
+                BlackList = new List<ListEntry>() { new ListEntry() { filter = new Dictionary<string, string>() { { "Candy", "any" } } } }
+            };
+            var matches = settings.MatchesSettings(sampleFlip);
+            Assert.IsFalse(matches.Item1, "flip should not match");
+        }
+
+
+        class NBTMock : INBT
+        {
+            public short GetKeyId(string name)
+            {
+                return 1;
+            }
+
+            public int GetValueId(short key, string value)
+            {
+                return 2;
+            }
+        }
     }
 }

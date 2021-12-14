@@ -21,7 +21,7 @@ namespace hypixel
                 throw new CoflnetException("unkown_player", "This player was not found");
 
             var restResponse = await McAccountService.Instance.ConnectAccount(userId.ToString(),uuid);
-            await data.SendBack(new MessageData("connectMc", restResponse));
+            await data.SendBack(data.Create("connectMc", restResponse));
         }
     }
 }

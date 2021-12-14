@@ -226,7 +226,7 @@ namespace Coflnet.Sky.Commands.MC
         private async Task SendAuthorizedHello(SettingsChange cachedSettings)
         {
             var player = await PlayerService.Instance.GetPlayer(this.McId);
-            var mcName = this.McId.Length == 32 ? player.Name : this.McId;
+            var mcName = this.McId.Length == 32 ? player?.Name : this.McId;
             McUuid = player.UuId;
             var user = UserService.Instance.GetUserById(cachedSettings.UserId);
             var length = user.Email.Length < 10 ? 3 : 6;
@@ -343,9 +343,7 @@ namespace Coflnet.Sky.Commands.MC
         {
             if (ConnectionState != WebSocketState.Open)
             {
-                using var span = tracer.BuildSpan("removing").AsChildOf(ConSpan).StartActive();
-                FlipperService.Instance.RemoveConnection(this);
-                PingTimer.Dispose();
+                OpenTracing.IScope span = RemoveMySelf();
                 return;
             }
             try
@@ -358,12 +356,19 @@ namespace Coflnet.Sky.Commands.MC
             }
         }
 
+        private OpenTracing.IScope RemoveMySelf()
+        {
+            var span = tracer.BuildSpan("removing").AsChildOf(ConSpan).StartActive();
+            FlipperService.Instance.RemoveConnection(this);
+            PingTimer.Dispose();
+            return span;
+        }
+
         public void SendMessage(params ChatPart[] parts)
         {
             if (ConnectionState != WebSocketState.Open)
             {
-                using var span = tracer.BuildSpan("removing").AsChildOf(ConSpan).StartActive();
-                FlipperService.Instance.RemoveConnection(this);
+                RemoveMySelf();
                 return;
             }
             try
@@ -444,7 +449,7 @@ namespace Coflnet.Sky.Commands.MC
                 try
                 {
                     isMatch = Settings.MatchesSettings(flip);
-                    if(flip.Context == null)
+                    if (flip.Context == null)
                         flip.Context = new Dictionary<string, string>();
                     flip.Context["match"] = isMatch.Item2;
                 }
@@ -474,9 +479,9 @@ namespace Coflnet.Sky.Commands.MC
                 sentFlipsCount.Inc();
 
                 PingTimer.Change(TimeSpan.FromSeconds(20), TimeSpan.FromSeconds(55));
-                await FlipTrackingService.Instance.ReceiveFlip(flip.Auction.Uuid,McUuid);
+                await FlipTrackingService.Instance.ReceiveFlip(flip.Auction.Uuid, McUuid);
                 span.Span.Log("after inc");
-                
+
                 // remove dupplicates
                 if (SentFlips.Count > 300)
                 {
@@ -649,7 +654,36 @@ namespace Coflnet.Sky.Commands.MC
                 span.Span.Log(e.Message);
             }
 
+            //await Task.Delay(TimeSpan.FromMinutes(2));
+            try
+            {
+                await CheckVerificationStatus(settings);
+            }
+            catch (Exception e)
+            {
+                Error(e, "verification failed");
+            }
+
             return span;
+        }
+
+        private async Task CheckVerificationStatus(SettingsChange settings)
+        {
+            var connect = await McAccountService.Instance.ConnectAccount(settings.UserId.ToString(), McUuid);
+            if (connect.IsConnected)
+            {
+                var activeAuction = await ItemPrices.Instance.GetActiveAuctions(new ActiveItemSearchQuery()
+                {
+                    name = "STICK",
+                }, 5);
+                var bid = connect.Code;
+                var r = new Random();
+                var targetAuction = activeAuction.Where(a => a.Price < bid).OrderBy(x => r.Next()).FirstOrDefault();
+                SendMessage(new ChatPart(
+                    $"{COFLNET}You connected from an unkown account. Please verify that you are indeed {McId} by bidding {McColorCodes.AQUA}{bid}{McCommand.DEFAULT_COLOR} on a random auction.",
+                    $"/viewauction {targetAuction.Uuid}",
+                    $"{McColorCodes.GRAY}Click to open an auction to bid {McColorCodes.AQUA}{bid}{McCommand.DEFAULT_COLOR} on\nyou can also bid another number with the same digits at the end\neg. 1,234,{McColorCodes.AQUA}{bid}"));
+            }
         }
 
         /// <summary>
