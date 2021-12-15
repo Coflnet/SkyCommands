@@ -29,7 +29,7 @@ namespace Coflnet.Sky.Commands.Tests
                     TargetPrice = 5
                 });
             }
-            Assert.Less(watch.ElapsedMilliseconds, 20);
+            Assert.Less(watch.ElapsedMilliseconds, 40);
             Assert.AreEqual(5, con.LastFlip.MedianPrice);
             Assert.AreEqual(2, con.LastFlip.Volume);
             Assert.AreEqual(auction, con.LastFlip.Auction);
