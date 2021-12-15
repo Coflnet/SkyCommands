@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Coflnet.Sky;
 using Coflnet.Sky.Commands;
@@ -183,22 +184,23 @@ namespace hypixel
 
         public static FlipInstance LowPriceToFlip(LowPricedAuction flip)
         {
-            return new FlipInstance()
+            var flipIntance = new FlipInstance()
             {
                 LastKnownCost = (int)flip.Auction.StartingBid,
                 Auction = flip.Auction,
                 MedianPrice = flip.TargetPrice,
                 Uuid = flip.Auction.Uuid,
                 Bin = flip.Auction.Bin,
-                Interesting = PropertiesSelector.GetProperties(flip.Auction).OrderByDescending(a => a.Rating).Select(a => a.Value).ToList(),
                 Name = flip.Auction.ItemName,
+                Interesting = PropertiesSelector.GetProperties(flip.Auction).OrderByDescending(a => a.Rating).Select(a => a.Value).ToList(),
                 Tag = flip.Auction.Tag,
                 Volume = flip.DailyVolume,
                 Rarity = flip.Auction.Tier,
                 Finder = flip.Finder,
                 LowestBin = flip.Finder == LowPricedAuction.FinderType.SNIPER ? flip.TargetPrice : 0,
-                Context = new Dictionary<string, string>(flip.AdditionalProps)
+                Context = flip.AdditionalProps == null ? new Dictionary<string, string>() : new Dictionary<string, string>(flip.AdditionalProps)
             };
+            return flipIntance;
         }
 
         public static async Task FillVisibilityProbs(FlipInstance flip, FlipSettings settings)
@@ -282,24 +284,39 @@ namespace hypixel
             }
         }
 
-        private async Task DeliverLowPricedAuction(LowPricedAuction flip)
+        public async Task DeliverLowPricedAuction(LowPricedAuction flip)
         {
             var tracer = OpenTracing.Util.GlobalTracer.Instance;
             var span = OpenTracing.Util.GlobalTracer.Instance.BuildSpan("DeliverFlip");
-            if (flip.Auction.TraceContext != null)
-                span = span.AsChildOf(tracer.Extract(BuiltinFormats.TextMap, flip.Auction.TraceContext));
+            //if (flip.Auction.TraceContext != null)
+            //    span = span.AsChildOf(tracer.Extract(BuiltinFormats.TextMap, flip.Auction.TraceContext));
             using var scope = span.StartActive();
             var time = (DateTime.Now - flip.Auction.FindTime).TotalSeconds;
             if (time > 5)
                 scope.Span.SetTag("slow", true);
-            
+
             if (flip.Auction != null && flip.Auction.NBTLookup == null)
                 flip.Auction.NBTLookup = NBT.CreateLookup(flip.Auction);
-                
-            foreach (var item in Subs)
+
+            /*foreach (var item in Subs)
             {
                 await item.Value.SendFlip(flip);
-            } //Subs.Select(async item => await item.Value.SendFlip(flip)));
+                scope.Span.Log("sent " + item.Value.UserId);
+            } */
+            await Task.WhenAll(Subs.Select(async item =>
+            {
+                using var sendingSpan = OpenTracing.Util.GlobalTracer.Instance.BuildSpan("SingleDevliver")
+                    .AsChildOf(scope.Span).StartActive();
+                try
+                {
+                    await item.Value.SendFlip(flip);
+                }
+                catch (Exception e)
+                {
+                    sendingSpan.Span.Log(e.Message);
+                    sendingSpan.Span.Log(e.StackTrace);
+                }
+            }));
         }
 
 
@@ -424,7 +441,7 @@ namespace hypixel
                     {
                         dev.Logger.Instance.Error(e, "delivering low priced auction");
                     }
-                });
+                }).ConfigureAwait(false);
             });
         }
 

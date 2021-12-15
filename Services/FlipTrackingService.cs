@@ -6,12 +6,30 @@ namespace Coflnet.Sky.Commands
 {
     public class FlipTrackingService
     {
-        public TrackerApi flipTracking = new TrackerApi("http://" + SimplerConfig.Config.Instance["FLIPTRACKER_HOST"]);
+        public TrackerApi flipTracking;
 
         public static FlipTrackingService Instance = new FlipTrackingService();
 
-        private static string ProduceTopic = SimplerConfig.Config.Instance["TOPICS:FLIP_EVENT"];
-        private static ProducerConfig producerConfig = new ProducerConfig { BootstrapServers = SimplerConfig.Config.Instance["KAFKA_HOST"] };
+        private static string ProduceTopic;
+        private static ProducerConfig producerConfig;
+
+        IProducer<string, FlipTracker.Client.Model.FlipEvent> producer;
+
+        static FlipTrackingService()
+        {
+            producerConfig = new ProducerConfig { BootstrapServers = SimplerConfig.Config.Instance["KAFKA_HOST"], CancellationDelayMaxMs = 1000 };
+            ProduceTopic = SimplerConfig.Config.Instance["TOPICS:FLIP_EVENT"];
+        }
+
+        public FlipTrackingService()
+        {
+            producer = new ProducerBuilder<string, FlipTracker.Client.Model.FlipEvent>(new ProducerConfig { 
+                    BootstrapServers = SimplerConfig.Config.Instance["KAFKA_HOST"], 
+                    CancellationDelayMaxMs = 1000 })
+                    .SetValueSerializer(hypixel.SerializerFactory.GetSerializer<FlipTracker.Client.Model.FlipEvent>()).Build();
+            flipTracking = new TrackerApi("http://" + SimplerConfig.Config.Instance["FLIPTRACKER_HOST"]);
+        }
+
 
         public async Task ReceiveFlip(string auctionId, string playerId)
         {
@@ -60,10 +78,9 @@ namespace Coflnet.Sky.Commands
                 AuctionId = hypixel.AuctionService.Instance.GetId(auctionId),
                 Timestamp = System.DateTime.Now
             };
-            using (var p = new ProducerBuilder<string, FlipTracker.Client.Model.FlipEvent>(producerConfig).SetValueSerializer(hypixel.SerializerFactory.GetSerializer<FlipTracker.Client.Model.FlipEvent>()).Build())
-            {
-                await p.ProduceAsync(ProduceTopic, new Message<string, FlipTracker.Client.Model.FlipEvent>() { Value = flipEvent });
-            }
+
+            producer.Produce(ProduceTopic, new Message<string, FlipTracker.Client.Model.FlipEvent>() { Value = flipEvent });
+
         }
 
         public async Task NewFlip(LowPricedAuction flip)

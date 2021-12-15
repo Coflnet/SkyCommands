@@ -42,7 +42,7 @@ namespace Coflnet.Sky.Commands.MC
 
         public static event Action NextUpdateStart;
         private int blockedFlipCount;
-        private int blockedFlipFilterCount;
+        private int blockedFlipFilterCount => TopBlocked.Count;
 
         private static System.Threading.Timer updateTimer;
 
@@ -255,7 +255,6 @@ namespace Coflnet.Sky.Commands.MC
                 if (blockedFlipFilterCount > 0)
                 {
                     SendMessage(COFLNET + $"there were {blockedFlipFilterCount} flips blocked by your filter the last minute");//, "/cofl blocked", "click to list the best 5 of the last min");
-                    blockedFlipFilterCount = 0;
                 }
                 else
                 {
@@ -503,21 +502,12 @@ namespace Coflnet.Sky.Commands.MC
 
         private void BlockedFlip(FlipInstance flip, string reason)
         {
-            if (TopBlocked.Count < 3 || TopBlocked.Min(elem => elem.Flip.Profit) < flip.Profit)
+
+            TopBlocked.Enqueue(new BlockedElement()
             {
-                if (TopBlocked.Where(b => b.Flip.Uuid == flip.Uuid).Any())
-                    return;
-                TopBlocked.Enqueue(new BlockedElement()
-                {
-                    Flip = flip,
-                    Reason = reason
-                });
-            }
-            if (TopBlocked.Count > 5)
-            {
-                TopBlocked.TryDequeue(out BlockedElement toRemove);
-            }
-            blockedFlipFilterCount++;
+                Flip = flip,
+                Reason = reason
+            });
         }
 
         public string GetFlipMsg(FlipInstance flip)
@@ -721,7 +711,7 @@ namespace Coflnet.Sky.Commands.MC
                 null,
                 "The Hypixel API will update in 10 seconds. Get ready to receive the latest flips. "
                 + "(this is an automated message being sent 50 seconds after the last update)");
-            TopBlocked = new ConcurrentQueue<BlockedElement>();
+            TopBlocked.Clear();
         }
 
         private string FindWhatsNew(FlipSettings current, FlipSettings newSettings)
