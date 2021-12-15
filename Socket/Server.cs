@@ -459,6 +459,7 @@ namespace hypixel
                         // if it is available now, return it
                         if ((await CacheService.Instance.TryFromCacheAsync(data)).IsFlagSet(CacheStatus.VALID))
                         {
+                            OpenTracing.Util.GlobalTracer.Instance.ActiveSpan?.Log("hit after wait");
                             return;
                         }
                     }

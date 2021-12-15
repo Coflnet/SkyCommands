@@ -106,11 +106,9 @@ namespace hypixel
             if (!sendHistory)
                 return;
             SendFlipHistory(con, LoadBurst, 0);
-            Task.Run(async () =>
-            {
-                await Task.Delay(1000);
+            if(SlowSubs.Count %10 == 0)
                 Console.WriteLine("Added new con " + SlowSubs.Count);
-            });
+            
         }
 
         private void RemoveNonConnection(IFlipConnection con)

@@ -661,19 +661,20 @@ namespace Coflnet.Sky.Commands.MC
         {
             var connect = await McAccountService.Instance.ConnectAccount(settings.UserId.ToString(), McUuid);
             if (connect.IsConnected)
+                return;
+
+            var activeAuction = await ItemPrices.Instance.GetActiveAuctions(new ActiveItemSearchQuery()
             {
-                var activeAuction = await ItemPrices.Instance.GetActiveAuctions(new ActiveItemSearchQuery()
-                {
-                    name = "STICK",
-                }, 5);
-                var bid = connect.Code;
-                var r = new Random();
-                var targetAuction = activeAuction.Where(a => a.Price < bid).OrderBy(x => r.Next()).FirstOrDefault();
-                SendMessage(new ChatPart(
-                    $"{COFLNET}You connected from an unkown account. Please verify that you are indeed {McId} by bidding {McColorCodes.AQUA}{bid}{McCommand.DEFAULT_COLOR} on a random auction.",
-                    $"/viewauction {targetAuction.Uuid}",
-                    $"{McColorCodes.GRAY}Click to open an auction to bid {McColorCodes.AQUA}{bid}{McCommand.DEFAULT_COLOR} on\nyou can also bid another number with the same digits at the end\neg. 1,234,{McColorCodes.AQUA}{bid}"));
-            }
+                name = "STICK",
+            }, 5);
+            var bid = connect.Code;
+            var r = new Random();
+            var targetAuction = activeAuction.Where(a => a.Price < bid).OrderBy(x => r.Next()).FirstOrDefault();
+            SendMessage(new ChatPart(
+                $"{COFLNET}You connected from an unkown account. Please verify that you are indeed {McId} by bidding {McColorCodes.AQUA}{bid}{McCommand.DEFAULT_COLOR} on a random auction.",
+                $"/viewauction {targetAuction.Uuid}",
+                $"{McColorCodes.GRAY}Click to open an auction to bid {McColorCodes.AQUA}{bid}{McCommand.DEFAULT_COLOR} on\nyou can also bid another number with the same digits at the end\neg. 1,234,{McColorCodes.AQUA}{bid}"));
+
         }
 
         /// <summary>
