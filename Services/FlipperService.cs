@@ -315,8 +315,10 @@ namespace hypixel
                 {
                     sendingSpan.Span.Log(e.Message);
                     sendingSpan.Span.Log(e.StackTrace);
+                    sendingSpan.Span.SetTag("error",true);
                 }
             }));
+            scope.Span.Log($"Sent to {Subs.Count}");
         }
 
 
