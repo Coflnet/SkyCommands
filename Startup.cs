@@ -70,7 +70,7 @@ namespace SkyCommands
             services.AddSwaggerGenNewtonsoftSupport();
             services.AddStackExchangeRedisCache(options =>
             {
-                options.Configuration = redisCon;
+                options.Configuration = Configuration["RATE_LIMITER_REDIS_HOST"];
                 options.InstanceName = "SampleInstance";
             });
             services.AddResponseCaching();

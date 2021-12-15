@@ -28,8 +28,8 @@ namespace Coflnet.Sky.Commands.MC
         public void SendMessage(params ChatPart[] parts)
         {
             var part = parts.FirstOrDefault();
-            SendUpdateMessage();
             socket.SendMessage(part.text, part.onClick, part.hover);
+            SendUpdateMessage();
         }
 
         public void SendSound(string name, float pitch = 1f)

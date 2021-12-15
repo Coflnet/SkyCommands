@@ -41,7 +41,6 @@ namespace Coflnet.Sky.Commands.MC
         public static ClassNameDictonary<McCommand> Commands = new ClassNameDictonary<McCommand>();
 
         public static event Action NextUpdateStart;
-        private int blockedFlipCount;
         private int blockedFlipFilterCount => TopBlocked.Count;
 
         private static System.Threading.Timer updateTimer;
@@ -83,6 +82,7 @@ namespace Coflnet.Sky.Commands.MC
                 NextUpdateStart += () =>
                 {
                     Console.WriteLine("next update");
+                    GC.Collect();
                 };
                 while (next < DateTime.Now)
                     next += TimeSpan.FromMinutes(1);
