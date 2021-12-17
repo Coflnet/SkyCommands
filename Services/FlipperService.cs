@@ -296,12 +296,12 @@ namespace hypixel
             if (flip.Auction != null && flip.Auction.NBTLookup == null)
                 flip.Auction.NBTLookup = NBT.CreateLookup(flip.Auction);
 
-            /*foreach (var item in Subs)
+            foreach (var item in Subs)
             {
                 await item.Value.SendFlip(flip);
                 scope.Span.Log("sent " + item.Value.UserId);
-            } */
-            await Task.WhenAll(Subs.Select(async item =>
+            } 
+            /*await Task.WhenAll(Subs.Select(async item =>
             {
                 using var sendingSpan = OpenTracing.Util.GlobalTracer.Instance.BuildSpan("SingleDevliver")
                     .AsChildOf(scope.Span).StartActive();
@@ -316,7 +316,7 @@ namespace hypixel
                     sendingSpan.Span.SetTag("error",true);
                 }
             }));
-            scope.Span.Log($"Sent to {Subs.Count}");
+            scope.Span.Log($"Sent to {Subs.Count}");*/
         }
 
 
