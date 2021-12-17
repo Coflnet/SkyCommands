@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Coflnet.Sky;
 using Coflnet.Sky.Commands.MC;
+using Coflnet.Sky.Commands.Shared;
 using Coflnet.Sky.Filter;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -49,7 +50,7 @@ namespace Coflnet.Hypixel.Controller
         [HttpGet]
         public FlipSettings SeeOptions()
         {
-            return Sky.Commands.MC.MinecraftSocket.DEFAULT_SETTINGS;
+            return null;//Sky.Commands.MC.MinecraftSocket.DEFAULT_SETTINGS;
         }
 
 
