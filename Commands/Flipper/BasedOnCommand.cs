@@ -1,14 +1,14 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using RestSharp;
+using Coflnet.Sky.Commands.Shared;
 
 namespace hypixel
 {
-    public class BasedOnCommand : Command
+    public partial class BasedOnCommand : Command
     {
 
         static RestClient SkyFlipperHost = new RestClient("http://"+SimplerConfig.Config.Instance["SKYFLIPPER_HOST"]);
@@ -23,7 +23,7 @@ namespace hypixel
                     throw new CoflnetException("auction_unkown", "Auction not found yet, please try again in a few seconds");
                 List<SaveAuction> result = await GetReferences(uuid);
                 await data.SendBack(data.Create("basedOnResp", result
-                            .Select(a => new Response()
+                            .Select(a => new BasedOnCommandResponse()
                             {
                                 uuid = a.Uuid,
                                 highestBid = a.HighestBidAmount,
@@ -39,19 +39,6 @@ namespace hypixel
             var response = await SkyFlipperHost.ExecuteAsync(new RestRequest("flip/{uuid}/based").AddParameter("uuid", uuid, ParameterType.UrlSegment));
             var result = JsonConvert.DeserializeObject<List<SaveAuction>>(response.Content);
             return result;
-        }
-
-        [DataContract]
-        public class Response
-        {
-            [DataMember(Name = "uuid")]
-            public string uuid;
-            [DataMember(Name = "highestBid")]
-            public long highestBid;
-            [DataMember(Name = "end")]
-            public System.DateTime end;
-            [DataMember(Name = "name")]
-            public string ItemName { get; set; }
         }
     }
 }

@@ -13,6 +13,7 @@ using ComposableAsync;
 using Coflnet.Sky.Commands;
 using Coflnet.Sky.Filter;
 using Coflnet.Sky;
+using Coflnet.Sky.Commands.Shared;
 
 namespace hypixel
 {
@@ -52,6 +53,7 @@ namespace hypixel
         public SettingsChange LastSettingsChange = new SettingsChange();
 
         private TimeLimiter limiter;
+        public static event Action NextUpdateStart;
 
         static SkyblockBackEnd()
         {
@@ -276,7 +278,7 @@ namespace hypixel
         private new void Close()
         {
             Subscribers.TryRemove(Id, out SkyblockBackEnd value);
-            Coflnet.Sky.Commands.MC.MinecraftSocket.NextUpdateStart -= SendNextUpdate;
+            NextUpdateStart -= SendNextUpdate;
         }
 
         private void SendNextUpdate()
@@ -292,7 +294,7 @@ namespace hypixel
         {
             base.OnOpen();
             SetConnectionId(this.ID);
-            Coflnet.Sky.Commands.MC.MinecraftSocket.NextUpdateStart += SendNextUpdate;
+            NextUpdateStart += SendNextUpdate;
         }
 
         public void SetConnectionId(string stringId)
