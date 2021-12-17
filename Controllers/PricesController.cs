@@ -7,6 +7,7 @@ using Coflnet.Sky;
 using Coflnet.Sky.Filter;
 using hypixel;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Coflnet.Hypixel.Controller
 {
@@ -19,10 +20,12 @@ namespace Coflnet.Hypixel.Controller
     public class PricesController : ControllerBase
     {
         private PricesService priceService;
+        HypixelContext context;
 
-        public PricesController(PricesService pricesService)
+        public PricesController(PricesService pricesService, HypixelContext context)
         {
             priceService = pricesService;
+            this.context = context;
         }
         /// <summary>
         /// Aggregated sumary of item prices for the last day
@@ -79,6 +82,41 @@ namespace Coflnet.Hypixel.Controller
             var fe = new Sky.Filter.FilterEngine();
             return fe.AvailableFilters.Select(f => new FilterOptions(f)).ToList();
         }
+
+        /// <summary>
+        /// Returns bazaar history 
+        /// </summary>
+        /// <returns></returns>
+        [Route("bazaar/item/history/{itemTag}/status")]
+        [HttpGet]
+        [ResponseCache(Duration = 3, Location = ResponseCacheLocation.Any, NoStore = false)]
+        public async Task<List<TimedQuickStatus>> GetBazaar(string itemTag)
+        {
+            var itemId = ItemDetails.Instance.GetItemIdForName(itemTag);
+            var fe = await context.BazaarPrices.Where(b => b.ProductId == itemTag && b.PullInstance.Timestamp.Minute == 0 && (b.PullInstance.Timestamp.Hour == 0 /* || b.PullInstance.Timestamp.Hour == 12*/))
+                    //.GroupBy(b=> new {/*b.PullInstance.Timestamp.Hour,*/ b.PullInstance.Timestamp.Date})
+                    .Select(b => new { b.QuickStatus, b.PullInstance.Timestamp }).ToListAsync();
+
+            return fe.GroupBy(b=>b.Timestamp.Date).Select(b=>b.First()).Select(f => new TimedQuickStatus()
+            {
+                BuyMovingWeek = f.QuickStatus.BuyMovingWeek,
+                BuyOrders = f.QuickStatus.BuyOrders,
+                BuyPrice = f.QuickStatus.BuyPrice,
+                BuyVolume = f.QuickStatus.BuyVolume,
+                SellMovingWeek = f.QuickStatus.SellMovingWeek,
+                SellOrders = f.QuickStatus.SellOrders,
+                SellPrice = f.QuickStatus.SellPrice,
+                SellVolume = f.QuickStatus.SellVolume,
+                Time = f.Timestamp
+            }).ToList();
+        }
+
+        public class TimedQuickStatus : dev.QuickStatus
+        {
+            public DateTime Time;
+        }
+
+
 
         /// <summary>
         /// Lowest bin response
