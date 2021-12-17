@@ -70,11 +70,11 @@ namespace SkyCommands
             services.AddSwaggerGenNewtonsoftSupport();
             services.AddStackExchangeRedisCache(options =>
             {
-                options.Configuration = Configuration["RATE_LIMITER_REDIS_HOST"];
+                options.Configuration = redisCon;
                 options.InstanceName = "SampleInstance";
             });
             services.AddResponseCaching();
-            var redisOptions = ConfigurationOptions.Parse(redisCon);
+            var redisOptions = ConfigurationOptions.Parse(Configuration["RATE_LIMITER_REDIS_HOST"]);
             services.AddSingleton<IConnectionMultiplexer>(provider => ConnectionMultiplexer.Connect(redisOptions));
 
             // Rate limiting 
