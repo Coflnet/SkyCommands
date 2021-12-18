@@ -93,7 +93,7 @@ namespace Coflnet.Hypixel.Controller
         public async Task<List<TimedQuickStatus>> GetBazaar(string itemTag)
         {
             var itemId = ItemDetails.Instance.GetItemIdForName(itemTag);
-            var maxTime = DateTime.Now - TimeSpan.FromDays(180);
+            var maxTime = DateTime.Now - TimeSpan.FromDays(5);
             var fe = await context.BazaarPull.Where(b => b.Timestamp.Minute == 0 && b.Timestamp.Hour == 0 && b.Timestamp > maxTime)
                     //.GroupBy(b=> new {/*b.PullInstance.Timestamp.Hour,*/ b.PullInstance.Timestamp.Date})
                     .SelectMany(p => p.Products.Where(b => b.ProductId == itemTag).Select(b => new { b.QuickStatus, b.PullInstance.Timestamp })).ToListAsync();
