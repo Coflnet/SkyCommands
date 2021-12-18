@@ -18,7 +18,10 @@ WORKDIR /app
 
 COPY --from=build /build/SkyCommand/bin/release/net6.0/publish/ .
 RUN mkdir -p ah/files
-ENV ASPNETCORE_URLS=http://+:8000;http://+:80
+ENV ASPNETCORE_URLS=http://+:8000
+
+RUN useradd --uid $(shuf -i 2000-65000 -n 1) app
+USER app
 
 ENTRYPOINT ["dotnet", "SkyCommands.dll", "--hostBuilder:reloadConfigOnChange=false"]
 
