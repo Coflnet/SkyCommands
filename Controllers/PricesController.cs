@@ -89,15 +89,16 @@ namespace Coflnet.Hypixel.Controller
         /// <returns></returns>
         [Route("bazaar/item/history/{itemTag}/status")]
         [HttpGet]
-        [ResponseCache(Duration = 3, Location = ResponseCacheLocation.Any, NoStore = false)]
+        [ResponseCache(Duration = 3600 * 6, Location = ResponseCacheLocation.Any, NoStore = false)]
         public async Task<List<TimedQuickStatus>> GetBazaar(string itemTag)
         {
             var itemId = ItemDetails.Instance.GetItemIdForName(itemTag);
-            var fe = await context.BazaarPrices.Where(b => b.ProductId == itemTag && b.PullInstance.Timestamp.Minute == 0 && (b.PullInstance.Timestamp.Hour == 0 /* || b.PullInstance.Timestamp.Hour == 12*/))
+            var maxTime = DateTime.Now - TimeSpan.FromDays(180);
+            var fe = await context.BazaarPull.Where(b => b.Timestamp.Minute == 0 && b.Timestamp.Hour == 0 && b.Timestamp > maxTime)
                     //.GroupBy(b=> new {/*b.PullInstance.Timestamp.Hour,*/ b.PullInstance.Timestamp.Date})
-                    .Select(b => new { b.QuickStatus, b.PullInstance.Timestamp }).ToListAsync();
+                    .SelectMany(p => p.Products.Where(b => b.ProductId == itemTag).Select(b => new { b.QuickStatus, b.PullInstance.Timestamp })).ToListAsync();
 
-            return fe.GroupBy(b=>b.Timestamp.Date).Select(b=>b.First()).Select(f => new TimedQuickStatus()
+            return fe.GroupBy(b => b.Timestamp.Date).Select(b => b.First()).Select(f => new TimedQuickStatus()
             {
                 BuyMovingWeek = f.QuickStatus.BuyMovingWeek,
                 BuyOrders = f.QuickStatus.BuyOrders,
