@@ -173,7 +173,7 @@ namespace hypixel
                 if (waiting > 20)
                 {
                     dev.Logger.Instance.Error("triggered rate limit");
-                    throw new CoflnetException("stop_it", "You are sending to many requests. Don't use a script to get this data. You can purchase the raw data from me (@Ekwav) for 50$ per month of data");
+                    throw new CoflnetException("stop_it", "Your connection is sending to many requests. Please slow down.");
                 }
 
                 ExecuteCommand(data);
