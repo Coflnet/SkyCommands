@@ -4,6 +4,7 @@ namespace hypixel
 {
     public class SetConnectionIdCommand : Command
     {
+        public override bool Cacheable => false;
         public override Task Execute(MessageData data)
         {
             var socketData = data as SocketMessageData;

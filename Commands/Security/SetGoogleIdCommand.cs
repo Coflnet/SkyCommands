@@ -10,6 +10,7 @@ namespace hypixel
 {
     public class SetGoogleIdCommand : Command
     {
+        public override bool Cacheable => false;
         Counter loginCount = Metrics.CreateCounter("loginCount", "How often the login was executed (with a googleid)");
         public override async Task Execute(MessageData data)
         {

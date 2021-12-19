@@ -8,6 +8,7 @@ namespace hypixel
     /// </summary>
     public class AuthorizeConnectionCommand : Command
     {
+        public override bool Cacheable => false;
         public override async Task Execute(MessageData data)
         {
             var con = (data as SocketMessageData).Connection;

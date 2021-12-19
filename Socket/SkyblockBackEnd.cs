@@ -170,7 +170,7 @@ namespace hypixel
                     return;
                 }
 
-                if (CacheService.Instance.TryFromCache(data))
+                if (CacheService.Instance.TryFromCache(data) && Commands[data.Type].Cacheable)
                     return;
 
                 if (waiting > 20)

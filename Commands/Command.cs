@@ -9,6 +9,7 @@ namespace hypixel
         protected const int A_HOUR = A_MINUTE*60;
         protected const int A_DAY = A_HOUR*24;
         protected const int A_WEEK = A_DAY * 7;
+        public virtual bool Cacheable => true;
         public abstract Task Execute(MessageData data);
     }
 }
