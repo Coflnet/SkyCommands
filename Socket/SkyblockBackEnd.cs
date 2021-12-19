@@ -105,9 +105,9 @@ namespace hypixel
             Commands.Add("accountInfo", new AccountInfoCommand());
 
 
-            Commands.Add("getCoflOwned",new GetCoflOwnerShipCommand());
-            Commands.Add("getCoflBalance",new GetCoflBalanceCommand());
-            Commands.Add("transferCofl",new TransferCoinsCommand());
+            Commands.Add("getCoflOwned", new GetCoflOwnerShipCommand());
+            Commands.Add("getCoflBalance", new GetCoflBalanceCommand());
+            Commands.Add("transferCofl", new TransferCoinsCommand());
             Commands.Add("getProducts", new GetProductsCommand());
             Commands.Add("getPrices", new GetPricesCommand());
             Commands.Add("gPurchase", new GooglePurchaseCommand());
@@ -170,9 +170,6 @@ namespace hypixel
                     return;
                 }
 
-                if (CacheService.Instance.TryFromCache(data) && Commands[data.Type].Cacheable)
-                    return;
-
                 if (waiting > 20)
                 {
                     dev.Logger.Instance.Error("triggered rate limit");
@@ -204,6 +201,8 @@ namespace hypixel
                 System.Threading.Interlocked.Decrement(ref waiting);
                 try
                 {
+                    if (Commands[data.Type].Cacheable && (await CacheService.Instance.TryFromCacheAsync(data)).IsFlagSet(CacheStatus.VALID))
+                        return;
                     var tracer = OpenTracing.Util.GlobalTracer.Instance;
                     var builder = tracer.BuildSpan(data.Type)
                             .WithTag("type", "websocket")
@@ -283,10 +282,11 @@ namespace hypixel
 
         private void SendNextUpdate()
         {
-            TrySendData(new MessageData("nextUpdate",""));
-            Task.Run(async ()=>{
+            TrySendData(new MessageData("nextUpdate", ""));
+            Task.Run(async () =>
+            {
                 await Task.Delay(TimeSpan.FromSeconds(30));
-                this.TrySendData(new MessageData("ping",null));
+                this.TrySendData(new MessageData("ping", null));
             });
         }
 
@@ -359,7 +359,7 @@ namespace hypixel
 
         public async Task<bool> SendFlip(FlipInstance flip)
         {
-            await FlipperService.FillVisibilityProbs(flip,this.Settings);
+            await FlipperService.FillVisibilityProbs(flip, this.Settings);
             if (Settings == null || !Settings.MatchesSettings(flip).Item1)
                 return true;
             var data = new MessageData("flip", JSON.Stringify(flip), 60);
@@ -368,7 +368,7 @@ namespace hypixel
 
         private bool TrySendData(MessageData data)
         {
-            if(ConnectionState != WebSocketState.Open)
+            if (ConnectionState != WebSocketState.Open)
                 return false;
             data.mId = SubFlipMsgId;
             try
@@ -391,7 +391,7 @@ namespace hypixel
         public void UpdateSettings(SettingsChange settings)
         {
             this.LastSettingsChange = settings;
-            if(!TrySendData(new MessageData("settingsUpdate", JsonConvert.SerializeObject(settings.Settings))))
+            if (!TrySendData(new MessageData("settingsUpdate", JsonConvert.SerializeObject(settings.Settings))))
                 FlipperService.Instance.RemoveConnection(this);
         }
 
