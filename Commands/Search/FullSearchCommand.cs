@@ -20,6 +20,7 @@ namespace hypixel
             var watch = Stopwatch.StartNew();
             var search = ItemSearchCommand.RemoveInvalidChars(data.Data);
             var cancelationSource = new CancellationTokenSource();
+            cancelationSource.CancelAfter(5000);
             var results = SearchService.Instance.Search(search, cancelationSource.Token);
 
             var result = new ConcurrentBag<SearchService.SearchResultItem>();
@@ -41,11 +42,11 @@ namespace hypixel
             }, cancelationSource.Token);
 
             data.Log($"Waiting half a second " + watch.Elapsed);
-            await pullTask.WaitAsync(TimeSpan.FromMilliseconds(320));
+            await Task.WhenAny(pullTask, Task.Delay(TimeSpan.FromMilliseconds(320)));
             DequeueResult(results, result);
             if (result.Count == 0)
             {
-                await pullTask.WaitAsync(TimeSpan.FromMilliseconds(600));
+                await Task.WhenAny(pullTask, Task.Delay(TimeSpan.FromMilliseconds(600)));
                 DequeueResult(results, result);
             }
             var maxAge = A_DAY;
