@@ -256,7 +256,7 @@ namespace hypixel
         private static async Task FindItems(string search, Task<IEnumerable<ItemDetails.ItemSearchResult>> itemTask, ConcurrentQueue<SearchResultItem> Results)
         {
             var items = await itemTask;
-            if (items.Count() == 0)// && singlePlayer.Result == null)
+            if (items.Count() == 0)
                 items = await ItemDetails.Instance.FindClosest(search);
 
             foreach (var item in items.Select(item => new SearchResultItem(item)))

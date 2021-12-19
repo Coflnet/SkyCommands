@@ -13,7 +13,6 @@ namespace hypixel
             {
                 var userId = data.UserId;
 
-                //var affected = SubscribeEngine.Instance.Unsubscribe(userId, args.Topic,args.Type).Result;
                 var request = new RestRequest("Subscription/{userId}/sub/all", Method.DELETE)
                     .AddUrlSegment("userId", userId);
                 var response = await SubscribeClient.Client.ExecuteAsync(request);

@@ -14,7 +14,6 @@ namespace hypixel
                 var args = data.GetAs<Arguments>();
                 var userId = data.UserId;
 
-                //var affected = SubscribeEngine.Instance.Unsubscribe(userId, args.Topic,args.Type).Result;
                 var request = new RestRequest("Subscription/{userId}/sub", Method.DELETE)
                     .AddJsonBody(new SubscribeItem() { Type = args.Type, TopicId = args.Topic })
                     .AddUrlSegment("userId", userId);

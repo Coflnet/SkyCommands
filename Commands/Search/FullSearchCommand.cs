@@ -15,7 +15,7 @@ namespace hypixel
     {
         private const string Type = "searchResponse";
 
-        public override Task Execute(MessageData data)
+        public override async Task Execute(MessageData data)
         {
             var watch = Stopwatch.StartNew();
             var search = ItemSearchCommand.RemoveInvalidChars(data.Data);
@@ -41,11 +41,11 @@ namespace hypixel
             }, cancelationSource.Token);
 
             data.Log($"Waiting half a second " + watch.Elapsed);
-            pullTask.Wait(320);
+            await pullTask.WaitAsync(TimeSpan.FromMilliseconds(320));
             DequeueResult(results, result);
             if (result.Count == 0)
             {
-                pullTask.Wait(600);
+                await pullTask.WaitAsync(TimeSpan.FromMilliseconds(600));
                 DequeueResult(results, result);
             }
             var maxAge = A_DAY;
@@ -58,12 +58,12 @@ namespace hypixel
             if (orderedResult.Count() == 0)
                 maxAge = A_MINUTE;
             var elapsed = watch.Elapsed;
-            Task.Run(() =>
+            var trackTask = Task.Run(() =>
             {
                 if (!(data is ProxyMessageData<string, object>))
                     TrackingService.Instance.TrackSearch(data, data.Data, orderedResult.Count, elapsed);
             }).ConfigureAwait(false);
-            return data.SendBack(data.Create(Type, orderedResult, maxAge));
+            await data.SendBack(data.Create(Type, orderedResult, maxAge));
         }
 
         private static List<SearchService.SearchResultItem> RankSearchResults(MessageData data, string search, ConcurrentBag<SearchService.SearchResultItem> result)
