@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using hypixel;
 using RestSharp;
 using System.Threading.Tasks;
+using System.Runtime.Serialization;
 
 namespace Coflnet.Sky.Commands
 {
@@ -40,10 +41,12 @@ namespace Coflnet.Sky.Commands
 
         }
 
-
+        [DataContract]
         public class ConnectionRequest
         {
+            [DataMember(Name = "code")]
             public int Code { get; set; }
+            [DataMember(Name = "isConnected")]
             public bool IsConnected { get; set; }
         }
     }
