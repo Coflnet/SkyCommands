@@ -136,7 +136,13 @@ namespace hypixel
             Commands.Add("p", new PingCommand());
 
 
-
+            FlipperService.Instance.OnSettingsChange += settings =>
+            {
+                foreach (var item in SkyblockBackEnd.GetConnectionsOfUser(settings.UserId))
+                {
+                    item.UpdateSettings(settings);
+                }
+            };
         }
 
         public SkyblockBackEnd()
