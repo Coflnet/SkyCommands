@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using hypixel;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Coflnet.Sky.PlayerName.Client.Api;
 
 namespace Coflnet.Hypixel.Controller
 {
@@ -18,11 +19,13 @@ namespace Coflnet.Hypixel.Controller
     {
         private HypixelContext db;
         private PricesService priceService;
+        private PlayerNameApi playerNamService;
 
-        public ModController(HypixelContext db, PricesService pricesService)
+        public ModController(HypixelContext db, PricesService pricesService, PlayerNameApi playerName = null)
         {
             this.db = db;
             priceService = pricesService;
+            this.playerNamService = playerName;
         }
 
         /// <summary>
@@ -61,8 +64,9 @@ namespace Coflnet.Hypixel.Controller
             var auctions = await db.Auctions.Where(a => a.NBTLookup.Where(l => l.KeyId == key && l.Value == lookupId).Any()).Include(a => a.Bids).OrderByDescending(a => a.End).ToListAsync();
             var lastSell = auctions.Where(a => a.End < System.DateTime.Now).FirstOrDefault();
             long med = await GetMedian(lastSell);
+            var playerName = await playerNamService.PlayerNameNameUuidGetAsync(lastSell.Bids.FirstOrDefault()?.Bidder);
             return $"Sold {auctions.Count} times\n"
-                + (lastSell == null ? "" : $"last sold for {FormatPrice(lastSell.HighestBidAmount)} to {await PlayerSearch.Instance.GetNameWithCacheAsync(lastSell.Bids.FirstOrDefault()?.Bidder)}")
+                + (lastSell == null ? "" : $"last sold for {FormatPrice(lastSell.HighestBidAmount)} to {playerName.Trim('"')}")
                 + (auctions.Count == 0 ? "" : $"Median {FormatPrice(med)}");
         }
 
