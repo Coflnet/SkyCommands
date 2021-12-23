@@ -454,7 +454,7 @@ namespace hypixel
                     // wait a bit for the same response
                     if (RecentlyStartedCommands.TryGetValue(key, out SemaphoreSlim value))
                     {
-                        await value.WaitAsync(400);
+                        await value.WaitAsync(200 + new Random().Next(300));
                         OpenTracing.Util.GlobalTracer.Instance.ActiveSpan?.SetTag("cache", "waited");
                         // if it is available now, return it
                         if ((await CacheService.Instance.TryFromCacheAsync(data)).IsFlagSet(CacheStatus.VALID))
@@ -504,7 +504,6 @@ namespace hypixel
             {
                 res.SetStatusCode(500);
             }
-
 
             var json = Newtonsoft.Json.JsonConvert.SerializeObject(data);
             await res.WriteAsync(json);
