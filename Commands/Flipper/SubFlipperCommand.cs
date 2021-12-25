@@ -11,10 +11,11 @@ namespace hypixel
         public override async Task Execute(MessageData data)
         {
             var con = (data as SocketMessageData).Connection;
+            var settings = GetSettings(data);
             try
             {
                 con.SubFlipMsgId = (int)data.mId;
-                SetSettingsOnConnection(data, con);
+                con.Settings = settings;
 
                 var lastSettings = con.LastSettingsChange;
 
@@ -46,7 +47,7 @@ namespace hypixel
             await data.Ok();
         }
 
-        private static void SetSettingsOnConnection(MessageData data, SkyblockBackEnd con)
+        private static FlipSettings GetSettings(MessageData data)
         {
             FlipSettings settings = new FlipSettings();
             try
@@ -61,11 +62,7 @@ namespace hypixel
                 data.LogError(e, "subFlip");
                 throw new CoflnetException("invalid_settings", "Your settings are invalid, please revert your last change");
             }
-            finally
-            {
-                con.Settings = settings;
-            }
-
+            return settings;
 
         }
     }
