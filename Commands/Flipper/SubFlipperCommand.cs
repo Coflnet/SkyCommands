@@ -31,10 +31,10 @@ namespace hypixel
 
                 if (MessagePack.MessagePackSerializer.Serialize(con.Settings).SequenceEqual(MessagePack.MessagePackSerializer.Serialize(lastSettings.Settings)))
                     return; // nothing actually changed
-                    
+
                 lastSettings.Settings = con.Settings;
                 lastSettings.UserId = data.UserId;
-                if(lastSettings.Settings.AllowedFinders == Coflnet.Sky.LowPricedAuction.FinderType.UNKOWN)
+                if (lastSettings.Settings.AllowedFinders == Coflnet.Sky.LowPricedAuction.FinderType.UNKOWN)
                     lastSettings.Settings.AllowedFinders = Coflnet.Sky.LowPricedAuction.FinderType.FLIPPER;
 
                 await FlipperService.Instance.UpdateSettings(lastSettings);
@@ -48,17 +48,25 @@ namespace hypixel
 
         private static void SetSettingsOnConnection(MessageData data, SkyblockBackEnd con)
         {
+            FlipSettings settings = new FlipSettings();
             try
             {
-                con.Settings = data.GetAs<FlipSettings>();
-                if (con.Settings == null)
-                    con.Settings = new FlipSettings();
+                settings = data.GetAs<FlipSettings>();
+                if (settings == null)
+                    settings = new FlipSettings();
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 // could not get it continue with default
-                con.Settings = new FlipSettings();
+                data.LogError(e, "subFlip");
+                throw new CoflnetException("invalid_settings", "Your settings are invalid, please revert your last change");
             }
+            finally
+            {
+                con.Settings = settings;
+            }
+
+
         }
     }
 }
