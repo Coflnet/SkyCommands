@@ -696,4 +696,31 @@ Please see the api endpoint `/api/flip/settings/options` for all options
 ```
 Filter is applied to all flips and can be omitted. 
 
-## 
+## getCoflBalance
+Returns the available cofl coin balance of an user.
+Response example:
+```
+42
+```
+
+## getProducts
+Returns available products for purchase
+Response is the same format as [/api/topup/options](https://sky.coflnet.com/api)
+
+## transferCofl
+Allows the transfer of cofl coins to another user.
+```
+{
+    "email":"user@example.com",
+    "mcId":"cbf30125749d4134bba377e4f2d3a377",
+    "reference":"unique reference",
+    "amount":12345
+}
+```
+Response example:
+```
+{
+    "type":"success",
+    "data":"12345"
+}
+```
