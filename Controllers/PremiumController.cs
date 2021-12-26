@@ -52,9 +52,9 @@ namespace Coflnet.Hypixel.Controller
         /// Start a new topup session with stripe
         /// </summary>
         /// <returns></returns>
-        [Route("topup/stripe/{option}")]
+        [Route("topup/stripe/{productSlug}")]
         [HttpPost]
-        public async Task<IActionResult> StartTopUp(string option)
+        public async Task<IActionResult> StartTopUp(string productSlug)
         {
             foreach (var item in Request.Headers)
             {
@@ -63,7 +63,21 @@ namespace Coflnet.Hypixel.Controller
             if (!TryGetUser(out GoogleUser user))
                 return Unauthorized("no googletoken header");
 
-            var session = await topUpApi.TopUpStripePostAsync(option,user.Id.ToString());
+            var session = await topUpApi.TopUpStripePostAsync(productSlug, user.Id.ToString());
+            return Ok(session);
+        }
+        /// <summary>
+        /// Start a new topup session with paypal
+        /// </summary>
+        /// <returns></returns>
+        [Route("topup/paypal/{productSlug}")]
+        [HttpPost]
+        public async Task<IActionResult> StartTopUpPaypal(string productSlug)
+        {
+            if (!TryGetUser(out GoogleUser user))
+                return Unauthorized("no googletoken header");
+
+            var session = await topUpApi.TopUpPaypalPostAsync(productSlug, user.Id.ToString());
             return Ok(session);
         }
 
@@ -72,21 +86,21 @@ namespace Coflnet.Hypixel.Controller
         /// Purchase a product 
         /// </summary>
         /// <returns></returns>
-        [Route("purchase/{option}")]
+        [Route("purchase/{productSlug}")]
         [HttpPost]
-        public async Task<IActionResult> Purchase(string option)
+        public async Task<IActionResult> Purchase(string productSlug)
         {
             if (!TryGetUser(out GoogleUser user))
                 return Unauthorized("no googletoken header");
 
-            var purchaseResult = await userApi.UserUserIdPurchaseProductSlugPostAsync(user.Id.ToString(), option);
+            var purchaseResult = await userApi.UserUserIdPurchaseProductSlugPostAsync(user.Id.ToString(), productSlug);
             return Ok(purchaseResult);
         }
 
         private bool TryGetUser(out GoogleUser user)
         {
             user = default(GoogleUser);
-            if(!Request.Headers.TryGetValue("GoogleToken", out StringValues value))
+            if (!Request.Headers.TryGetValue("GoogleToken", out StringValues value))
                 return false;
             user = premiumService.GetUserWithToken(value);
             return true;
