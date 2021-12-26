@@ -11,7 +11,6 @@ namespace hypixel
         {
             try
             {
-                
                 using (var context = new HypixelContext())
                 {
                     var user = data.User;
