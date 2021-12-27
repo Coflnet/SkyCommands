@@ -30,9 +30,11 @@ namespace SkyCommands
 
             // hook up cache refreshing
             CacheService.Instance.OnCacheRefresh += Server.ExecuteCommandHeadless;
-
-            await itemLoad;
-            RunIsolatedForever(FlipperService.Instance.ProcessSlowQueue, "flip process slow", 10);
+            var ignore = Task.Run(async () =>
+            {
+                await itemLoad;
+                RunIsolatedForever(FlipperService.Instance.ProcessSlowQueue, "flip process slow", 10);
+            }).ConfigureAwait(false);
             CreateHostBuilder(args).Build().Run();
         }
 
