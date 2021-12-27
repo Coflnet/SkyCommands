@@ -50,7 +50,7 @@ namespace hypixel
         /// The last or default settings change captured for this user/connection
         /// </summary>
         /// <returns></returns>
-        public SettingsChange LastSettingsChange = new SettingsChange();
+        public SettingsChange LatestSettings { get; set;} = new SettingsChange();
 
         private TimeLimiter limiter;
         public static event Action NextUpdateStart;
@@ -396,7 +396,7 @@ namespace hypixel
 
         public void UpdateSettings(SettingsChange settings)
         {
-            this.LastSettingsChange = settings;
+            this.LatestSettings = settings;
             if (!TrySendData(new MessageData("settingsUpdate", JsonConvert.SerializeObject(settings.Settings))))
                 FlipperService.Instance.RemoveConnection(this);
         }

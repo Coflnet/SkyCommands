@@ -44,7 +44,7 @@ namespace hypixel
                 {
                     var settings = await CacheService.Instance.GetFromRedis<SettingsChange>("uflipset" + user.Id);
                     if (settings != null)
-                        con.Connection.LastSettingsChange = settings;
+                        con.Connection.LatestSettings = settings;
                 }
             }
             catch (Exception e)

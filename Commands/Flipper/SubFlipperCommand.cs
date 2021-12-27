@@ -17,7 +17,7 @@ namespace hypixel
                 con.SubFlipMsgId = (int)data.mId;
                 con.Settings = settings;
 
-                var lastSettings = con.LastSettingsChange;
+                var lastSettings = con.LatestSettings;
 
 
                 if (!data.User.HasPremium)
