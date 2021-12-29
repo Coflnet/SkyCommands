@@ -485,25 +485,13 @@ namespace hypixel
             var data = new Stats()
             {
                 NameRequests = Program.RequestsSinceStart,
-                Indexed = Indexer.IndexedAmount,
-                LastIndexFinish = Indexer.LastFinish,
-                LastNameUpdate = NameUpdater.LastUpdate,
                 CacheSize = CacheService.Instance.CacheSize,
-                QueueSize = Indexer.QueueCount,
                 ConnectionCount = SkyblockBackEnd.ConnectionCount
             };
 
             // determine status
             res.SetStatusCode(200);
             var maxTime = DateTime.Now.Subtract(new TimeSpan(0, 5, 0));
-            if (!Program.LightClient && (
-                data.LastIndexFinish < maxTime
-                || data.LastBazaarUpdate < maxTime
-                || data.LastNameUpdate < maxTime
-                || data.LastAuctionPull < maxTime))
-            {
-                res.SetStatusCode(500);
-            }
 
             var json = Newtonsoft.Json.JsonConvert.SerializeObject(data);
             await res.WriteAsync(json);
