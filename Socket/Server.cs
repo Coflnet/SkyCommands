@@ -135,7 +135,7 @@ namespace hypixel
         {
             try
             {
-                aspNet = new RestClient("http://"+ SimplerConfig.Config.Instance["COMMANDS_HOST"]);
+                aspNet = new RestClient("http://"+ SimplerConfig.Config.Instance["API_HOST"]);
                 ProdFrontend = SimplerConfig.Config.Instance["FRONTEND_PROD"];
                 StagingFrontend = SimplerConfig.Config.Instance["FRONTEND_STAGING"];
 
