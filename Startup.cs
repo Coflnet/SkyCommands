@@ -47,7 +47,7 @@ namespace SkyCommands
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 c.IncludeXmlComments(xmlPath);
             });
-            services.AddJaeger();
+            services.AddJaeger(0.001,60);
             services.AddScoped<PricesService>();
             services.AddSingleton<AuctionService>();
             services.AddDbContext<HypixelContext>();
