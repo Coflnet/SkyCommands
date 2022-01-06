@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using MessagePack;
 using Newtonsoft.Json;
 using Coflnet.Sky.Commands.Services;
+using System.Threading.Channels;
 
 namespace hypixel
 {
@@ -17,26 +18,33 @@ namespace hypixel
 
         public override async Task Execute(MessageData data)
         {
+            List<SearchResultItem> orderedResult = await NewMethod(data).ConfigureAwait(false);
+            var maxAge = A_DAY;
+            if (orderedResult.Count() == 0)
+                maxAge = 0;
+            await data.SendBack(data.Create(Type, orderedResult, maxAge));
+        }
+
+        private async Task<List<SearchResultItem>> NewMethod(MessageData data)
+        {
             var watch = Stopwatch.StartNew();
             var search = ItemSearchCommand.RemoveInvalidChars(data.Data);
             var cancelationSource = new CancellationTokenSource();
             cancelationSource.CancelAfter(5000);
-            var results = SearchService.Instance.Search(search, cancelationSource.Token);
+            var results = await SearchService.Instance.Search(search, cancelationSource.Token);
 
-            var result = new ConcurrentBag<SearchService.SearchResultItem>();
+            var result = new ConcurrentBag<SearchResultItem>();
             var pullTask = Task.Run(async () =>
             {
                 while (!cancelationSource.IsCancellationRequested)
                 {
-                    while (results.Result.TryDequeue(out SearchService.SearchResultItem r))
-                    {
+                    var r = await results.Reader.ReadAsync();
                         result.Add(r);
                         if (result.Count > 15)
                             return; // return early
 
                         var lastTask = Task.Run(() => LoadPreview(watch, r), cancelationSource.Token).ConfigureAwait(false);
-                    }
-                    await Task.Delay(20);
+                    
                 }
 
             }, cancelationSource.Token);
@@ -49,62 +57,28 @@ namespace hypixel
                 await Task.WhenAny(pullTask, Task.Delay(TimeSpan.FromMilliseconds(600)));
                 DequeueResult(results, result);
             }
-            var maxAge = A_DAY;
 
             cancelationSource.Cancel();
             DequeueResult(results, result);
             data.Log($"Started sorting {search} " + watch.Elapsed);
-            List<SearchService.SearchResultItem> orderedResult = RankSearchResults(data, search, result);
+            List<SearchResultItem> orderedResult = SearchService.Instance.RankSearchResults(search, result);
             data.Log($"making response {watch.Elapsed} total: {System.DateTime.Now - data.Created}");
-            if (orderedResult.Count() == 0)
-                maxAge = A_MINUTE;
             var elapsed = watch.Elapsed;
             var trackTask = Task.Run(() =>
             {
                 if (!(data is ProxyMessageData<string, object>))
                     TrackingService.Instance.TrackSearch(data, data.Data, orderedResult.Count, elapsed);
             }).ConfigureAwait(false);
-            await data.SendBack(data.Create(Type, orderedResult, maxAge));
-        }
-
-        private static List<SearchService.SearchResultItem> RankSearchResults(MessageData data, string search, ConcurrentBag<SearchService.SearchResultItem> result)
-        {
-            var orderedResult = result.Where(r => r.Name != null)
-                            .Select(r =>
-                            {
-                                var lower = r.Name.ToLower();
-                                return new
-                                {
-                                    rating = String.IsNullOrEmpty(r.Name) ? 0 :
-                                lower.Length / 2
-                                - r.HitCount * 2
-                                - (lower == search ? 10000000 : 0) // is exact match
-                                - (lower.Length > search.Length && lower.Truncate(search.Length) == search ? 100 : 0) // matches search
-                                - (Fastenshtein.Levenshtein.Distance(lower, search) <= 1 ? 40 : 0) // just one mutation off maybe a typo
-                                + Fastenshtein.Levenshtein.Distance(lower.PadRight(search.Length), search) / 2 // distance to search
-                                + Fastenshtein.Levenshtein.Distance(lower.Truncate(search.Length), search),
-                                    r
-                                };
-                            }
-                            )
-                            .OrderBy(r => r.rating)
-                        .Where(r => { data.Log($"Ranked {r.r.Name} {r.rating} {Fastenshtein.Levenshtein.Distance(r.r.Name.PadRight(search.Length), search) / 10} {Fastenshtein.Levenshtein.Distance(r.r.Name.Truncate(search.Length), search)}"); return true; })
-                        .Where(r => r.rating < 10)
-                        .ToList()
-                        .Select(r => r.r)
-                        .Distinct(new SearchService.SearchResultComparer())
-                        .Take(5)
-                        .ToList();
             return orderedResult;
         }
 
-        private static void DequeueResult(Task<ConcurrentQueue<SearchService.SearchResultItem>> results, ConcurrentBag<SearchService.SearchResultItem> result)
+        private static void DequeueResult(Channel<SearchResultItem> results, ConcurrentBag<SearchResultItem> result)
         {
-            while (results.Result.TryDequeue(out SearchService.SearchResultItem r))
+            while (results.Reader.TryRead(out SearchResultItem r))
                 result.Add(r);
         }
 
-        private async Task LoadPreview(Stopwatch watch, SearchService.SearchResultItem r)
+        private async Task LoadPreview(Stopwatch watch, SearchResultItem r)
         {
             try
             {
@@ -124,8 +98,6 @@ namespace hypixel
             {
                 dev.Logger.Instance.Error(e, "Failed to load preview for " + r.Id);
             }
-
-
         }
     }
 }

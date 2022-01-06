@@ -10,7 +10,7 @@ namespace hypixel
         {
             var search = RemoveInvalidChars(data.Data);
             var result = await ItemDetails.Instance.Search(search);
-            await data.SendBack(data.Create("itemSearch", result.Select(a => new SearchService.SearchResultItem(a)).ToList(),A_HOUR));
+            await data.SendBack(data.Create("itemSearch", result.Select(a => new SearchResultItem(a)).ToList(),A_HOUR));
         }
 
         static Regex rgx = new Regex("[^-a-zA-Z0-9_\\.' ]");
