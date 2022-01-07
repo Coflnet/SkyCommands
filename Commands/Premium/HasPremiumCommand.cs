@@ -32,8 +32,8 @@ namespace hypixel
             catch (Exception)
             {
                 // no premium
-                await data.SendBack(data.Create<string>("premiumExpiration", null));
             }
+            await data.SendBack(data.Create<string>("premiumExpiration", null));
         }
     }
 }
