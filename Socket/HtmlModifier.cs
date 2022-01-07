@@ -49,6 +49,16 @@ namespace hypixel
             if (path == "/item/" || path == "/item")
                 return res.RedirectSkyblock();
 
+            if(path == "/premium")
+                description = "See available premium options to support this project";
+            if(path == "/crafts")
+                description = "List of profitable crafts based on current ah and bazaar prices";
+            if(path == "/ref")
+                description = "Our referral system allows you to get a reward for inviting others";
+            if(path == "/lowSupply")
+                description = "Items that are in low supply on the auction house";
+            
+
             // try to fill in title
             if (path.Contains("auction/"))
             {
