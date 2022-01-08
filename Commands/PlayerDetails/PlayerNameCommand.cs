@@ -15,7 +15,7 @@ namespace hypixel
         {
             var name = await PlayerSearch.Instance.GetName(uuid);
             // player names don't change often, but are easy to compute
-            return data.Create("nameResponse",name,A_HOUR);
+            return data.Create("nameResponse", name, 0);
         }
     }
 }
