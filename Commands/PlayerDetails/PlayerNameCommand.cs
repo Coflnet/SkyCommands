@@ -4,6 +4,7 @@ namespace hypixel
 {
     public class PlayerNameCommand : Command
     {
+        public override bool Cacheable => false;
         public override async Task Execute(MessageData data)
         {
             var respone = CreateResponse(data, data.GetAs<string>());
