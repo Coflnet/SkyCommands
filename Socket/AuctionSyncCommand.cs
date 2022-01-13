@@ -11,8 +11,6 @@ namespace hypixel
             var auctions = data.GetAs<List<AuctionSync>>();
             using (var context = new HypixelContext())
             {
-
-
                 List<string> incomplete = new List<string>();
 
                 foreach (var auction in auctions)
