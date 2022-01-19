@@ -415,5 +415,10 @@ namespace hypixel
         {
             return SendFlip(FlipperService.LowPriceToFlip(flip));
         }
+
+        void IFlipConnection.Log(string message, Microsoft.Extensions.Logging.LogLevel level)
+        {
+            // has no log target
+        }
     }
 }
