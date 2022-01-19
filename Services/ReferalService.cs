@@ -21,7 +21,7 @@ namespace hypixel
         {
             if (UserService.Instance.TryGetUserById(GetId(refId), out GoogleUser user))
             {
-                var accountUuid =  (await McAccountService.Instance.GetActiveAccount(user.Id))?.AccountUuid;
+                var accountUuid = (await McAccountService.Instance.GetActiveAccount(user.Id))?.AccountUuid;
                 if (accountUuid != null)
                     return await PlayerSearch.Instance.GetNameWithCacheAsync(accountUuid);
             }
@@ -83,9 +83,9 @@ namespace hypixel
             {
                 var referedUsers = context.Users.Where(u => u.ReferedBy == user.Id).ToList();
                 var minDate = new DateTime(2020, 2, 2);
-                var boni =  context.Boni.Where(b => b.UserId == user.Id).ToList();
+                var boni = context.Boni.Where(b => b.UserId == user.Id).ToList();
                 var upgraded = boni.Where(b => b.UserId == user.Id && b.Type == Bonus.BonusType.REFERED_UPGRADE).ToList();
-                var receivedHours = boni.Sum(b=>b.BonusTime.TotalHours);
+                var receivedHours = boni.Where(b=>b.Type != Bonus.BonusType.PURCHASE).Sum(b => b.BonusTime.TotalHours);
                 return new ReeralInfo()
                 {
                     RefId = hashids.Encode(user.Id),
