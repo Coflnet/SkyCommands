@@ -10,7 +10,6 @@ namespace hypixel
 {
     public class ConnectMCAccountCommand : Command
     {
-
         public override async Task Execute(MessageData data)
         {
             var uuid = data.GetAs<string>();
