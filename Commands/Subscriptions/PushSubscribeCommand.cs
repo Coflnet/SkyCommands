@@ -39,6 +39,8 @@ namespace hypixel
             public string Topic;
             [Key("type")]
             public SubscribeItem.SubType Type;
+            [Key("filter")]
+            public string Filter;
         }
     }
 }
