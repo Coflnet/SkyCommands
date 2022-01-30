@@ -14,7 +14,6 @@ namespace hypixel
         {
             var args = data.GetAs<Arguments>();
 
-
             var user = data.User;
             var userId = user.Id;
             List<SubscribeItem> subscriptions = (await SubscribeClient.GetSubscriptions(userId)).subscriptions;
