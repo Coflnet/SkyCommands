@@ -1,6 +1,5 @@
 using System.Linq;
 using System.Threading.Tasks;
-using Coflnet.Sky.Commands.Shared;
 using Coflnet.Sky.Filter;
 using hypixel;
 
@@ -15,17 +14,6 @@ namespace Coflnet.Sky.Commands
             if (itemTag == "*")
             {
                 await data.SendBack(data.Create("filterFor", fe.AvailableFilters.Select(f => new FilterOptions(f)).ToList(), A_DAY));
-                return;
-            }
-            if (itemTag == "flips")
-            {
-                var additional = FlipFilter.AdditionalFilters.Select(f=> new FilterOptions()
-                {
-                    Name = f.Key,
-                    Options = f.Value.Options.Select(o=>o.ToString())
-                });
-                var options = fe.AvailableFilters.Select(f => new FilterOptions(f)).Union(additional).ToList();
-                await data.SendBack(data.Create("filterFor", options, A_DAY));
                 return;
             }
             var details = await ItemDetails.Instance.GetDetailsWithCache(itemTag);

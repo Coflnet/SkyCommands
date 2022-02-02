@@ -115,6 +115,8 @@ namespace hypixel
 
             Commands.Add("getFilter", new GetFilterOptionsCommand());
             Commands.Add("filterFor", new GetFilterForCommand());
+            Commands.Add("flipFilters", new GetFlipFiltersCommand());
+
             Commands.Add("subFlip", new SubFlipperCommand());
             Commands.Add("unsubFlip", new UnsubFlipperCommand());
             Commands.Add("getFlips", new RecentFlipsCommand());
