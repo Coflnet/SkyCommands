@@ -26,6 +26,8 @@ namespace hypixel
         public long Id { get; set; }
         public int SubFlipMsgId;
 
+        private static Prometheus.Counter FlipSendCount = Prometheus.Metrics.CreateCounter("sky_commands_flip_send", "How many flips were sent ");
+
         private int _userId;
         /// <summary>
         /// if user logged in this is set to his id. throws an exception otherwise
@@ -371,6 +373,7 @@ namespace hypixel
             if (Settings == null || !Settings.MatchesSettings(flip).Item1)
                 return true;
             var data = new MessageData("flip", JSON.Stringify(flip), 60);
+            FlipSendCount.Inc();
             return TrySendData(data);
         }
 
