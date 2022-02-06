@@ -46,7 +46,9 @@ namespace hypixel
             }
         }
 
-        public FlipSettings Settings => FlipSettings?.Value;
+        public FlipSettings Settings => FlipSettings?.Value ?? OldFallbackSettings;
+
+        public FlipSettings OldFallbackSettings;
 
 
         public SelfUpdatingValue<FlipSettings> FlipSettings;

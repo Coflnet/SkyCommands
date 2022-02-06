@@ -17,12 +17,20 @@ namespace hypixel
             {
                 con.SubFlipMsgId = (int)data.mId;
                 var service = DiHandler.ServiceProvider.GetRequiredService<SettingsService>();
-                if (settings != null)
-                    await service.UpdateSetting(data.UserId.ToString(), "flipSettings", settings);
-                con.FlipSettings = await SelfUpdatingValue<FlipSettings>.Create(data.UserId.ToString(), "flipSettings");
-                if (settings == null)
-                    await data.SendBack(data.Create("flipSettings", con.FlipSettings.Value));
-                //con.Settings = settings;
+
+                try
+                {
+                    if (settings != null)
+                        await service.UpdateSetting(data.UserId.ToString(), "flipSettings", settings);
+                    con.FlipSettings = await SelfUpdatingValue<FlipSettings>.Create(data.UserId.ToString(), "flipSettings");
+                    if (settings == null)
+                        await data.SendBack(data.Create("flipSettings", con.FlipSettings.Value));
+                }
+                catch (Exception e)
+                {
+                    data.LogError(e, "updating accountInfo");
+                    con.OldFallbackSettings = settings;
+                }
 
 
                 var lastSettings = con.LatestSettings;
@@ -54,8 +62,15 @@ namespace hypixel
                     Tier = lastSettings.Tier,
                     UserId = lastSettings.UserId
                 };
-                await service.UpdateSetting(data.UserId.ToString(), "accountInfo", accountInfo);
-                con.AccountInfo = await SelfUpdatingValue<AccountInfo>.Create(data.UserId.ToString(), "accountInfo");
+                try
+                {
+                    await service.UpdateSetting(data.UserId.ToString(), "accountInfo", accountInfo);
+                    con.AccountInfo = await SelfUpdatingValue<AccountInfo>.Create(data.UserId.ToString(), "accountInfo");
+                }
+                catch (Exception e)
+                {
+                    data.LogError(e, "updating accountInfo");
+                }
 
                 await FlipperService.Instance.UpdateSettings(lastSettings);
             }
