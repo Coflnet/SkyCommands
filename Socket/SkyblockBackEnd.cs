@@ -46,13 +46,17 @@ namespace hypixel
             }
         }
 
-        public FlipSettings Settings { get; internal set; }
+        public FlipSettings Settings => FlipSettings?.Value;
+
+
+        public SelfUpdatingValue<FlipSettings> FlipSettings;
+        public SelfUpdatingValue<AccountInfo> AccountInfo;
 
         /// <summary>
         /// The last or default settings change captured for this user/connection
         /// </summary>
         /// <returns></returns>
-        public SettingsChange LatestSettings { get; set;} = new SettingsChange();
+        public SettingsChange LatestSettings { get; set; } = new SettingsChange();
 
         private TimeLimiter limiter;
         public static event Action NextUpdateStart;
@@ -139,6 +143,7 @@ namespace hypixel
             Commands.Add("newAuctions", new NewAuctionsCommand());
             Commands.Add("p", new PingCommand());
 
+            Commands.Add("getFlipSettings", new GetFlipSettingsCommand());
 
             FlipperService.Instance.OnSettingsChange += settings =>
             {

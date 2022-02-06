@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Coflnet.Sky.Commands.Shared;
 using Coflnet.Sky.Filter;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace hypixel
 {
@@ -15,7 +16,14 @@ namespace hypixel
             try
             {
                 con.SubFlipMsgId = (int)data.mId;
-                con.Settings = settings;
+                var service = DiHandler.ServiceProvider.GetRequiredService<SettingsService>();
+                if (settings != null)
+                    await service.UpdateSetting(data.UserId.ToString(), "flipSettings", settings);
+                con.FlipSettings = await SelfUpdatingValue<FlipSettings>.Create(data.UserId.ToString(), "flipSettings");
+                if (settings == null)
+                    await data.SendBack(data.Create("flipSettings", con.FlipSettings.Value));
+                //con.Settings = settings;
+
 
                 var lastSettings = con.LatestSettings;
 
@@ -38,6 +46,17 @@ namespace hypixel
                 if (lastSettings.Settings.AllowedFinders == Coflnet.Sky.LowPricedAuction.FinderType.UNKOWN)
                     lastSettings.Settings.AllowedFinders = Coflnet.Sky.LowPricedAuction.FinderType.FLIPPER;
 
+                var accountInfo = new AccountInfo()
+                {
+                    ConIds = lastSettings.ConIds,
+                    ExpiresAt = lastSettings.ExpiresAt,
+                    McIds = lastSettings.McIds,
+                    Tier = lastSettings.Tier,
+                    UserId = lastSettings.UserId
+                };
+                await service.UpdateSetting(data.UserId.ToString(), "accountInfo", accountInfo);
+                con.AccountInfo = await SelfUpdatingValue<AccountInfo>.Create(data.UserId.ToString(), "accountInfo");
+
                 await FlipperService.Instance.UpdateSettings(lastSettings);
             }
             catch (CoflnetException e)
@@ -53,8 +72,6 @@ namespace hypixel
             try
             {
                 settings = data.GetAs<FlipSettings>();
-                if (settings == null)
-                    settings = new FlipSettings();
             }
             catch (Exception e)
             {

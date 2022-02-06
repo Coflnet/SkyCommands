@@ -1,5 +1,7 @@
 using System;
 using System.Threading.Tasks;
+using Coflnet.Sky.Commands.Shared;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace hypixel
 {
@@ -17,12 +19,15 @@ namespace hypixel
                 var settings = await CacheService.Instance.GetFromRedis<SettingsChange>("uflipset" + data.UserId);
                 if (settings != null)
                     con.LatestSettings = settings;
-                else 
+                else
                     con.LatestSettings = new SettingsChange();
             }
             var lastSettings = con.LatestSettings;
             var newId = data.GetAs<string>();
             lastSettings.ConIds.Add(newId);
+
+            var service = DiHandler.ServiceProvider.GetRequiredService<SettingsService>();
+            await service.UpdateSetting("mod", newId, data.UserId.ToString());
 
             lastSettings.UserId = data.UserId;
             if (data.User.HasPremium)
