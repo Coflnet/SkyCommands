@@ -32,7 +32,6 @@ namespace hypixel
                     con.OldFallbackSettings = settings;
                 }
 
-
                 var lastSettings = con.LatestSettings;
 
 
