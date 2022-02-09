@@ -16,22 +16,8 @@ namespace hypixel
             try
             {
                 con.SubFlipMsgId = (int)data.mId;
-                var service = DiHandler.ServiceProvider.GetRequiredService<SettingsService>();
                 var userId = data.UserId;
-                try
-                {
-                    if (settings != null)
-                        await service.UpdateSetting(userId.ToString(), "flipSettings", settings);
-                    if (con.FlipSettings.Value == default)
-                        con.FlipSettings = await SelfUpdatingValue<FlipSettings>.Create(userId.ToString(), "flipSettings");
-                    if (settings == null)
-                        await data.SendBack(data.Create("flipSettings", con.FlipSettings.Value));
-                }
-                catch (Exception e)
-                {
-                    data.LogError(e, "updating flipsettings");
-                    con.OldFallbackSettings = settings;
-                }
+                await UpdateSettings(data, settings, userId);
 
                 var lastSettings = con.LatestSettings;
 
@@ -46,32 +32,15 @@ namespace hypixel
                     lastSettings.ExpiresAt = data.User.PremiumExpires;
                 }
 
-                if (MessagePack.MessagePackSerializer.Serialize(con.Settings).SequenceEqual(MessagePack.MessagePackSerializer.Serialize(lastSettings.Settings)))
-                    return; // nothing actually changed
 
                 lastSettings.Settings = con.Settings;
                 lastSettings.UserId = userId;
                 if (lastSettings.Settings.AllowedFinders == Coflnet.Sky.LowPricedAuction.FinderType.UNKOWN)
                     lastSettings.Settings.AllowedFinders = Coflnet.Sky.LowPricedAuction.FinderType.FLIPPER;
 
-                var accountInfo = new AccountInfo()
-                {
-                    ConIds = lastSettings.ConIds,
-                    ExpiresAt = lastSettings.ExpiresAt,
-                    McIds = lastSettings.McIds,
-                    Tier = lastSettings.Tier,
-                    UserId = lastSettings.UserId
-                };
-                try
-                {
-                    await service.UpdateSetting(data.UserId.ToString(), "accountInfo", accountInfo);
-                    if (con.AccountInfo.Value == default)
-                        con.AccountInfo = await SelfUpdatingValue<AccountInfo>.Create(data.UserId.ToString(), "accountInfo");
-                }
-                catch (Exception e)
-                {
-                    data.LogError(e, "updating accountInfo");
-                }
+                await UpdateAccountInfo(data, lastSettings);
+                if (MessagePack.MessagePackSerializer.Serialize(con.Settings).SequenceEqual(MessagePack.MessagePackSerializer.Serialize(lastSettings.Settings)))
+                    return; // nothing actually changed
 
                 await FlipperService.Instance.UpdateSettings(lastSettings);
             }
@@ -80,6 +49,55 @@ namespace hypixel
                 FlipperService.Instance.AddNonConnection(con);
             }
             await data.Ok();
+        }
+
+        public static async Task UpdateAccountInfo(MessageData data, SettingsChange lastSettings)
+        {
+            var service = DiHandler.ServiceProvider.GetRequiredService<SettingsService>();
+            var con = (data as SocketMessageData).Connection;
+            AccountInfo accountInfo = SettingsToAccountInfo(lastSettings);
+            try
+            {
+                await service.UpdateSetting(data.UserId.ToString(), "accountInfo", accountInfo);
+                if (con.AccountInfo.Value == default)
+                    con.AccountInfo = await SelfUpdatingValue<AccountInfo>.Create(data.UserId.ToString(), "accountInfo");
+            }
+            catch (Exception e)
+            {
+                data.LogError(e, "updating accountInfo");
+            }
+        }
+
+        public static async Task UpdateSettings(MessageData data, FlipSettings settings, int userId)
+        {
+            var service = DiHandler.ServiceProvider.GetRequiredService<SettingsService>();
+            var con = (data as SocketMessageData).Connection;
+            try
+            {
+                if (settings != null)
+                    await service.UpdateSetting(userId.ToString(), "flipSettings", settings);
+                if (con.FlipSettings.Value == default)
+                    con.FlipSettings = await SelfUpdatingValue<FlipSettings>.Create(userId.ToString(), "flipSettings");
+                if (settings == null)
+                    await data.SendBack(data.Create("flipSettings", con.FlipSettings.Value));
+            }
+            catch (Exception e)
+            {
+                data.LogError(e, "updating flipsettings");
+                con.OldFallbackSettings = settings;
+            }
+        }
+
+        private static AccountInfo SettingsToAccountInfo(SettingsChange lastSettings)
+        {
+            return new AccountInfo()
+            {
+                ConIds = lastSettings.ConIds,
+                ExpiresAt = lastSettings.ExpiresAt,
+                McIds = lastSettings.McIds,
+                Tier = lastSettings.Tier,
+                UserId = lastSettings.UserId
+            };
         }
 
         private static FlipSettings GetSettings(MessageData data)

@@ -35,6 +35,7 @@ namespace hypixel
                 lastSettings.Tier = AccountTier.PREMIUM;
                 lastSettings.ExpiresAt = data.User.PremiumExpires;
             }
+            await SubFlipperCommand.UpdateAccountInfo(data, lastSettings);
             data.Span.SetTag("conId", newId);
             var result = await FlipperService.Instance.UpdateSettings(lastSettings);
             data.Log("status: " + result.Status);
