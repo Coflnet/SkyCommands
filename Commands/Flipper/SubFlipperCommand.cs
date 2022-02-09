@@ -15,6 +15,7 @@ namespace hypixel
             var settings = GetSettings(data);
             try
             {
+                con.OldFallbackSettings = settings;
                 con.SubFlipMsgId = (int)data.mId;
                 var userId = data.UserId;
                 await UpdateSettings(data, settings, userId);
@@ -46,6 +47,7 @@ namespace hypixel
             }
             catch (CoflnetException e)
             {
+                
                 FlipperService.Instance.AddNonConnection(con);
             }
             await data.Ok();
