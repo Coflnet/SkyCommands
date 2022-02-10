@@ -15,9 +15,8 @@ namespace hypixel
                 if(token == "generate")
                 {
                     // there is no token and we should generate one
-                    var csp = new RNGCryptoServiceProvider();
                     var generatedToken = new byte[12];
-                    csp.GetBytes(generatedToken);
+                    RandomNumberGenerator.Fill(generatedToken);
                     FileController.SaveAs("authToken",Convert.ToBase64String(generatedToken));
                     return Task.CompletedTask;
                 }
