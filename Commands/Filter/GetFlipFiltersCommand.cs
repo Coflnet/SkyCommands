@@ -13,7 +13,8 @@ namespace Coflnet.Sky.Commands
             var additional = FlipFilter.AdditionalFilters.Select(f => new FilterOptions()
             {
                 Name = f.Key,
-                Options = f.Value.Options.Select(o => o.ToString())
+                Options = f.Value.Options.Select(o => o.ToString()),
+                Type = f.Value.FilterType
             }).ToList();
             return data.SendBack(data.Create("filterFor", additional, A_DAY));
         }
