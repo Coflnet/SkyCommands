@@ -22,7 +22,13 @@ namespace hypixel
                 throw new NoPremiumException("Nonpremium users can only have 3 subscriptions");
 
             var request = new RestRequest("Subscription/{userId}/sub", Method.POST)
-                .AddJsonBody(new SubscribeItem() { Type = args.Type, TopicId = args.Topic, Price = args.Price })
+                .AddJsonBody(new SubscribeItem()
+                {
+                    Type = args.Type,
+                    TopicId = args.Topic,
+                    Price = args.Price,
+                    Filter = args.Filter
+                })
                 .AddUrlSegment("userId", user.Id);
             var response = await SubscribeClient.Client.ExecuteAsync(request);
             await data.Ok();
