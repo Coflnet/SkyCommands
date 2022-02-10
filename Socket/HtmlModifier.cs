@@ -4,12 +4,10 @@ using System.Linq;
 using System.Web;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using System.Linq.Expressions;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using static hypixel.ItemPrices;
 using System.Collections.Specialized;
-using static hypixel.ItemReferences;
 
 namespace hypixel
 {
