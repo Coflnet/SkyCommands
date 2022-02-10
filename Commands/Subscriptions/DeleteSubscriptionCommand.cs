@@ -15,7 +15,13 @@ namespace hypixel
                 var userId = data.UserId;
 
                 var request = new RestRequest("Subscription/{userId}/sub", Method.DELETE)
-                    .AddJsonBody(new SubscribeItem() { Type = args.Type, TopicId = args.Topic })
+                    .AddJsonBody(new SubscribeItem()
+                    {
+                        Type = args.Type,
+                        TopicId = args.Topic,
+                        Filter = args.Filter,
+                        Price = args.Price
+                    })
                     .AddUrlSegment("userId", userId);
                 var response = await SubscribeClient.Client.ExecuteAsync(request);
 
@@ -32,6 +38,10 @@ namespace hypixel
             public string Topic;
             [Key("type")]
             public SubscribeItem.SubType Type;
+            [Key("filter")]
+            public string Filter;
+            [Key("price")]
+            public long Price;
         }
     }
 }
