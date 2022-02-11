@@ -31,6 +31,8 @@ namespace hypixel
                 })
                 .AddUrlSegment("userId", user.Id);
             var response = await SubscribeClient.Client.ExecuteAsync(request);
+            if(response.StatusCode != System.Net.HttpStatusCode.OK)
+                throw new CoflnetException("subscribe_failed", "Your subscription could ot be saved");
             await data.Ok();
         }
 
