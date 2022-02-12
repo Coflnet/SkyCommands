@@ -6,6 +6,9 @@ using hypixel;
 
 namespace Coflnet.Sky.Commands
 {
+    /// <summary>
+    /// Special filters that are only available for the flipper as they only match <see cref="FlipInstance"/>
+    /// </summary>
     public class GetFlipFiltersCommand : Command
     {
         public override Task Execute(MessageData data)
