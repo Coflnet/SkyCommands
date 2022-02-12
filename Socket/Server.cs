@@ -35,7 +35,6 @@ namespace hypixel
 
         Prometheus.Counter requestErrors = Prometheus.Metrics.CreateCounter("requestErrors", "How often an error occured");
 
-        ConcurrentDictionary<string, int> ConnectionToUserId = new ConcurrentDictionary<string, int>();
         private IpRateLimiter Limiter;
 
         /// <summary>

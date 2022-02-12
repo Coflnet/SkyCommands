@@ -376,9 +376,9 @@ namespace hypixel
 
         public async Task<bool> SendFlip(FlipInstance flip)
         {
-            await FlipperService.FillVisibilityProbs(flip, this.Settings);
             if (Settings == null || !Settings.MatchesSettings(flip).Item1)
                 return true;
+            await FlipperService.FillVisibilityProbs(flip, this.Settings);
             var data = new MessageData("flip", JSON.Stringify(flip), 60);
             FlipSendCount.Inc();
             return TrySendData(data);
