@@ -36,11 +36,11 @@ namespace hypixel
                 lastSettings.ExpiresAt = data.User.PremiumExpires;
             }
             await SubFlipperCommand.UpdateAccountInfo(data, lastSettings);
+            await data.Ok();
             data.Span.SetTag("conId", newId);
             var result = await FlipperService.Instance.UpdateSettings(lastSettings);
             data.Log("status: " + result.Status);
             data.Log("delivered " + result.Offset.Value);
-            await data.Ok();
         }
     }
 }

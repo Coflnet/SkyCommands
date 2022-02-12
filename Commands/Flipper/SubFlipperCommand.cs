@@ -40,14 +40,17 @@ namespace hypixel
                     lastSettings.Settings.AllowedFinders = Coflnet.Sky.LowPricedAuction.FinderType.FLIPPER;
 
                 await UpdateAccountInfo(data, lastSettings);
+                await data.Ok();
+
                 if (MessagePack.MessagePackSerializer.Serialize(con.Settings).SequenceEqual(MessagePack.MessagePackSerializer.Serialize(lastSettings.Settings)))
                     return; // nothing actually changed
 
                 await FlipperService.Instance.UpdateSettings(lastSettings);
+                return;
             }
             catch (CoflnetException e)
             {
-                
+
                 FlipperService.Instance.AddNonConnection(con);
             }
             await data.Ok();
