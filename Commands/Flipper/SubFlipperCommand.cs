@@ -111,6 +111,12 @@ namespace hypixel
             try
             {
                 settings = data.GetAs<FlipSettings>();
+                // test if settings compile
+                settings.MatchesSettings(new FlipInstance() { Auction = new SaveAuction() });
+            }
+            catch (CoflnetException e)
+            {
+                throw e;
             }
             catch (Exception e)
             {
