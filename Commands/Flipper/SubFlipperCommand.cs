@@ -112,7 +112,10 @@ namespace hypixel
             {
                 settings = data.GetAs<FlipSettings>();
                 // test if settings compile
-                settings.MatchesSettings(new FlipInstance() { Auction = new SaveAuction() });
+                settings.MatchesSettings(new FlipInstance() { Auction = new SaveAuction() {
+                    Enchantments = new System.Collections.Generic.List<Enchantment>(),
+                    FlatenedNBT = new System.Collections.Generic.Dictionary<string, string>(),
+                    NBTLookup = new System.Collections.Generic.List<NBTLookup>() } });
             }
             catch (CoflnetException e)
             {
