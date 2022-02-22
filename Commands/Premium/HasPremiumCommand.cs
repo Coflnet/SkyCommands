@@ -7,6 +7,7 @@ namespace hypixel
 {
     public class PremiumExpirationCommand : Command
     {
+        static string premiumPlanName = SimplerConfig.SConfig.Instance["PRODUCTS:PREMIUM"];
         public override async Task Execute(MessageData data)
         {
             try
@@ -22,7 +23,7 @@ namespace hypixel
                 }
 
                 var api = new UserApi();
-                var until = await api.UserUserIdOwnsProductSlugUntilGetAsync(data.UserId.ToString(), "premium-plan");
+                var until = await api.UserUserIdOwnsProductSlugUntilGetAsync(data.UserId.ToString(), premiumPlanName);
                 if (until > DateTime.Now)
                 {
                     await data.SendBack(data.Create("premiumExpiration", until));
