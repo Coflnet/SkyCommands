@@ -30,7 +30,7 @@ namespace hypixel
                     ItemDetails.Instance.GetItemIdForName("KISMET_FEATHER"),
 
                 };
-                var pages = context.Auctions.Where(a => highVolumeIds.Contains(a.ItemId) && a.End < end)
+                var pages = context.Auctions.Where(a => (highVolumeIds.Contains(a.ItemId) || a.Id > context.Auctions.Max(a=>a.Id) - 100_000 )&& a.End < end)
                     .OrderByDescending(a => a.Id)
                     .Select(p => new AuctionResult(p))
                     .Take(100)
