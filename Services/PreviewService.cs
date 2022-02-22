@@ -7,7 +7,7 @@ using RestSharp;
 
 namespace Coflnet.Sky.Commands.Services
 {
-    public class PreviewService 
+    public class PreviewService
     {
         public static PreviewService Instance;
         private RestClient crafatarClient = new RestClient("https://crafatar.com");
@@ -21,9 +21,9 @@ namespace Coflnet.Sky.Commands.Services
 
         public async Task<Preview> GetPlayerPreview(string id)
         {
-            var request = new RestRequest("/avatars/{uuid}").AddUrlSegment("uuid",id).AddQueryParameter("overlay","");
+            var request = new RestRequest("/avatars/{uuid}").AddUrlSegment("uuid", id).AddQueryParameter("overlay", "");
 
-            var uri = crafatarClient.BuildUri(request.AddParameter("size",64));
+            var uri = crafatarClient.BuildUri(request.AddParameter("size", 64));
             var response = await crafatarClient.ExecuteAsync(request.AddParameter("size", 8));
 
             return new Preview()
@@ -47,14 +47,14 @@ namespace Coflnet.Sky.Commands.Services
                     .AddUrlSegment("color", details.color.Replace(":",",")); */
 
             var uri = skyLeaClient.BuildUri(request);
-            IRestResponse response = await GetProxied(uri,size);
-            
+            IRestResponse response = await GetProxied(uri, size);
+
 
 
             if (response.StatusCode != System.Net.HttpStatusCode.OK)
             {
                 uri = skyClient.BuildUri(new RestRequest(details.IconUrl));
-                response = await GetProxied(uri,size);
+                response = await GetProxied(uri, size);
             }
 
             return new Preview()
@@ -69,7 +69,7 @@ namespace Coflnet.Sky.Commands.Services
 
         private async Task<IRestResponse> GetProxied(Uri uri, int size)
         {
-            var proxyRequest = new RestRequest($"/x{size}/"+uri.ToString())
+            var proxyRequest = new RestRequest($"/x{size}/" + uri.ToString())
                         .AddUrlSegment("size", size);
             var response = await proxyClient.ExecuteAsync(proxyRequest);
             return response;
@@ -78,15 +78,15 @@ namespace Coflnet.Sky.Commands.Services
         [DataContract]
         public class Preview
         {
-            [DataMember(Name ="id")]
+            [DataMember(Name = "id")]
             public string Id;
-            [DataMember(Name ="img")]
+            [DataMember(Name = "img")]
             public string Image;
-            [DataMember(Name ="name")]
+            [DataMember(Name = "name")]
             public string Name;
-            [DataMember(Name ="imgUrl")]
+            [DataMember(Name = "imgUrl")]
             public string ImageUrl;
-            [DataMember(Name ="mime")]
+            [DataMember(Name = "mime")]
             public string MimeType;
         }
     }
