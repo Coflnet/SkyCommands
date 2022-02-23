@@ -21,16 +21,17 @@ namespace hypixel
 
             using (var context = new HypixelContext())
             {
-                context.Database.SetCommandTimeout(30); 
+                context.Database.SetCommandTimeout(30);
                 var end = System.DateTime.Now;
                 var highVolumeIds = new System.Collections.Generic.HashSet<int>()
                 {
                     ItemDetails.Instance.GetItemIdForName("ENCHANTED_BOOK"),
                     ItemDetails.Instance.GetItemIdForName("GRAPPLING_HOOK"),
                     ItemDetails.Instance.GetItemIdForName("KISMET_FEATHER"),
+                    ItemDetails.Instance.GetItemIdForName("ASPECT_OF_THE_DRAGON")
 
                 };
-                var pages = context.Auctions.Where(a => (highVolumeIds.Contains(a.ItemId) || a.Id > context.Auctions.Max(a=>a.Id) - 100_000 )&& a.End < end)
+                var pages = context.Auctions.Where(a => (highVolumeIds.Contains(a.ItemId)) && a.End < end)
                     .OrderByDescending(a => a.Id)
                     .Select(p => new AuctionResult(p))
                     .Take(100)
