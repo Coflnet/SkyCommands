@@ -53,7 +53,9 @@ namespace Coflnet.Sky.Commands.Services
 
             if (response.StatusCode != System.Net.HttpStatusCode.OK)
             {
-                uri = skyClient.BuildUri(new RestRequest(details.IconUrl));
+                // mc-heads has issues currently
+                var url = details.IconUrl.Replace("https://mc-heads.net/head/","https://sky.shiiyu.moe/head/");
+                uri = skyClient.BuildUri(new RestRequest(url));
                 response = await GetProxied(uri, size);
             }
 
