@@ -18,7 +18,7 @@ namespace hypixel
                 con.OldFallbackSettings = settings;
                 con.SubFlipMsgId = (int)data.mId;
                 var userId = data.UserId;
-                await UpdateSettings(data, settings, userId);
+                var updateTask = UpdateSettings(data, settings, userId);
 
                 var lastSettings = con.LatestSettings;
 
@@ -40,6 +40,7 @@ namespace hypixel
                     lastSettings.Settings.AllowedFinders = Coflnet.Sky.LowPricedAuction.FinderType.FLIPPER;
 
                 await UpdateAccountInfo(data, lastSettings);
+                await updateTask;
                 await data.Ok();
 
                 if (MessagePack.MessagePackSerializer.Serialize(con.Settings).SequenceEqual(MessagePack.MessagePackSerializer.Serialize(lastSettings.Settings)))

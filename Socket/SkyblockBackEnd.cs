@@ -62,6 +62,7 @@ namespace hypixel
 
         private TimeLimiter limiter;
         public static event Action NextUpdateStart;
+        private ConcurrentDictionary<long, DateTime> SentFlips = new ConcurrentDictionary<long, DateTime>();
 
         static SkyblockBackEnd()
         {
@@ -378,6 +379,15 @@ namespace hypixel
         {
             if (Settings == null || !Settings.MatchesSettings(flip).Item1)
                 return true;
+            if (!SentFlips.TryAdd(flip.UId, DateTime.Now))
+            {
+                foreach (var item in SentFlips.Keys.ToList())
+                {
+                    if (SentFlips.TryGetValue(item, out DateTime time) && time + TimeSpan.FromMinutes(5) < DateTime.Now)
+                        SentFlips.TryRemove(item, out _);
+                }
+                return true;
+            }
             await FlipperService.FillVisibilityProbs(flip, this.Settings);
             var data = new MessageData("flip", JSON.Stringify(flip), 60);
             FlipSendCount.Inc();
@@ -403,6 +413,8 @@ namespace hypixel
 
         public Task<bool> SendSold(string uuid)
         {
+            if (!SentFlips.ContainsKey(AuctionService.Instance.GetId(uuid)))
+                return Task.FromResult(true);
             return Task.FromResult(TrySendData(new MessageData("sold", uuid)));
         }
 

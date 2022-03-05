@@ -27,7 +27,7 @@ namespace hypixel
             lastSettings.ConIds.Add(newId);
 
             var service = DiHandler.ServiceProvider.GetRequiredService<SettingsService>();
-            await service.UpdateSetting("mod", newId, data.UserId.ToString());
+            var authTask = service.UpdateSetting("mod", newId, data.UserId.ToString());
 
             lastSettings.UserId = data.UserId;
             if (data.User.HasPremium)
@@ -36,6 +36,7 @@ namespace hypixel
                 lastSettings.ExpiresAt = data.User.PremiumExpires;
             }
             await SubFlipperCommand.UpdateAccountInfo(data, lastSettings);
+            await authTask;
             await data.Ok();
             data.Span.SetTag("conId", newId);
             var result = await FlipperService.Instance.UpdateSettings(lastSettings);
