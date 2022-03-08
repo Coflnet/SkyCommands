@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Coflnet.Sky.Commands.Shared;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,6 +25,11 @@ namespace hypixel
             }
             var lastSettings = con.LatestSettings;
             var newId = data.GetAs<string>();
+            if (lastSettings.ConIds.Count > 5)
+            {
+                lastSettings.ConIds.Remove(lastSettings.ConIds.FirstOrDefault());
+                lastSettings.ConIds.Remove(lastSettings.ConIds.FirstOrDefault());
+            }
             lastSettings.ConIds.Add(newId);
 
             var service = DiHandler.ServiceProvider.GetRequiredService<SettingsService>();
