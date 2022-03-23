@@ -8,16 +8,18 @@ namespace hypixel
         public override Task Execute(MessageData data)
         {
             var flipps = FlipperService.Instance.Flipps.Take(50);
-            try {
+            try
+            {
                 if (data.UserId != 0)
                     flipps = FlipperService.Instance.Flipps.Skip(50).Take(50);
                 if (data.User.HasPremium)
                     flipps = FlipperService.Instance.Flipps.Reverse().Skip(2).Take(50);
-            } catch(CoflnetException)
+            }
+            catch (CoflnetException)
             {
                 // no premium, continue
             }
-            return data.SendBack(data.Create("flips",flipps,A_MINUTE));
+            return data.SendBack(data.Create("flips", flipps, A_MINUTE));
         }
     }
 }
