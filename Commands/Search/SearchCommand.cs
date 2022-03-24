@@ -15,7 +15,6 @@ namespace hypixel
 
             var players = PlayerSearch.Instance.Search(search,5);
             return data.SendBack(data.Create("searchResponse", players,A_WEEK));
-            return Task.CompletedTask;
         }
     }
 }
