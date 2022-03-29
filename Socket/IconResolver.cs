@@ -3,8 +3,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Coflnet.Sky.Commands.Services;
+using Coflnet.Sky.Core;
 
-namespace hypixel
+namespace Coflnet.Sky.Commands
 {
     /// <summary>
     /// Finds icons for given query

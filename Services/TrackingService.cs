@@ -1,7 +1,8 @@
 using System;
 using RestSharp;
+using Coflnet.Sky.Core;
 
-namespace hypixel
+namespace Coflnet.Sky.Commands
 {
     public class TrackingService
     {

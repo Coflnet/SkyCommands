@@ -13,8 +13,9 @@ using Microsoft.EntityFrameworkCore;
 using Prometheus;
 using System.Diagnostics;
 using OpenTracing.Propagation;
+using Coflnet.Sky.Core;
 
-namespace hypixel
+namespace Coflnet.Sky.Commands
 {
     public class Server
     {

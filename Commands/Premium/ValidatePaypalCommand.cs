@@ -4,8 +4,9 @@ using System.Threading.Tasks;
 using Coflnet;
 using PayPalCheckoutSdk.Core;
 using PayPalCheckoutSdk.Orders;
+using Coflnet.Sky.Core;
 
-namespace hypixel
+namespace Coflnet.Sky.Commands
 {
     public class ValidatePaypalCommand : Command
     {

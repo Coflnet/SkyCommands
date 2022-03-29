@@ -1,8 +1,9 @@
-using static hypixel.ItemReferences;
 using System;
 using System.Threading.Tasks;
+using Coflnet.Sky.Core;
+using static Coflnet.Sky.Core.ItemReferences;
 
-namespace hypixel
+namespace Coflnet.Sky.Commands
 {
     public class GetRecentAuctionsCommand : Command
     {

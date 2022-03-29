@@ -5,8 +5,9 @@ using System.Threading.Tasks;
 using MessagePack;
 using Newtonsoft.Json;
 using RestSharp;
+using Coflnet.Sky.Core;
 
-namespace hypixel
+namespace Coflnet.Sky.Commands
 {
     public class PushSubscribeCommand : Command
     {

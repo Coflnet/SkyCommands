@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Threading.Tasks;
-using hypixel;
+using Coflnet.Sky.Core;
 using MessagePack;
 
 namespace Coflnet.Sky.Commands

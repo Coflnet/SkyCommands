@@ -4,8 +4,9 @@ using System.Threading.Tasks;
 using Coflnet.Sky.Commands.Shared;
 using Coflnet.Sky.Filter;
 using Microsoft.Extensions.DependencyInjection;
+using Coflnet.Sky.Core;
 
-namespace hypixel
+namespace Coflnet.Sky.Commands
 {
     public class SubFlipperCommand : Command
     {
@@ -36,8 +37,8 @@ namespace hypixel
 
                 lastSettings.Settings = con.Settings;
                 lastSettings.UserId = userId;
-                if (lastSettings.Settings.AllowedFinders == Coflnet.Sky.LowPricedAuction.FinderType.UNKOWN)
-                    lastSettings.Settings.AllowedFinders = Coflnet.Sky.LowPricedAuction.FinderType.FLIPPER;
+                if (lastSettings.Settings.AllowedFinders == LowPricedAuction.FinderType.UNKOWN)
+                    lastSettings.Settings.AllowedFinders = LowPricedAuction.FinderType.FLIPPER;
 
                 await UpdateAccountInfo(data, lastSettings);
                 await updateTask;

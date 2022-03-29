@@ -2,8 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using MessagePack;
+using Coflnet.Sky.Core;
 
-namespace hypixel
+namespace Coflnet.Sky.Commands
 {
     public class PlayerBidsCommand : PaginatedRequestCommand<PlayerBidsCommand.BidResult>
     {

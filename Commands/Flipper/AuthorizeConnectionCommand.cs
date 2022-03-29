@@ -3,8 +3,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Coflnet.Sky.Commands.Shared;
 using Microsoft.Extensions.DependencyInjection;
+using Coflnet.Sky.Core;
 
-namespace hypixel
+namespace Coflnet.Sky.Commands
 {
     /// <summary>
     /// Authenticates a given connection to the current user

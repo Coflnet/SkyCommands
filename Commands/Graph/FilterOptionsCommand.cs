@@ -1,7 +1,8 @@
 using MessagePack;
 using Newtonsoft.Json;
+using Coflnet.Sky.Core;
 
-namespace hypixel
+namespace Coflnet.Sky.Commands
 {
     public abstract class FilterOptionsCommand : Command
     {

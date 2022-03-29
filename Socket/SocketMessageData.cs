@@ -1,7 +1,8 @@
 using System.Threading.Tasks;
 using MessagePack;
+using Coflnet.Sky.Core;
 
-namespace hypixel
+namespace Coflnet.Sky.Commands
 {
     public class SocketMessageData : MessageData
     {

@@ -3,8 +3,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using MessagePack;
 using WebSocketSharp;
+using Coflnet.Sky.Core;
 
-namespace hypixel
+namespace Coflnet.Sky.Commands
 {
     public class PlayerSyncCommand : Command
     {

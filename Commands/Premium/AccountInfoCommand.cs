@@ -4,8 +4,9 @@ using System.Threading.Tasks;
 using Coflnet.Sky.Commands;
 using Newtonsoft.Json;
 using RestSharp;
+using Coflnet.Sky.Core;
 
-namespace hypixel
+namespace Coflnet.Sky.Commands
 {
     public class AccountInfoCommand : Command
     {

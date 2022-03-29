@@ -3,8 +3,9 @@ using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using RateLimiter;
 using ComposableAsync;
+using Coflnet.Sky.Core;
 
-namespace hypixel
+namespace Coflnet.Sky.Commands
 {
     /// <summary>
     /// Limits induvidual ips from spamming

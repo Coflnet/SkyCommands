@@ -4,8 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Stripe;
 using Stripe.Checkout;
+using Coflnet.Sky.Core;
 
-namespace hypixel
+namespace Coflnet.Sky.Commands
 {
     public class CreatePaymentCommand : Command
     {

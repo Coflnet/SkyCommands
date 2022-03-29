@@ -1,6 +1,8 @@
 using System.Threading.Tasks;
+using Coflnet.Sky.Commands.Shared;
+using Coflnet.Sky.Core;
 
-namespace hypixel
+namespace Coflnet.Sky.Commands
 {
     public class UnsubFlipperCommand : Command
     {

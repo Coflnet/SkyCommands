@@ -2,8 +2,9 @@ using System;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Coflnet;
+using Coflnet.Sky.Core;
 
-namespace hypixel
+namespace Coflnet.Sky.Commands
 {
     public class ClearCacheCommand : Command
     {

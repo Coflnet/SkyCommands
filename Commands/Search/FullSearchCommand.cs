@@ -9,8 +9,10 @@ using MessagePack;
 using Newtonsoft.Json;
 using Coflnet.Sky.Commands.Services;
 using System.Threading.Channels;
+using Coflnet.Sky.Core;
+using Coflnet.Sky.Commands.Shared;
 
-namespace hypixel
+namespace Coflnet.Sky.Commands
 {
     public class FullSearchCommand : Command
     {

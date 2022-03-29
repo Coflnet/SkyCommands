@@ -7,8 +7,9 @@ using System.Threading.Tasks;
 using MessagePack;
 using SkyCommands;
 using WebSocketSharp;
+using Coflnet.Sky.Core;
 
-namespace hypixel
+namespace Coflnet.Sky.Commands
 {
     public class ClientProxy
     {
@@ -137,7 +138,7 @@ namespace hypixel
             ClientComands.Add("pricesSyncResponse", new PricesSyncResponse());
             var adress = SimplerConfig.Config.Instance["BACKEND_URL"];
             if (adress == null)
-                adress = $"wss://skyblock-backend.coflnet.com/skyblock?id={Settings.InstanceId}";
+                adress = $"wss://skyblock-backend.coflnet.com/skyblock?id={CommandSettings.InstanceId}";
             Instance = new ClientProxy(adress);
         }
 
@@ -146,7 +147,7 @@ namespace hypixel
             Send(new MessageData("itemSync", null));
             Send(new MessageData("playerSync", null));
             Send(new MessageData("pricesSync", null));
-            while (!Settings.Migrated)
+            while (!CommandSettings.Migrated)
             {
                 System.Threading.Thread.Sleep(TimeSpan.FromSeconds(10));
                 ProcessSendQueue();
@@ -275,7 +276,7 @@ namespace hypixel
                 Console.WriteLine($"Synced items {affected}");
 
                 if (context.Players.Count() > 20_000)
-                    Settings.Migrated = true;
+                    CommandSettings.Migrated = true;
             }
         }
     }
@@ -323,7 +324,7 @@ namespace hypixel
             }
             await context.SaveChangesAsync();
             if (context.Items.Any() && context.Players.Count() > 20_000)
-                Settings.Migrated = true;
+                CommandSettings.Migrated = true;
             return count;
         }
     }

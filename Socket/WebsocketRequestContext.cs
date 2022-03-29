@@ -2,8 +2,9 @@ using WebSocketSharp.Server;
 using WebSocketSharp;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using Coflnet.Sky.Core;
 
-namespace hypixel
+namespace Coflnet.Sky.Commands
 {
     public class WebsocketRequestContext : RequestContext
         {

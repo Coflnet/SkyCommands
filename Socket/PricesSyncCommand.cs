@@ -3,8 +3,9 @@ using System.Threading.Tasks;
 using MessagePack;
 using Microsoft.EntityFrameworkCore;
 using WebSocketSharp;
+using Coflnet.Sky.Core;
 
-namespace hypixel
+namespace Coflnet.Sky.Commands
 {
     public class PricesSyncCommand : Command
     {

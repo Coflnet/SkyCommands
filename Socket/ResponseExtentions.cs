@@ -3,8 +3,9 @@ using System.IO;
 using System.Text;
 using WebSocketSharp.Net;
 using System.Threading.Tasks;
+using Coflnet.Sky.Core;
 
-namespace hypixel
+namespace Coflnet.Sky.Commands
 {
     public static class ResponseExtentions
     {

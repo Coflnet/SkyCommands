@@ -1,7 +1,7 @@
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using Coflnet.Sky.Filter;
-using hypixel;
+using Coflnet.Sky.Core;
 
 namespace Coflnet.Sky.Commands
 {

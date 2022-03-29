@@ -6,10 +6,12 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using Newtonsoft.Json;
-using static hypixel.ItemPrices;
 using System.Collections.Specialized;
+using Coflnet.Sky.Core;
+using Coflnet.Sky.Commands.Shared;
+using static Coflnet.Sky.Core.ItemPrices;
 
-namespace hypixel
+namespace Coflnet.Sky.Commands
 {
     public class HtmlModifier
     {

@@ -2,13 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using hypixel;
+using Coflnet.Sky.Core;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Coflnet.Sky.Filter;
 using Coflnet.Sky;
+using Coflnet.Sky.Commands.Shared;
+using Coflnet.Sky.Commands;
 
 namespace SkyCommands
 {
@@ -18,7 +20,7 @@ namespace SkyCommands
         {
             dev.Logger.Instance.Info("sky-commands");
             var FilterEngine = new FilterEngine();
-            hypixel.ItemPrices.AddFilters = FilterEngine.AddFilters;
+            ItemPrices.AddFilters = FilterEngine.AddFilters;
             var server = new Server();
             var itemLoad = ItemDetails.Instance.LoadLookup();
             var serverTask = Task.Run(() => server.Start()).ConfigureAwait(false);
@@ -68,7 +70,7 @@ namespace SkyCommands
         }
     }
 
-    public static class Settings
+    public static class CommandSettings
     {
         public static bool Migrated = true;
         public static string InstanceId = "commands";

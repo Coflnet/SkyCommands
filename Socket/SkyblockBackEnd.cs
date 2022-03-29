@@ -14,8 +14,9 @@ using Coflnet.Sky.Commands;
 using Coflnet.Sky.Filter;
 using Coflnet.Sky;
 using Coflnet.Sky.Commands.Shared;
+using Coflnet.Sky.Core;
 
-namespace hypixel
+namespace Coflnet.Sky.Commands
 {
     public class SkyblockBackEnd : WebSocketBehavior, IFlipConnection
     {

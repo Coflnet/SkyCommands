@@ -1,9 +1,9 @@
-using static hypixel.ItemReferences;
 using System;
 using MessagePack;
 using System.Threading.Tasks;
+using Coflnet.Sky.Core;
 
-namespace hypixel
+namespace Coflnet.Sky.Commands
 {
     public class GetActiveAuctionsCommand : Command
     {

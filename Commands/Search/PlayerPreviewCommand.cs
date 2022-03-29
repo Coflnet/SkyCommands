@@ -1,7 +1,8 @@
 using System.Threading.Tasks;
 using Coflnet.Sky.Commands.Services;
+using Coflnet.Sky.Core;
 
-namespace hypixel
+namespace Coflnet.Sky.Commands
 {
     public class PlayerPreviewCommand : Command
     {

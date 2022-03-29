@@ -5,8 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using Coflnet.Sky.Commands;
 using RestSharp;
+using Coflnet.Sky.Core;
 
-namespace hypixel
+namespace Coflnet.Sky.Commands
 {
     public class ConnectMCAccountCommand : Command
     {

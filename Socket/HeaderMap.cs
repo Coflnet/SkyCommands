@@ -3,8 +3,9 @@ using OpenTracing.Propagation;
 using System.Collections.Generic;
 using System.Collections;
 using System.Linq;
+using Coflnet.Sky.Core;
 
-namespace hypixel
+namespace Coflnet.Sky.Commands
 {
     public class HeaderMap : ITextMap
     {

@@ -1,8 +1,10 @@
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Coflnet.Sky.Commands.Shared;
+using Coflnet.Sky.Core;
 
-namespace hypixel
+namespace Coflnet.Sky.Commands
 {
     public class ItemSearchCommand : Command
     {

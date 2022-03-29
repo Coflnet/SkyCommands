@@ -1,7 +1,7 @@
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using Coflnet.Payments.Client.Api;
-using hypixel;
+using Coflnet.Sky.Core;
 
 namespace Coflnet.Sky.Commands
 {

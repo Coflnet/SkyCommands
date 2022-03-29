@@ -3,8 +3,9 @@ using System.Threading.Tasks;
 using Coflnet.Payments.Client.Api;
 using Newtonsoft.Json;
 using Stripe;
+using Coflnet.Sky.Core;
 
-namespace hypixel
+namespace Coflnet.Sky.Commands
 {
     public class GetProductsCommand : Command
     {

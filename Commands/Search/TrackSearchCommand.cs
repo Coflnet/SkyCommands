@@ -1,7 +1,9 @@
 using System.Threading.Tasks;
 using MessagePack;
+using Coflnet.Sky.Core;
+using Coflnet.Sky.Commands.Shared;
 
-namespace hypixel
+namespace Coflnet.Sky.Commands
 {
     public class TrackSearchCommand : Command
     {

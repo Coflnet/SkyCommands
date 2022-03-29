@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using MessagePack;
 using Microsoft.EntityFrameworkCore;
-using static hypixel.ItemReferences;
+using static Coflnet.Sky.Core.ItemReferences;
+using Coflnet.Sky.Core;
 
-namespace hypixel
+namespace Coflnet.Sky.Commands
 {
 
     public class ItemPricesCommand : Command

@@ -3,8 +3,9 @@ using System.Linq;
 using Newtonsoft.Json;
 using System.Threading.Tasks;
 using System.Threading.Tasks;
+using Coflnet.Sky.Core;
 
-namespace hypixel
+namespace Coflnet.Sky.Commands
 {
     public class GetAllReforgesCommand : Command {
         public override Task Execute (MessageData data) {
