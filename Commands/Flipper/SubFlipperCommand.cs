@@ -113,6 +113,8 @@ namespace Coflnet.Sky.Commands
             try
             {
                 settings = data.GetAs<FlipSettings>();
+                if(settings == null)
+                    return null; // special case to load settings
                 // test if settings compile
                 settings.MatchesSettings(new FlipInstance()
                 {
