@@ -26,10 +26,10 @@ namespace Coflnet.Sky.Commands
                 var end = System.DateTime.Now;
                 var highVolumeIds = new System.Collections.Generic.HashSet<int>()
                 {
-                    ItemDetails.Instance.GetItemIdForName("ENCHANTED_BOOK"),
-                    ItemDetails.Instance.GetItemIdForName("GRAPPLING_HOOK"),
-                    ItemDetails.Instance.GetItemIdForName("KISMET_FEATHER"),
-                    ItemDetails.Instance.GetItemIdForName("ASPECT_OF_THE_DRAGON")
+                    ItemDetails.Instance.GetItemIdForTag("ENCHANTED_BOOK"),
+                    ItemDetails.Instance.GetItemIdForTag("GRAPPLING_HOOK"),
+                    ItemDetails.Instance.GetItemIdForTag("KISMET_FEATHER"),
+                    ItemDetails.Instance.GetItemIdForTag("ASPECT_OF_THE_DRAGON")
 
                 };
                 var pages = context.Auctions.Where(a => (highVolumeIds.Contains(a.ItemId)) && a.End < end)

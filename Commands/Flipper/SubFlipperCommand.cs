@@ -16,7 +16,8 @@ namespace Coflnet.Sky.Commands
             var settings = GetSettings(data);
             try
             {
-                con.OldFallbackSettings = settings;
+                if (settings != null)
+                    con.OldFallbackSettings = settings;
                 con.SubFlipMsgId = (int)data.mId;
                 var userId = data.UserId;
                 var updateTask = UpdateSettings(data, settings, userId);
@@ -33,15 +34,14 @@ namespace Coflnet.Sky.Commands
                     lastSettings.Tier = AccountTier.PREMIUM;
                     lastSettings.ExpiresAt = data.User.PremiumExpires;
                 }
-
-
+                // load settings
+                await updateTask;
                 lastSettings.Settings = con.Settings;
                 lastSettings.UserId = userId;
-                if (lastSettings.Settings.AllowedFinders == LowPricedAuction.FinderType.UNKOWN)
+                if (lastSettings?.Settings?.AllowedFinders == LowPricedAuction.FinderType.UNKOWN)
                     lastSettings.Settings.AllowedFinders = LowPricedAuction.FinderType.FLIPPER;
 
                 await UpdateAccountInfo(data, lastSettings);
-                await updateTask;
                 await data.Ok();
 
                 if (MessagePack.MessagePackSerializer.Serialize(con.Settings).SequenceEqual(MessagePack.MessagePackSerializer.Serialize(lastSettings.Settings)))
@@ -52,10 +52,13 @@ namespace Coflnet.Sky.Commands
             }
             catch (CoflnetException e)
             {
-
                 FlipperService.Instance.AddNonConnection(con);
             }
-            await data.Ok();
+            // not logged no settings, tell the frontend (request its settings)
+            if (settings == null)
+                await data.SendBack(data.Create<string>("flipSettings", null));
+            else
+                await data.Ok();
         }
 
         public static async Task UpdateAccountInfo(MessageData data, SettingsChange lastSettings)
@@ -83,14 +86,14 @@ namespace Coflnet.Sky.Commands
             {
                 if (settings != null)
                     await service.UpdateSetting(userId.ToString(), "flipSettings", settings);
-                if (con.FlipSettings.Value == default)
+                if (con.FlipSettings?.Value == default)
                     con.FlipSettings = await SelfUpdatingValue<FlipSettings>.Create(userId.ToString(), "flipSettings");
                 if (settings == null)
                     await data.SendBack(data.Create("flipSettings", con.FlipSettings.Value));
             }
             catch (Exception e)
             {
-                data.LogError(e, "updating flipsettings");
+                Console.WriteLine(e.ToString());
                 con.OldFallbackSettings = settings;
             }
         }
@@ -113,7 +116,7 @@ namespace Coflnet.Sky.Commands
             try
             {
                 settings = data.GetAs<FlipSettings>();
-                if(settings == null)
+                if (settings == null)
                     return null; // special case to load settings
                 // test if settings compile
                 settings.MatchesSettings(new FlipInstance()

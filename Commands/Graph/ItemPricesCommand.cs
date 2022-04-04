@@ -98,7 +98,7 @@ namespace Coflnet.Sky.Commands
             using (var context = new HypixelContext())
             {
                 var tag = ItemDetails.Instance.GetIdForName(itemName);
-                var itemId = ItemDetails.Instance.GetItemIdForName(itemName);
+                var itemId = ItemDetails.Instance.GetItemIdForTag(itemName);
                 var mainSelect = context.Auctions
                     .Where(auction => /*auction.ItemName == itemName || */auction.ItemId == itemId);
 

@@ -349,7 +349,7 @@ namespace Coflnet.Sky.Commands
         {
             if (tag == null)
                 return "";
-            var isBazaar = ItemPrices.Instance.IsBazaar(ItemDetails.Instance.GetItemIdForName(tag));
+            var isBazaar = ItemPrices.Instance.IsBazaar(ItemDetails.Instance.GetItemIdForTag(tag));
             if (isBazaar)
                 return " This is a bazaar item. Bazaartracker.com currently gives you a more detailed view of this history. ";
             var result = await Server.ExecuteCommandWithCache<ItemSearchQuery, IEnumerable<AuctionPreview>>("recentAuctions", new ItemSearchQuery()
