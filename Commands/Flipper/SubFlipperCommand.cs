@@ -87,7 +87,15 @@ namespace Coflnet.Sky.Commands
                 if (settings != null)
                     await service.UpdateSetting(userId.ToString(), "flipSettings", settings);
                 if (con.FlipSettings?.Value == default)
+                {
                     con.FlipSettings = await SelfUpdatingValue<FlipSettings>.Create(userId.ToString(), "flipSettings");
+                    con.FlipSettings.OnChange += (newsettings) =>
+                    {
+                        // send the new settings to the frontend
+                        data.SendBack(data.Create("settingsUpdate", newsettings));
+                    };
+                }
+
                 if (settings == null)
                     await data.SendBack(data.Create("flipSettings", con.FlipSettings.Value));
             }
