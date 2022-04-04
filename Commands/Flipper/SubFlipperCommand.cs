@@ -88,12 +88,7 @@ namespace Coflnet.Sky.Commands
                     await service.UpdateSetting(userId.ToString(), "flipSettings", settings);
                 if (con.FlipSettings?.Value == default)
                 {
-                    con.FlipSettings = await SelfUpdatingValue<FlipSettings>.Create(userId.ToString(), "flipSettings");
-                    con.FlipSettings.OnChange += (newsettings) =>
-                    {
-                        // send the new settings to the frontend
-                        data.SendBack(data.Create("settingsUpdate", newsettings));
-                    };
+                    await SubscribeToUpdates(data, userId, con);
                 }
 
                 if (settings == null)
@@ -104,6 +99,18 @@ namespace Coflnet.Sky.Commands
                 Console.WriteLine(e.ToString());
                 con.OldFallbackSettings = settings;
             }
+        }
+
+        private static async Task SubscribeToUpdates(MessageData data, int userId, SkyblockBackEnd con)
+        {
+            con.FlipSettings = await SelfUpdatingValue<FlipSettings>.Create(userId.ToString(), "flipSettings");
+            con.FlipSettings.OnChange += (newsettings) =>
+            {
+                // send the new settings to the frontend
+                var update = data.Create("settingsUpdate", newsettings);
+                update.mId = con.SubFlipMsgId;
+                data.SendBack(update);
+            };
         }
 
         private static AccountInfo SettingsToAccountInfo(SettingsChange lastSettings)
