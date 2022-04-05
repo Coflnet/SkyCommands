@@ -24,7 +24,8 @@ namespace Coflnet.Sky.Commands
 
         public override Task SendBack(MessageData data, bool cache = true)
         {
-            data.mId = mId;
+            if (data.mId == 0)
+                data.mId = mId;
             if (cache)
                 CacheService.Instance.Save(this, data, responseCounter++);
             Connection.SendBack(data);

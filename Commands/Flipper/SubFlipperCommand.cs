@@ -106,11 +106,17 @@ namespace Coflnet.Sky.Commands
             con.FlipSettings = await SelfUpdatingValue<FlipSettings>.Create(userId.ToString(), "flipSettings");
             con.FlipSettings.OnChange += (newsettings) =>
             {
-                // send the new settings to the frontend
-                var update = data.Create("settingsUpdate", newsettings);
-                update.mId = con.SubFlipMsgId;
-                data.SendBack(update);
+                SendBackUpdates(data, con, newsettings);
             };
+        }
+
+        private static void SendBackUpdates(MessageData data, SkyblockBackEnd con, FlipSettings newsettings)
+        {
+            // send the new settings to the frontend
+            var update = data.Create("settingsUpdate", newsettings);
+            Console.WriteLine("updated settings " + con.SubFlipMsgId);
+            update.mId = con.SubFlipMsgId;
+            data.SendBack(update, false);
         }
 
         private static AccountInfo SettingsToAccountInfo(SettingsChange lastSettings)
