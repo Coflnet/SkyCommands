@@ -25,7 +25,7 @@ namespace Coflnet.Sky.Commands
             var urlParts = path.Split('/', '?', '#');
             if (urlParts.Length > 2)
                 parameter = urlParts[2];
-            string description = "Browse over 300 million auctions, and the bazaar of Hypixel SkyBlock.";
+            string description = "Please contact ekwav if you see this";
             string longDescription = null;
             string title = defaultTitle;
             string imageUrl = "https://sky.coflnet.com/logo192.png";
