@@ -2,6 +2,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Coflnet.Sky.Core;
+using System;
 
 namespace Coflnet.Sky.Commands
 {
@@ -23,7 +24,7 @@ namespace Coflnet.Sky.Commands
             using (var context = new HypixelContext())
             {
                 context.Database.SetCommandTimeout(30);
-                var end = System.DateTime.Now;
+                var end = DateTime.Now - TimeSpan.FromMinutes(1.2);
                 var highVolumeIds = new System.Collections.Generic.HashSet<int>()
                 {
                     ItemDetails.Instance.GetItemIdForTag("ENCHANTED_BOOK"),
