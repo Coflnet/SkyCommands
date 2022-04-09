@@ -24,7 +24,8 @@ namespace Coflnet.Sky.Commands
             using (var context = new HypixelContext())
             {
                 context.Database.SetCommandTimeout(30);
-                var end = DateTime.Now - TimeSpan.FromMinutes(1.2);
+                var end = DateTime.Now;
+                var start = end - TimeSpan.FromMinutes(1.2);
                 var highVolumeIds = new System.Collections.Generic.HashSet<int>()
                 {
                     ItemDetails.Instance.GetItemIdForTag("ENCHANTED_BOOK"),
@@ -33,7 +34,7 @@ namespace Coflnet.Sky.Commands
                     ItemDetails.Instance.GetItemIdForTag("ASPECT_OF_THE_DRAGON")
 
                 };
-                var pages = context.Auctions.Where(a => (highVolumeIds.Contains(a.ItemId)) && a.End < end)
+                var pages = context.Auctions.Where(a => (highVolumeIds.Contains(a.ItemId)) && a.End < end && a.End > start)
                     .OrderByDescending(a => a.Id)
                     .Select(p => new AuctionResult(p))
                     .Take(100)
