@@ -13,12 +13,12 @@ namespace Coflnet.Sky.Commands
             var itemTag = data.GetAs<string>();
             if (itemTag == "*")
             {
-                await data.SendBack(data.Create("filterFor", fe.AvailableFilters.Select(f => new FilterOptions(f)).ToList(), A_DAY));
+                await data.SendBack(data.Create("filterFor", fe.AvailableFilters.Select(f => new FilterOptions(f)).ToList(), A_HOUR));
                 return;
             }
             var details = await ItemDetails.Instance.GetDetailsWithCache(itemTag);
             var filters = fe.FiltersFor(details);
-            await data.SendBack(data.Create("filterFor", filters.Select(f => new FilterOptions(f)).ToList(), A_DAY));
+            await data.SendBack(data.Create("filterFor", filters.Select(f => new FilterOptions(f)).ToList(), A_HOUR));
         }
     }
 }
