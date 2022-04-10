@@ -25,7 +25,7 @@ namespace Coflnet.Sky.Commands
                         data.LogError(e, "retrieving filter options");
                         return false;
                     }
-                }).Select(f => new FilterOptions(f)).ToList(), A_HOUR));
+                }).Select(f => new FilterOptions(f)).ToList(), A_HOUR * 2));
                 return;
             }
             var details = await ItemDetails.Instance.GetDetailsWithCache(itemTag);
