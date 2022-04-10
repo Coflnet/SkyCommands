@@ -50,7 +50,7 @@ namespace Coflnet.Sky.Commands
                 await FlipperService.Instance.UpdateSettings(lastSettings);
                 return;
             }
-            catch (CoflnetException e)
+            catch (CoflnetException)
             {
                 FlipperService.Instance.AddNonConnection(con);
             }
