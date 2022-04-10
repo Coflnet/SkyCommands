@@ -127,7 +127,7 @@ namespace Coflnet.Sky.Commands
         {
             try
             {
-                aspNet = new RestClient("http://"+ SimplerConfig.Config.Instance["API_HOST"]);
+                aspNet = new RestClient("http://" + SimplerConfig.Config.Instance["API_HOST"]);
                 ProdFrontend = SimplerConfig.Config.Instance["FRONTEND_PROD"];
                 StagingFrontend = SimplerConfig.Config.Instance["FRONTEND_STAGING"];
 
@@ -399,7 +399,11 @@ namespace Coflnet.Sky.Commands
             {
                 requestErrors.Inc();
                 context.SetStatusCode(500);
-                await data.SendBack(new MessageData("error", JsonConvert.SerializeObject(new { Slug = "error", Message = "An unexpected internal error occured, make sure the format of Data is correct" })));
+
+                using var span = OpenTracing.Util.GlobalTracer.Instance.BuildSpan("error").WithTag("error",true).StartActive();
+                span.Span.Log(ex.ToString());
+                var traceId = System.Net.Dns.GetHostName().Replace("commands", "").Trim('-') + "." + span.Span.Context.TraceId;
+                await data.SendBack(new MessageData("error", JsonConvert.SerializeObject(new { Slug = "error", Message = "An unexpected internal error occured, make sure the format of Data is correct", traceId })));
                 TrackingService.Instance.CommandError(data.Type);
                 dev.Logger.Instance.Error(ex, "Fatal error on Command");
             }
