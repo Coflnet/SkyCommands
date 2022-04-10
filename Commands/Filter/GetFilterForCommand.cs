@@ -13,7 +13,19 @@ namespace Coflnet.Sky.Commands
             var itemTag = data.GetAs<string>();
             if (itemTag == "*")
             {
-                await data.SendBack(data.Create("filterFor", fe.AvailableFilters.Select(f => new FilterOptions(f)).ToList(), A_HOUR));
+                await data.SendBack(data.Create("filterFor", fe.AvailableFilters.Where(f =>
+                {
+                    try
+                    {
+                        var options = f.Options;
+                        return true;
+                    }
+                    catch (System.Exception e)
+                    {
+                        data.LogError(e, "retrieving filter options");
+                        return false;
+                    }
+                }).Select(f => new FilterOptions(f)).ToList(), A_HOUR));
                 return;
             }
             var details = await ItemDetails.Instance.GetDetailsWithCache(itemTag);
