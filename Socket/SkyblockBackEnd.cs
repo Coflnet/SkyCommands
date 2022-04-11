@@ -132,6 +132,7 @@ namespace Coflnet.Sky.Commands
             Commands.Add("getFlips", new RecentFlipsCommand());
             Commands.Add("flipBased", new BasedOnCommand());
             Commands.Add("authCon", new AuthorizeConnectionCommand());
+            Commands.Add("setFlipSetting", new FlipSettingsSetCommand());
 
             // sync commands
             Commands.Add("playerSync", new PlayerSyncCommand());
