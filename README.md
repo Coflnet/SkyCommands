@@ -1,5 +1,5 @@
 # SkyCommands
-Command and API service
+Websocket Commands service
 
 Handles external Http requests and potentially forwards them to other services.
 
