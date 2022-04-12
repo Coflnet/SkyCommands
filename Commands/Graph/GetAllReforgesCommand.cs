@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using Newtonsoft.Json;
 using System.Threading.Tasks;
-using System.Threading.Tasks;
 using Coflnet.Sky.Core;
 
 namespace Coflnet.Sky.Commands
