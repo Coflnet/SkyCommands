@@ -22,7 +22,7 @@ namespace Coflnet.Sky.Commands
                 socket.FlipSettings = await SelfUpdatingValue<FlipSettings>.Create(data.UserId.ToString(), "flipSettings");
             await updater.Update(socket, arguments.Key, value);
             socket.Settings.Changer = arguments.Changer;
-            Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(socket.Settings,Newtonsoft.Json.Formatting.Indented));
+            data.Log(Newtonsoft.Json.JsonConvert.SerializeObject(socket.Settings,Newtonsoft.Json.Formatting.Indented));
             await service.UpdateSetting(data.UserId.ToString(), "flipSettings", socket.Settings);
         }
 
