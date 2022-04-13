@@ -734,5 +734,6 @@ Updates a single flip setting
     "changer":"(optional)identifier"
 }
 ```
-Specifying no/empty key will return an error with all options
+Specifying no/empty key will return an error with all options.
+The command will return a `settingsUpdate` on all connections subscribed to flips.
 
