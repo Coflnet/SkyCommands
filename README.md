@@ -725,3 +725,14 @@ Response example:
 }
 ```
 
+## setFlipSetting
+Updates a single flip setting
+```
+{
+    "key":"minProfit",
+    "value":"5000",
+    "changer":"(optional)identifier"
+}
+```
+Specifying no/empty key will return an error with all options
+
