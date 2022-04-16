@@ -16,11 +16,9 @@ namespace Coflnet.Sky.Commands
         {
             try
             {
-                
                 try
                 {
-                    var api  = DiHandler.ServiceProvider.GetService<UserApi>();
-                    var until = await api.UserUserIdOwnsProductSlugUntilGetAsync(data.UserId.ToString(), premiumPlanName);
+                    DateTime until = await When(data.UserId);
                     if (until > DateTime.Now)
                     {
                         await data.SendBack(data.Create("premiumExpiration", until));
@@ -46,6 +44,15 @@ namespace Coflnet.Sky.Commands
                 // no premium
             }
             await data.SendBack(data.Create<string>("premiumExpiration", null));
+        }
+
+        public static async Task<DateTime> When(int userId)
+        {
+            if(GoogleUser.EveryoneIsPremium)
+                return DateTime.Now + TimeSpan.FromDays(30);
+            var api = DiHandler.ServiceProvider.GetService<UserApi>();
+            var until = await api.UserUserIdOwnsProductSlugUntilGetAsync(userId.ToString(), premiumPlanName);
+            return until;
         }
     }
 }

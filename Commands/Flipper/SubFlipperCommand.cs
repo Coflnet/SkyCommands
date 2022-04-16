@@ -24,15 +24,15 @@ namespace Coflnet.Sky.Commands
 
                 var lastSettings = con.LatestSettings;
 
-
-                if (!data.User.HasPremium)
+                var expires = await PremiumExpirationCommand.When(data.UserId);
+                if (expires < DateTime.UtcNow)
                     FlipperService.Instance.AddNonConnection(con);
                 else
                 {
                     FlipperService.Instance.AddConnection(con);
 
                     lastSettings.Tier = AccountTier.PREMIUM;
-                    lastSettings.ExpiresAt = data.User.PremiumExpires;
+                    lastSettings.ExpiresAt = expires;
                 }
                 // load settings
                 await updateTask;
