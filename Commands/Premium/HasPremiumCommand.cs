@@ -16,15 +16,7 @@ namespace Coflnet.Sky.Commands
         {
             try
             {
-                using (var context = new HypixelContext())
-                {
-                    var user = data.User;
-                    if (user.PremiumExpires > DateTime.Now)
-                    {
-                        await data.SendBack(data.Create("premiumExpiration", user?.PremiumExpires));
-                        return;
-                    }
-                }
+                
                 try
                 {
                     var api  = DiHandler.ServiceProvider.GetService<UserApi>();
@@ -38,6 +30,15 @@ namespace Coflnet.Sky.Commands
                 catch (Exception e)
                 {
                     dev.Logger.Instance.Error(e, "checking premium");
+                }
+                using (var context = new HypixelContext())
+                {
+                    var user = data.User;
+                    if (user.PremiumExpires > DateTime.Now)
+                    {
+                        await data.SendBack(data.Create("premiumExpiration", user?.PremiumExpires));
+                        return;
+                    }
                 }
             }
             catch (Exception)
