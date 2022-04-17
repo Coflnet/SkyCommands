@@ -219,6 +219,7 @@ namespace Coflnet.Sky.Commands
                 System.Threading.Interlocked.Increment(ref waiting);
                 await limiter;
                 System.Threading.Interlocked.Decrement(ref waiting);
+                string traceId = "";
                 try
                 {
                     if (Commands[data.Type].Cacheable && (await CacheService.Instance.TryFromCacheAsync(data)).IsFlagSet(CacheStatus.VALID))
@@ -238,7 +239,8 @@ namespace Coflnet.Sky.Commands
                         }
                         catch (Exception e)
                         {
-                            data.LogError(e, "");
+                            data.LogError(e, "executing command");
+                            traceId = scope.Span.Context.TraceId;
                             throw;
                         }
                     }
@@ -257,7 +259,11 @@ namespace Coflnet.Sky.Commands
                         return;
                     }
                     dev.Logger.Instance.Error($"Fatal error on Command {JsonConvert.SerializeObject(data)} {ex.Message} {ex.StackTrace} \n{ex.InnerException?.Message} {ex.InnerException?.StackTrace}");
-                    await data.SendBack(new MessageData("error", JsonConvert.SerializeObject(new { Slug = "unknown", Message = "An unexpected error occured, make sure the format of Data is correct" })) { mId = data.mId });
+                    await data.SendBack(new MessageData("error", JsonConvert.SerializeObject(new { 
+                        Slug = "unknown", 
+                        Message = "An unexpected error occured, please report this with the trace id " + traceId,
+                        TraceId = traceId })) 
+                        { mId = data.mId });
                 }
             }).ConfigureAwait(false);
         }
