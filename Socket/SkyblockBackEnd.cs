@@ -15,6 +15,7 @@ using Coflnet.Sky.Filter;
 using Coflnet.Sky;
 using Coflnet.Sky.Commands.Shared;
 using Coflnet.Sky.Core;
+using Coflnet.Sky.Commands.MC;
 
 namespace Coflnet.Sky.Commands
 {
@@ -63,6 +64,7 @@ namespace Coflnet.Sky.Commands
 
         private TimeLimiter limiter;
         public static event Action NextUpdateStart;
+        private static System.Threading.Timer updateTimer;
         private ConcurrentDictionary<long, DateTime> SentFlips = new ConcurrentDictionary<long, DateTime>();
 
         static SkyblockBackEnd()
@@ -149,14 +151,33 @@ namespace Coflnet.Sky.Commands
             Commands.Add("p", new PingCommand());
 
             Commands.Add("getFlipSettings", new GetFlipSettingsCommand());
+            UpdateTimerPing();
+        }
 
-            FlipperService.Instance.OnSettingsChange += settings =>
+        private static void UpdateTimerPing()
+        {
+            Task.Run(async () =>
             {
-                foreach (var item in SkyblockBackEnd.GetConnectionsOfUser(settings.UserId))
+                var nextUpdate = await new NextUpdateRetriever().Get();
+                var next = nextUpdate - TimeSpan.FromSeconds(10);
+                if (updateTimer == null)
                 {
-                    item.UpdateSettings(settings);
+                    updateTimer = new System.Threading.Timer((e) =>
+                        {
+                            try
+                            {
+                                NextUpdateStart?.Invoke();
+                                if (DateTime.Now.Minute % 10 == 0)
+                                    UpdateTimerPing();
+                            }
+                            catch (Exception ex)
+                            {
+                                dev.Logger.Instance.Error(ex, "sending next update");
+                            }
+                        }, null, next - DateTime.Now, TimeSpan.FromMinutes(1));
                 }
-            };
+                updateTimer.Change(next - DateTime.Now, TimeSpan.FromMinutes(1));
+            });
         }
 
         public SkyblockBackEnd()
@@ -259,11 +280,13 @@ namespace Coflnet.Sky.Commands
                         return;
                     }
                     dev.Logger.Instance.Error($"Fatal error on Command {JsonConvert.SerializeObject(data)} {ex.Message} {ex.StackTrace} \n{ex.InnerException?.Message} {ex.InnerException?.StackTrace}");
-                    await data.SendBack(new MessageData("error", JsonConvert.SerializeObject(new { 
-                        Slug = "unknown", 
+                    await data.SendBack(new MessageData("error", JsonConvert.SerializeObject(new
+                    {
+                        Slug = "unknown",
                         Message = "An unexpected error occured, please report this with the trace id " + traceId,
-                        TraceId = traceId })) 
-                        { mId = data.mId });
+                        TraceId = traceId
+                    }))
+                    { mId = data.mId });
                 }
             }).ConfigureAwait(false);
         }
