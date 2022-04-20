@@ -32,7 +32,6 @@ namespace Coflnet.Sky.Commands
         public void WasReferedBy(GoogleUser user, string referer)
         {
             throw new CoflnetException("deactivated", "the referral system is now handled via the api ");
-
         }
 
         private int GetId(string referer)
