@@ -717,6 +717,7 @@ Allows the transfer of cofl coins to another user.
     "amount":12345
 }
 ```
+Either `email` or `mcId` have to be present.
 Response example:
 ```
 {
