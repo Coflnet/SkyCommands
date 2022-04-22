@@ -31,6 +31,16 @@ namespace Coflnet.Sky.Commands
                     socket.FlipSettings = await SelfUpdatingValue<FlipSettings>.Create(data.UserId.ToString(), "flipSettings");
                 await updater.Update(socket, arguments.Key, value);
                 socket.Settings.Changer = arguments.Changer;
+                socket.FlipSettings.Value.MatchesSettings(new FlipInstance()
+                {
+                    Auction = new SaveAuction()
+                    {
+                        Enchantments = new System.Collections.Generic.List<Enchantment>(),
+                        FlatenedNBT = new System.Collections.Generic.Dictionary<string, string>(),
+                        NBTLookup = new System.Collections.Generic.List<NBTLookup>()
+                    },
+                    LastKnownCost = 1
+                });
                 data.Log(Newtonsoft.Json.JsonConvert.SerializeObject(socket.Settings, Newtonsoft.Json.Formatting.Indented));
                 await service.UpdateSetting(data.UserId.ToString(), "flipSettings", socket.Settings);
             }

@@ -114,7 +114,6 @@ namespace Coflnet.Sky.Commands
         {
             // send the new settings to the frontend
             var update = data.Create("settingsUpdate", newsettings);
-            Console.WriteLine("updated settings " + con.SubFlipMsgId);
             update.mId = con.SubFlipMsgId;
             data.SendBack(update, false);
         }
