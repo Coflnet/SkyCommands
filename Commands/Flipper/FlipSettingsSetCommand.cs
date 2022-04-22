@@ -31,7 +31,21 @@ namespace Coflnet.Sky.Commands
                     socket.FlipSettings = await SelfUpdatingValue<FlipSettings>.Create(data.UserId.ToString(), "flipSettings");
                 await updater.Update(socket, arguments.Key, value);
                 socket.Settings.Changer = arguments.Changer;
-                socket.FlipSettings.Value.MatchesSettings(new FlipInstance()
+                var settings = socket.FlipSettings.Value;
+                TestSettings(settings);
+                await service.UpdateSetting(data.UserId.ToString(), "flipSettings", socket.Settings);
+            }
+            finally
+            {
+                lazyLock.Release();
+            }
+        }
+
+        private static void TestSettings(FlipSettings settings)
+        {
+            try
+            {
+                settings.MatchesSettings(new FlipInstance()
                 {
                     Auction = new SaveAuction()
                     {
@@ -41,12 +55,15 @@ namespace Coflnet.Sky.Commands
                     },
                     LastKnownCost = 1
                 });
-                data.Log(Newtonsoft.Json.JsonConvert.SerializeObject(socket.Settings, Newtonsoft.Json.Formatting.Indented));
-                await service.UpdateSetting(data.UserId.ToString(), "flipSettings", socket.Settings);
             }
-            finally
+            catch (CoflnetException)
             {
-                lazyLock.Release();
+                throw;
+            }
+            catch (Exception e)
+            {
+                dev.Logger.Instance.Error(e, "validating settings");
+                throw new CoflnetException("invalid_settings", "Your settings are invalid, please revert your last change");
             }
         }
 
