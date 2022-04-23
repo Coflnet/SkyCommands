@@ -15,6 +15,11 @@ namespace Coflnet.Sky.Commands
         public override bool Cacheable => false;
         public override async Task Execute(MessageData data)
         {
+            var newId = data.GetAs<string>();
+            var service = DiHandler.ServiceProvider.GetRequiredService<SettingsService>();
+            var authTask = service.UpdateSetting("mod", newId, data.UserId.ToString());
+            await data.Ok();
+            // legacy
             var con = (data as SocketMessageData).Connection;
             if (con.LatestSettings == null)
             {
@@ -25,7 +30,6 @@ namespace Coflnet.Sky.Commands
                     con.LatestSettings = new SettingsChange();
             }
             var lastSettings = con.LatestSettings;
-            var newId = data.GetAs<string>();
             if (lastSettings.ConIds.Count > 5)
             {
                 lastSettings.ConIds.Remove(lastSettings.ConIds.FirstOrDefault());
@@ -33,8 +37,6 @@ namespace Coflnet.Sky.Commands
             }
             lastSettings.ConIds.Add(newId);
 
-            var service = DiHandler.ServiceProvider.GetRequiredService<SettingsService>();
-            var authTask = service.UpdateSetting("mod", newId, data.UserId.ToString());
 
             lastSettings.UserId = data.UserId;
             if (data.User.HasPremium)
@@ -44,7 +46,6 @@ namespace Coflnet.Sky.Commands
             }
             await SubFlipperCommand.UpdateAccountInfo(data, lastSettings);
             await authTask;
-            await data.Ok();
             data.Span.SetTag("conId", newId);
             var result = await FlipperService.Instance.UpdateSettings(lastSettings);
             data.Log("status: " + result.Status);
