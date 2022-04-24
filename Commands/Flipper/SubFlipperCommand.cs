@@ -41,8 +41,9 @@ namespace Coflnet.Sky.Commands
                 if (lastSettings?.Settings?.AllowedFinders == LowPricedAuction.FinderType.UNKOWN)
                     lastSettings.Settings.AllowedFinders = LowPricedAuction.FinderType.FLIPPER;
 
-                await UpdateAccountInfo(data, lastSettings);
+                var accountUpdateTask = UpdateAccountInfo(data, lastSettings);
                 await data.Ok();
+                await accountUpdateTask;
 
                 if (MessagePack.MessagePackSerializer.Serialize(con.Settings).SequenceEqual(MessagePack.MessagePackSerializer.Serialize(lastSettings.Settings)))
                     return; // nothing actually changed
