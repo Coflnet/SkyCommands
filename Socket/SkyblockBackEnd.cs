@@ -130,6 +130,7 @@ namespace Coflnet.Sky.Commands
             Commands.Add("flipFilters", new GetFlipFiltersCommand());
 
             Commands.Add("subFlip", new SubFlipperCommand());
+            Commands.Add("subFlipAnonym", new SubFlipAnonymousCommand());
             Commands.Add("unsubFlip", new UnsubFlipperCommand());
             Commands.Add("getFlips", new RecentFlipsCommand());
             Commands.Add("flipBased", new BasedOnCommand());

@@ -131,7 +131,7 @@ namespace Coflnet.Sky.Commands
             };
         }
 
-        private static FlipSettings GetSettings(MessageData data)
+        protected FlipSettings GetSettings(MessageData data)
         {
             FlipSettings settings = new FlipSettings();
             try
@@ -139,7 +139,7 @@ namespace Coflnet.Sky.Commands
                 settings = data.GetAs<FlipSettings>();
                 if (settings == null)
                     return null; // special case to load settings
-                // test if settings compile
+                                 // test if settings compile
                 settings.MatchesSettings(new FlipInstance()
                 {
                     Auction = new SaveAuction()
