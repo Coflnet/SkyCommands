@@ -250,14 +250,7 @@ namespace Coflnet.Sky.Commands
             //context.ContentEncoding = Encoding.UTF8;
             if (filePath == "index.html" && !filePath.EndsWith(".js") && !filePath.EndsWith(".css"))
             {
-                var watch = Stopwatch.StartNew();
-                await HtmlModifier.ModifyContent(context.path, contents, context);
-
-
-
-                if (context is WebsocketRequestContext httpContext)
-                    TrackGeneration(path, watch, httpContext);
-                return;
+                throw new Exception("site generation is now handled by the frontent");
             }
 
 
