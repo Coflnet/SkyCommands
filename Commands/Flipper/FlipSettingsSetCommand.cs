@@ -6,6 +6,7 @@ using Coflnet.Sky.Core;
 using System.Runtime.Serialization;
 using System.Collections.Concurrent;
 using System.Threading;
+using Newtonsoft.Json;
 
 namespace Coflnet.Sky.Commands
 {
@@ -62,7 +63,7 @@ namespace Coflnet.Sky.Commands
             }
             catch (Exception e)
             {
-                dev.Logger.Instance.Error(e, "validating settings");
+                dev.Logger.Instance.Error(e, "validating settings\n" + JsonConvert.SerializeObject(settings, Formatting.Indented));
                 throw new CoflnetException("invalid_settings", "Your settings are invalid, please revert your last change");
             }
         }
