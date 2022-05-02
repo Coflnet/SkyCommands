@@ -10,7 +10,6 @@ namespace Coflnet.Sky.Commands
 {
     public class PremiumExpirationCommand : Command
     {
-        static string premiumPlanName = SimplerConfig.SConfig.Instance["PRODUCTS:PREMIUM"];
 
         public override async Task Execute(MessageData data)
         {
@@ -18,7 +17,7 @@ namespace Coflnet.Sky.Commands
             {
                 try
                 {
-                    DateTime until = await When(data.UserId);
+                    DateTime until = await DiHandler.ServiceProvider.GetService<PremiumService>().ExpiresWhen(data.UserId);
                     if (until > DateTime.Now)
                     {
                         await data.SendBack(data.Create("premiumExpiration", until));
@@ -44,15 +43,6 @@ namespace Coflnet.Sky.Commands
                 // no premium
             }
             await data.SendBack(data.Create<string>("premiumExpiration", null));
-        }
-
-        public static async Task<DateTime> When(int userId)
-        {
-            if(GoogleUser.EveryoneIsPremium)
-                return DateTime.Now + TimeSpan.FromDays(30);
-            var api = DiHandler.ServiceProvider.GetService<UserApi>();
-            var until = await api.UserUserIdOwnsProductSlugUntilGetAsync(userId.ToString(), premiumPlanName);
-            return until;
         }
     }
 }

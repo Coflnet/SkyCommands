@@ -39,7 +39,8 @@ namespace Coflnet.Sky.Commands
 
 
             lastSettings.UserId = data.UserId;
-            if (data.User.HasPremium)
+            var expires = await DiHandler.ServiceProvider.GetService<PremiumService>().ExpiresWhen(data.UserId);
+            if (expires > DateTime.Now)
             {
                 lastSettings.Tier = AccountTier.PREMIUM;
                 lastSettings.ExpiresAt = data.User.PremiumExpires;

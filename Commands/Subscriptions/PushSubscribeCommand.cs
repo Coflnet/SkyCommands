@@ -6,6 +6,8 @@ using MessagePack;
 using Newtonsoft.Json;
 using RestSharp;
 using Coflnet.Sky.Core;
+using Coflnet.Sky.Commands.Shared;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Coflnet.Sky.Commands
 {
@@ -19,8 +21,12 @@ namespace Coflnet.Sky.Commands
             var userId = user.Id;
             List<SubscribeItem> subscriptions = (await SubscribeClient.GetSubscriptions(userId)).subscriptions;
 
-            if (!user.HasPremium && subscriptions.Count() >= 3)
-                throw new NoPremiumException("Nonpremium users can only have 3 subscriptions");
+            if (subscriptions.Count() >= 3)
+            {
+                var hasPremium = await DiHandler.ServiceProvider.GetService<PremiumService>().HasPremium(data.UserId);
+                if (!hasPremium)
+                    throw new NoPremiumException("Nonpremium users can only have 3 subscriptions");
+            }
 
             var request = new RestRequest("Subscription/{userId}/sub", Method.POST)
                 .AddJsonBody(new SubscribeItem()
@@ -32,7 +38,7 @@ namespace Coflnet.Sky.Commands
                 })
                 .AddUrlSegment("userId", user.Id);
             var response = await SubscribeClient.Client.ExecuteAsync(request);
-            if(response.StatusCode != System.Net.HttpStatusCode.OK)
+            if (response.StatusCode != System.Net.HttpStatusCode.OK)
                 throw new CoflnetException("subscribe_failed", "Your subscription could ot be saved");
             await data.Ok();
         }

@@ -24,7 +24,7 @@ namespace Coflnet.Sky.Commands
 
                 var lastSettings = con.LatestSettings;
 
-                var expires = await PremiumExpirationCommand.When(data.UserId);
+                var expires = await DiHandler.ServiceProvider.GetService<PremiumService>().ExpiresWhen(data.UserId);
                 if (expires < DateTime.UtcNow)
                     FlipperService.Instance.AddNonConnection(con);
                 else
