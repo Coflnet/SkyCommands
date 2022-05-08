@@ -7,6 +7,7 @@ namespace Coflnet.Sky.Commands
 {
     public class TransferCoinsCommand : Command
     {
+        public override bool Cacheable => false;
         public override async Task Execute(MessageData data)
         {
             var productsApi = new UserApi("http://" + SimplerConfig.Config.Instance["PAYMENTS_HOST"]);
@@ -26,7 +27,7 @@ namespace Coflnet.Sky.Commands
                 Reference = (args.TargetUserEmail ?? args.TargetUserMc) + args.Reference.Truncate(5),
                 TargetUser = targetUser
             });
-            await data.SendBack(data.Create("success", args.Amount, A_MINUTE / 2));
+            await data.SendBack(data.Create("success", args.Amount));
         }
 
         [DataContract]
