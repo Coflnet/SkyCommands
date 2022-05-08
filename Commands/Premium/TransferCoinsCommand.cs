@@ -23,7 +23,7 @@ namespace Coflnet.Sky.Commands
             var transaction = await productsApi.UserUserIdTransferPostAsync(data.UserId.ToString(), new Coflnet.Payments.Client.Model.TransferRequest()
             {
                 Amount = args.Amount,
-                Reference = args.Reference.Truncate(30),
+                Reference = (args.TargetUserEmail ?? args.TargetUserMc) + args.Reference.Truncate(5),
                 TargetUser = targetUser
             });
             await data.SendBack(data.Create("success", args.Amount, A_MINUTE / 2));
