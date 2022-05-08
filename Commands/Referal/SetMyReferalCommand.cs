@@ -5,11 +5,9 @@ namespace Coflnet.Sky.Commands
 {
     public class SetMyReferalCommand : Command
     {
-        public override bool Cacheable => false;
         public override Task Execute(MessageData data)
         {
-            ReferalService.Instance.WasReferedBy(data.User, data.GetAs<string>());
-            return data.Ok();
+            throw new CoflnetException("deprecated", "The referral system is now handled by the api");
         }
     }
 }

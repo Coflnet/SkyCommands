@@ -31,9 +31,7 @@ namespace Coflnet.Sky.Commands
             string imageUrl = "https://sky.coflnet.com/logo192.png";
             string keyword = "";
             System.Collections.Specialized.NameValueCollection args = HttpUtility.ParseQueryString(path.Split('?').LastOrDefault());
-            string refBy = null;
-            if (args["refId"] != null)
-                refBy = await ReferalService.Instance.GetUserName(args["refId"]);
+            string refBy = "disabled";
 
             var start = Encoding.UTF8.GetString(contents).Split("<title>");
             var headerStart = start[0] + "<title>";

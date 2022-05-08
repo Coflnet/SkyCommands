@@ -7,8 +7,7 @@ namespace Coflnet.Sky.Commands
     {
         public override Task Execute(MessageData data)
         {
-            var refInfo = ReferalService.Instance.GetReferalInfo(data.User);
-            return data.SendBack(data.Create("refInfo", refInfo));
+            throw new CoflnetException("deprecated", "The referral system is now handled by the api");
         }
     }
 }
