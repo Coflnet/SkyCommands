@@ -2,6 +2,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Coflnet.Sky.Filter;
 using Coflnet.Sky.Core;
+using Coflnet.Sky.Commands.Shared;
+using Coflnet.Sky.Items.Client.Api;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Coflnet.Sky.Commands
 {
@@ -28,8 +31,9 @@ namespace Coflnet.Sky.Commands
                 }).Select(f => new FilterOptions(f)).ToList(), A_HOUR * 2));
                 return;
             }
-            var details = await ItemDetails.Instance.GetDetailsWithCache(itemTag);
-            var filters = fe.FiltersFor(details);
+            var itemApi = DiHandler.ServiceProvider.GetService<IItemsApi>();
+            var item = await itemApi.ItemItemTagGetAsync(itemTag);
+            var filters = fe.FiltersFor(item);
             await data.SendBack(data.Create("filterFor", filters.Select(f => new FilterOptions(f)).ToList(), A_HOUR));
         }
     }
