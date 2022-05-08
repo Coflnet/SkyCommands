@@ -21,7 +21,7 @@ namespace Coflnet.Sky.Commands
             var service = DiHandler.ServiceProvider.GetRequiredService<SettingsService>();
             if (string.IsNullOrEmpty(arguments.Key))
                 throw new CoflnetException("missing_key", "available options are:\n" + String.Join(",\n", updater.Options()));
-            var value = arguments.Value.Replace('$', '§');
+            var value = arguments.Value.Replace('$', '§').Replace('�','§');
             var socket = (data as SocketMessageData).Connection;
 
             var lazyLock = Locks.GetOrAdd(data.UserId, id => new SemaphoreSlim(1));
