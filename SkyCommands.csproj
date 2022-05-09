@@ -33,7 +33,6 @@
     <PackageReference Include="Fastenshtein" Version="1.0.0.7" />
     <PackageReference Include="fNbt" Version="0.6.4" />
     <PackageReference Include="Google.Apis.AndroidPublisher.v3" Version="1.50.0.2197" />
-    <PackageReference Include="Google.Apis.Auth" Version="1.50.0" />
     <PackageReference Include="Hashids.net" Version="1.4.0" />
     <PackageReference Include="MessagePack" Version="1.9.11" />
     <PackageReference Include="Microsoft.AspNetCore.Hosting" Version="2.2.7" />

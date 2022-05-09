@@ -43,7 +43,7 @@ namespace Coflnet.Sky.Commands
             if (expires > DateTime.Now)
             {
                 lastSettings.Tier = AccountTier.PREMIUM;
-                lastSettings.ExpiresAt = data.User.PremiumExpires;
+                lastSettings.ExpiresAt = expires;
             }
             await SubFlipperCommand.UpdateAccountInfo(data, lastSettings);
             await authTask;
