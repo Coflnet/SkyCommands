@@ -34,6 +34,7 @@ namespace Coflnet.Sky.Commands
                 socket.Settings.Changer = arguments.Changer;
                 var settings = socket.FlipSettings.Value;
                 TestSettings(settings);
+                settings.LastChanged = "updated " + arguments.Key;
                 await service.UpdateSetting(data.UserId.ToString(), "flipSettings", socket.Settings);
             }
             finally
