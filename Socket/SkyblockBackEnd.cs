@@ -56,6 +56,8 @@ namespace Coflnet.Sky.Commands
         public SelfUpdatingValue<FlipSettings> FlipSettings;
         public SelfUpdatingValue<AccountInfo> AccountInfo;
 
+        public event Action<SkyblockBackEnd> OnBeforeClose;
+
         /// <summary>
         /// The last or default settings change captured for this user/connection
         /// </summary>
@@ -109,6 +111,7 @@ namespace Coflnet.Sky.Commands
             Commands.Add("getDevices", new GetDeviceListCommand());
             Commands.Add("deleteDevice", new DeleteDeviceCommand());
             Commands.Add("testNotification", new SendTestNotificationCommand());
+            Commands.Add("subEvents", new SubEventsCommand());
 
 
             Commands.Add("setGoogle", new SetGoogleIdCommand());
@@ -326,6 +329,7 @@ namespace Coflnet.Sky.Commands
 
         private new void Close()
         {
+            OnBeforeClose?.Invoke(this);
             Subscribers.TryRemove(Id, out SkyblockBackEnd value);
             NextUpdateStart -= SendNextUpdate;
         }

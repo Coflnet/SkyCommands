@@ -738,3 +738,33 @@ Updates a single flip setting
 Specifying no/empty key will return an error with all options.
 The command will return a `settingsUpdate` on all connections subscribed to flips.
 
+
+## subEvents
+Subscribes to events regarding the current user
+```
+no data
+```
+Events have the command type `event`
+```
+{
+  "id": 0,
+  "reference": "string",
+  "message": "string",
+  "sourceType": "string",
+  "data": { ... },
+  "user": {
+    "id": 0,
+    "userName": "string",
+    "userId": "string",
+    "locale": "string"
+  },
+  "setings": {
+    "id": 0,
+    "confirmDelivery": true,
+    "playSound": true,
+    "storeIfOffline": true
+  },
+  "timestamp": "2022-05-28T12:07:39.109Z"
+}
+```
+The content of the event `data` depends on the source type.
