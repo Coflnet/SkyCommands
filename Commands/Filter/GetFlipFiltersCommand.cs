@@ -13,12 +13,24 @@ namespace Coflnet.Sky.Commands
     {
         public override Task Execute(MessageData data)
         {
-            var additional = FlipFilter.AdditionalFilters.Select(f => new FilterOptions()
+            var additional = FlipFilter.AdditionalFilters.Select(f =>
             {
-                Name = f.Key,
-                Options = f.Value.Options.Select(o => o.ToString()),
-                Type = f.Value.FilterType
-            }).ToList();
+                try
+                {
+                    return
+                new FilterOptions()
+                {
+                    Name = f.Key,
+                    Options = f.Value.Options.Select(o => o.ToString()),
+                    Type = f.Value.FilterType
+                };
+                }
+                catch (System.Exception e)
+                {
+                    data.LogError(e, "Could not get filter options for " + f.Key);
+                    return null;
+                }
+            }).Where(f => f != null).ToList();
             return data.SendBack(data.Create("filterFor", additional, A_DAY / 4));
         }
     }
