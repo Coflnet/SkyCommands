@@ -30,10 +30,8 @@ namespace Coflnet.Sky.Commands
                 else
                 {
                     FlipperService.Instance.AddConnection(con);
-
-                    lastSettings.Tier = AccountTier.PREMIUM;
-                    lastSettings.ExpiresAt = expires;
                 }
+
                 // load settings
                 await updateTask;
                 lastSettings.Settings = con.Settings;
@@ -41,7 +39,7 @@ namespace Coflnet.Sky.Commands
                 if (lastSettings?.Settings?.AllowedFinders == LowPricedAuction.FinderType.UNKOWN)
                     lastSettings.Settings.AllowedFinders = LowPricedAuction.FinderType.FLIPPER;
 
-                var accountUpdateTask = UpdateAccountInfo(data, lastSettings);
+                var accountUpdateTask = UpdateAccountInfo(data, expires);
                 await data.Ok();
                 await accountUpdateTask;
 
@@ -62,16 +60,26 @@ namespace Coflnet.Sky.Commands
                 await data.Ok();
         }
 
-        public static async Task UpdateAccountInfo(MessageData data, SettingsChange lastSettings)
+        public static async Task UpdateAccountInfo(MessageData data, DateTime expires)
         {
             var service = DiHandler.ServiceProvider.GetRequiredService<SettingsService>();
             var con = (data as SocketMessageData).Connection;
-            AccountInfo accountInfo = SettingsToAccountInfo(lastSettings);
+
             try
             {
-                await service.UpdateSetting(data.UserId.ToString(), "accountInfo", accountInfo);
                 if (con.AccountInfo.Value == default)
-                    con.AccountInfo = await SelfUpdatingValue<AccountInfo>.Create(data.UserId.ToString(), "accountInfo");
+                    con.AccountInfo = await SelfUpdatingValue<AccountInfo>.Create(data.UserId.ToString(), "accountInfo", () => new AccountInfo()
+                    {
+                        UserId = data.UserId,
+                    });
+
+                if (expires > DateTime.Now)
+                {
+                    con.AccountInfo.Value.Tier = AccountTier.PREMIUM;
+                    con.AccountInfo.Value.ExpiresAt = expires;
+                    await con.AccountInfo.Update();
+                }
+
             }
             catch (Exception e)
             {

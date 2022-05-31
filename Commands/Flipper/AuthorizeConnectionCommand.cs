@@ -40,17 +40,8 @@ namespace Coflnet.Sky.Commands
 
             lastSettings.UserId = data.UserId;
             var expires = await DiHandler.ServiceProvider.GetService<PremiumService>().ExpiresWhen(data.UserId);
-            if (expires > DateTime.Now)
-            {
-                lastSettings.Tier = AccountTier.PREMIUM;
-                lastSettings.ExpiresAt = expires;
-            }
-            await SubFlipperCommand.UpdateAccountInfo(data, lastSettings);
+            await SubFlipperCommand.UpdateAccountInfo(data, expires);
             await authTask;
-            data.Span.SetTag("conId", newId);
-            var result = await FlipperService.Instance.UpdateSettings(lastSettings);
-            data.Log("status: " + result.Status);
-            data.Log("delivered " + result.Offset.Value);
         }
     }
 }
