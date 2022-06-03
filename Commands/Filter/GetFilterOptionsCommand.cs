@@ -2,6 +2,7 @@ using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using Coflnet.Sky.Filter;
 using Coflnet.Sky.Core;
+using Coflnet.Sky.Items.Client.Api;
 
 namespace Coflnet.Sky.Commands
 {
@@ -11,10 +12,11 @@ namespace Coflnet.Sky.Commands
     public class GetFilterOptionsCommand : Command
     {
         static FilterEngine fe = new FilterEngine();
-        public override Task Execute(MessageData data)
+        public override async Task Execute(MessageData data)
         {
+            var optionsTask = await data.GetService<IItemsApi>().ItemItemTagModifiersAllGetAsync("*");
             var filter = fe.GetFilter(data.GetAs<string>());
-            return data.SendBack(data.Create("filterOptions", new FilterOptions(filter), A_HOUR * 2));
+            await data.SendBack(data.Create("filterOptions", new FilterOptions(filter, optionsTask), A_HOUR * 2));
         }
     }
 }
