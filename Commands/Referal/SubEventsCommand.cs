@@ -7,7 +7,7 @@ namespace Coflnet.Sky.Commands
 {
     public class SubEventsCommand : Command
     {
-        public override async Task Execute(MessageData data)
+        public override Task Execute(MessageData data)
         {
             if(!(data is SocketMessageData socketData))
                 throw new CoflnetException("invalid_protocol", "This is a socket command");
@@ -23,6 +23,7 @@ namespace Coflnet.Sky.Commands
             {
                 sub.Unsubscribe();
             };
+            return Task.CompletedTask;
         }
     }
 }

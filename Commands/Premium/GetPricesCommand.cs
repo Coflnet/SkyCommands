@@ -9,12 +9,7 @@ namespace Coflnet.Sky.Commands
     {
         public override Task Execute(MessageData data)
         {
-            throw new CoflnetException("deactive","We do currently not sell premium. Check back tomorrow :)");
-            var options = new PriceListOptions { Limit = 10 };
-            var service = new PriceService();
-            StripeList<Price> prices = service.List(options);
-
-            return data.SendBack(new MessageData("pricesResponse", JsonConvert.SerializeObject(prices), A_HOUR));
+            throw new CoflnetException("obsolete", "Purchases are handled via the api now");
         }
     }
 }
