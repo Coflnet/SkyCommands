@@ -142,53 +142,8 @@ namespace Coflnet.Sky.Commands.Services
             [JsonProperty("skin")]
             public string Skin { get; set; }
 
-            [JsonProperty("name")]
-            public string Name { get; set; }
-
-            [JsonProperty("furniture")]
-            public string Furniture { get; set; }
-
-            [JsonProperty("tier")]
-            public string Tier { get; set; }
-
-            [JsonProperty("museum")]
-            public bool Museum { get; set; }
-
             [JsonProperty("id")]
             public string Id { get; set; }
-
-            [JsonProperty("generator")]
-            public string Generator { get; set; }
-
-            [JsonProperty("generator_tier")]
-            public int? GeneratorTier { get; set; }
-
-            [JsonProperty("glowing")]
-            public bool? Glowing { get; set; }
-
-            [JsonProperty("category")]
-            public string Category { get; set; }
-
-            [JsonProperty("description")]
-            public string Description { get; set; }
-
-            [JsonProperty("stats")]
-            public Stats Stats { get; set; }
-
-            [JsonProperty("npc_sell_price")]
-            public float? NpcSellPrice { get; set; }
-
-            [JsonProperty("unstackable")]
-            public bool? Unstackable { get; set; }
-
-            [JsonProperty("color")]
-            public string Color { get; set; }
-
-            [JsonProperty("dungeon_item")]
-            public bool? DungeonItem { get; set; }
-
-            [JsonProperty("ability_damage_scaling")]
-            public double? AbilityDamageScaling { get; set; }
         }
     }
 }
