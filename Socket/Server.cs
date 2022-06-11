@@ -218,8 +218,6 @@ namespace Coflnet.Sky.Commands
             }
 
 
-
-            byte[] contents;
             if (path.StartsWith("/static/icon"))
             {
                 await IconResolver.Instance.Resolve(context, path);
@@ -236,7 +234,6 @@ namespace Coflnet.Sky.Commands
             {
                 if (!path.Contains("."))
                     filePath = "index.html";
-                contents = new System.Net.WebClient().DownloadData($"http://{frontendUrl}/{filePath.TrimStart('/')}");
 
             }
             catch (Exception e)
@@ -280,8 +277,6 @@ namespace Coflnet.Sky.Commands
             }
 
             context.AddHeader("cache-control", "public,max-age=" + (3600 * 24 * 30));
-
-            context.WriteAsync(contents);
         }
 
         private static void TrackGeneration(string path, Stopwatch watch, WebsocketRequestContext httpContext)
