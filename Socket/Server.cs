@@ -74,6 +74,10 @@ namespace Coflnet.Sky.Commands
                                     .WithTag("route", e.Request.RawUrl)
                                     .AsChildOf(tracer.Extract(BuiltinFormats.HttpHeaders, new HeaderMap(e.Request.Headers)));
 
+                        if(e.Request.QueryString["tag"] != null)
+                        {
+                            builder.WithTag("tag", e.Request.QueryString["tag"]);
+                        }
                         using (var scope = builder.StartActive(true))
                         {
                             var span = scope.Span;
