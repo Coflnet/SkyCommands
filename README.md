@@ -9,7 +9,7 @@ You can overwrite it via Enviroment variables.
 > **Note**: the keys represent the JSON path of a value and `:` has to be replaced with `__`. eg `TOPICS:FLIP` becomes `TOPICS__FLIP`
 
 # HypixelSkyblock
-This is the back-end for https://sky.coflnet.com 
+This is one of the back-end microservices for https://sky.coflnet.com 
 You can get the same data and play around with it by using this project.
 
 Some endpoints are exposed via REST, see the open-api docs: https://sky.coflnet.com/api
