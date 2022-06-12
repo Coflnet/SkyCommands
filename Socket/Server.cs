@@ -70,7 +70,13 @@ namespace Coflnet.Sky.Commands
                     try
                     {
                         var tracer = OpenTracing.Util.GlobalTracer.Instance;
-                        var builder = tracer.BuildSpan("GET:" + e.Request.RawUrl.Trim('/').Split('/', '?').FirstOrDefault())
+                        var parts = e.Request.RawUrl.Trim('/').Split('/', '?');
+                        var operationName = "GET:" + parts[0];
+                        if(parts.Length >2 && parts[0] == "command")
+                        {
+                            operationName = "GETc:" + parts[1];
+                        }
+                        var builder = tracer.BuildSpan(operationName)
                                     .WithTag("route", e.Request.RawUrl)
                                     .AsChildOf(tracer.Extract(BuiltinFormats.HttpHeaders, new HeaderMap(e.Request.Headers)));
 
