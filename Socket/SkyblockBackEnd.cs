@@ -425,6 +425,8 @@ namespace Coflnet.Sky.Commands
                 return true;
             }
             await FlipperService.FillVisibilityProbs(flip, this.Settings);
+            if(!Settings.MatchesSettings(flip).Item1)
+                return true; // test again after filling visibility probs
             var data = new MessageData("flip", JSON.Stringify(flip), 60);
             FlipSendCount.Inc();
             return TrySendData(data);
