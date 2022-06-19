@@ -42,7 +42,6 @@ namespace Coflnet.Sky.Commands.Services
         {
             var request = new RestRequest("/item/{tag}").AddUrlSegment("tag", tag);
 
-            var details = await ItemDetails.Instance.GetDetailsWithCache(tag);
             /* Most icons are currently available via the texture pack
             if(details.MinecraftType.StartsWith("Leather "))
                 request = new RestRequest("/leather/{type}/{color}")
@@ -52,8 +51,11 @@ namespace Coflnet.Sky.Commands.Services
             var uri = skyLeaClient.BuildUri(request);
             IRestResponse response = await GetProxied(uri, size);
 
+            DBItem details = null;
             if (response.StatusCode != System.Net.HttpStatusCode.OK)
             {
+                dev.Logger.Instance.Error($"Failed to load item preview for {tag} from {uri}");
+                details = await ItemDetails.Instance.GetDetailsWithCache(tag);
                 // mc-heads has issues currently
                 var url = details.IconUrl;
                 if (details.IconUrl == null)
@@ -69,7 +71,7 @@ namespace Coflnet.Sky.Commands.Services
                 Id = tag,
                 Image = response.RawBytes == null ? null : Convert.ToBase64String(response.RawBytes),
                 ImageUrl = uri.ToString(),
-                Name = details.Names.FirstOrDefault(),
+                Name = details?.Names?.FirstOrDefault(),
                 MimeType = response?.ContentType
             };
         }
@@ -86,7 +88,7 @@ namespace Coflnet.Sky.Commands.Services
             if (targetItem.Material == "SKULL_ITEM")
             {
                 dynamic skinData = JsonConvert.DeserializeObject(System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(targetItem.Skin)));
-                url = "https://sky.shiiyu.moe/head/" + ((string)skinData.textures.SKIN.url).Replace("http://textures.minecraft.net/texture/","");
+                url = "https://sky.shiiyu.moe/head/" + ((string)skinData.textures.SKIN.url).Replace("http://textures.minecraft.net/texture/", "");
             }
             else if (targetItem.Material == "INK_SACK")
             {
