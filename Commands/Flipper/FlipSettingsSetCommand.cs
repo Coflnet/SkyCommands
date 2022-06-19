@@ -53,9 +53,9 @@ namespace Coflnet.Sky.Commands
                     {
                         Enchantments = new System.Collections.Generic.List<Enchantment>(),
                         FlatenedNBT = new System.Collections.Generic.Dictionary<string, string>(),
-                        NBTLookup = new System.Collections.Generic.List<NBTLookup>()
-                    },
-                    LastKnownCost = 1
+                        NBTLookup = new System.Collections.Generic.List<NBTLookup>(),
+                        StartingBid = 2
+                    }
                 });
             }
             catch (CoflnetException)
