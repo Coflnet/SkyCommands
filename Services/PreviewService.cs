@@ -15,7 +15,7 @@ namespace Coflnet.Sky.Commands.Services
         private RestClient crafatarClient = new RestClient("https://crafatar.com");
         private RestClient skyLeaClient = new RestClient("https://sky.shiiyu.moe");
         private RestClient skyClient = new RestClient("https://sky.coflnet.com");
-        private RestClient proxyClient = new RestClient("http://imgproxy");
+        private RestClient proxyClient = new RestClient(SimplerConfig.SConfig.Instance["IMGPROXY_BASE_URL"] ?? "http://imgproxy");
         private RestClient hypixelClient = new RestClient("https://api.hypixel.net/");
         static PreviewService()
         {
@@ -51,8 +51,6 @@ namespace Coflnet.Sky.Commands.Services
 
             var uri = skyLeaClient.BuildUri(request);
             IRestResponse response = await GetProxied(uri, size);
-
-
 
             if (response.StatusCode != System.Net.HttpStatusCode.OK)
             {
@@ -105,7 +103,7 @@ namespace Coflnet.Sky.Commands.Services
 
         private async Task<IRestResponse> GetProxied(Uri uri, int size)
         {
-            var proxyRequest = new RestRequest($"/x{size}/" + uri.ToString())
+            var proxyRequest = new RestRequest($"/a/rs:fit:{size}/plain/" + uri.ToString())
                         .AddUrlSegment("size", size);
             var response = await proxyClient.ExecuteAsync(proxyRequest);
             return response;
