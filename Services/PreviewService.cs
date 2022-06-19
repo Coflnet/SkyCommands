@@ -38,6 +38,12 @@ namespace Coflnet.Sky.Commands.Services
             };
         }
 
+        /// <summary>
+        /// Gets image preview for an item
+        /// </summary>
+        /// <param name="tag">The hypixel item tag to get an image for</param>
+        /// <param name="size">the size to get the image in</param>
+        /// <returns></returns>
         public async Task<Preview> GetItemPreview(string tag, int size = 32)
         {
             var request = new RestRequest("/item/{tag}").AddUrlSegment("tag", tag);
