@@ -10,7 +10,7 @@ namespace Coflnet.Sky.Commands
     /// <summary>
     /// Finds icons for given query
     /// </summary>
-    public class IconResolver 
+    public class IconResolver
     {
         public static IconResolver Instance { get; }
 
@@ -32,12 +32,12 @@ namespace Coflnet.Sky.Commands
             PreviewService.Preview preview = null;// await CacheService.Instance.GetFromRedis<PreviewService.Preview>(key);
             var cacheTime = TimeSpan.FromDays(0.1);
             Task save = null;
-            if(preview == null)
+            if (preview == null)
             {
-                if(!ItemDetails.Instance.TagLookup.ContainsKey(tag))
+                if (!ItemDetails.Instance.TagLookup.ContainsKey(tag))
                     throw new CoflnetException("unkown_item", "The requested item was not found, please file a bugreport");
-                preview = await PreviewService.Instance.GetItemPreview(tag,64);
-                if(preview.Image == "cmVxdWVzdGVkIFVSTCBpcyBub3QgYWxsb3dlZAo=" || preview.Image == null)
+                preview = await PreviewService.Instance.GetItemPreview(tag, 64);
+                if (preview.Image == "cmVxdWVzdGVkIFVSTCBpcyBub3QgYWxsb3dlZAo=" || preview.Image == null)
                 {
                     // transparent 64x64 image
                     preview.Image = "iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAQAAAAAYLlVAAAAOUlEQVR42u3OIQEAAAACIP1/2hkWWEBzVgEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAYF3YDicAEE8VTiYAAAAAElFTkSuQmCC";
@@ -46,12 +46,13 @@ namespace Coflnet.Sky.Commands
                     Console.WriteLine("No image found for " + tag);
                     TrackingService.Instance.TrackPage("https://error" + path, "not found/" + tag, null, null);
                 }
-                save = CacheService.Instance.SaveInRedis<PreviewService.Preview>(key,preview,cacheTime);
+                save = CacheService.Instance.SaveInRedis<PreviewService.Preview>(key, preview, cacheTime);
             }
             context.SetContentType(preview.MimeType);
-            //context.AddHeader("cache-control", $"public,max-age={3600*24*365}");
+            if (cacheTime > TimeSpan.FromHours(1))
+                context.AddHeader("cache-control", $"public,max-age={3600 * 24 * 365}");
             context.WriteAsync(Convert.FromBase64String(preview.Image));
-            if(save != null)
+            if (save != null)
                 await save;
         }
     }
