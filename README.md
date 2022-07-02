@@ -10,7 +10,7 @@ You can overwrite it via Enviroment variables.
 
 # HypixelSkyblock
 This is one of the back-end microservices for https://sky.coflnet.com 
-You can get the same data and play around with it by using this project.
+You can get the same data and play around with it by using this project. [more info](https://github.com/coflent/hypixelskyblock)
 
 Some endpoints are exposed via REST, see the open-api docs: https://sky.coflnet.com/api
 
