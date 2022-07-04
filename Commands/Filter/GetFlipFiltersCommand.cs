@@ -1,8 +1,8 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Coflnet.Sky.Commands.Shared;
-using Coflnet.Sky.Filter;
 using Coflnet.Sky.Core;
+using Coflnet.Sky.Filter;
 
 namespace Coflnet.Sky.Commands
 {
@@ -17,13 +17,12 @@ namespace Coflnet.Sky.Commands
             {
                 try
                 {
-                    return
-                new FilterOptions()
-                {
-                    Name = f.Key,
-                    Options = f.Value.Options.Select(o => o.ToString()),
-                    Type = f.Value.FilterType
-                };
+                    return new FilterOptions()
+                    {
+                        Name = f.Key,
+                        Options = f.Value.Options.Select(o => o.ToString()),
+                        Type = f.Value.FilterType
+                    };
                 }
                 catch (System.Exception e)
                 {
