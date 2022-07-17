@@ -8,7 +8,7 @@ namespace Coflnet.Sky.Commands
     {
         public override Task Execute(MessageData data)
         {
-            return data.SendBack(new MessageData("itemNamesResponse",JsonConvert.SerializeObject(ItemDetails.Instance.AllItemNames()),A_WEEK));
+            return data.SendBack(new MessageData("itemNamesResponse", JsonConvert.SerializeObject(ItemDetails.Instance.AllItemNames()), A_WEEK));
         }
     }
 }
