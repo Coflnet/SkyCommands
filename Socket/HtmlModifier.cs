@@ -138,7 +138,7 @@ namespace Coflnet.Sky.Commands
                 Dictionary<string, string> filters = GetFiltersFromQuery(args);
                 description = await ComputeItemSiteDescription(parameter, description, keyword, refBy, filters);
 
-                imageUrl = "https://sky.shiiyu.moe/item/" + parameter;
+                imageUrl = "https://skycrypt.coflnet.com/item/" + parameter;
                 if (parameter.StartsWith("PET_") && !parameter.StartsWith("PET_ITEM") || parameter.StartsWith("POTION"))
                     imageUrl = i.IconUrl;
                 await WriteHeader(path, res, description, title, imageUrl, keyword, header);
@@ -198,7 +198,7 @@ namespace Coflnet.Sky.Commands
 
         private static async Task<string> ComputeItemSiteDescription(string parameter, string description, string keyword, string refBy, Dictionary<string, string> filters)
         {
-            float price = await GetAvgPrice(parameter, filters);
+            var price = await GetAvgPrice(parameter, filters);
             description = $"Price for item {keyword} in hypixel SkyBlock is {price.ToString("0,0.0")} on average. ";
             if (filters != null)
                 description += "FILTERS ➡️ " + String.Join(", ", filters.Where(f => f.Key != "ItemId").Select(f => $"{f.Key}: {f.Value}"));
@@ -235,7 +235,7 @@ namespace Coflnet.Sky.Commands
             return description += $" | Category: {result.Category} | Rarity: {result.Tier}";
         }
 
-        private static async Task<float> GetAvgPrice(string tag, Dictionary<string, string> filter = null)
+        private static async Task<double> GetAvgPrice(string tag, Dictionary<string, string> filter = null)
         {
             try
             {

@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
+using Coflnet.Sky.Commands.Shared;
 using Coflnet.Sky.Core;
+using Coflnet.Sky.Items.Client.Model;
 using Newtonsoft.Json;
 using OpenTracing.Util;
 using RestSharp;
@@ -14,7 +16,7 @@ namespace Coflnet.Sky.Commands.Services
     {
         public static PreviewService Instance;
         private RestClient crafatarClient = new RestClient("https://crafatar.com");
-        private RestClient skyLeaClient = new RestClient("https://sky.shiiyu.moe");
+        private RestClient skyLeaClient = new RestClient("https://skycrypt.coflnet.com");
         private RestClient skyClient = new RestClient("https://sky.coflnet.com");
         private RestClient proxyClient = new RestClient(SimplerConfig.SConfig.Instance["IMGPROXY_BASE_URL"] ?? "http://imgproxy");
         private RestClient hypixelClient = new RestClient("https://api.hypixel.net/");
@@ -58,17 +60,18 @@ namespace Coflnet.Sky.Commands.Services
             var uri = skyLeaClient.BuildUri(request);
             IRestResponse response = await GetProxied(uri, size);
 
-            DBItem details = null;
+            Item details = null;
             if (response.StatusCode != System.Net.HttpStatusCode.OK)
             {
-                dev.Logger.Instance.Error($"Failed to load item preview for {tag} from {uri}");
-                details = await ItemDetails.Instance.GetDetailsWithCache(tag);
+                dev.Logger.Instance.Error($"Failed to load item preview for {tag} from {uri} code {response.StatusCode}");
+                details = await DiHandler.GetService<Items.Client.Api.IItemsApi>().ItemItemTagGetAsync(tag);
                 // mc-heads has issues currently
                 var url = details.IconUrl;
                 if (details.IconUrl == null)
                 {
                     url = await GetIconUrl(tag);
                 };
+                Console.WriteLine($"alternate url {url}");
                 uri = skyClient.BuildUri(new RestRequest(url));
                 response = await GetProxied(uri, size);
             }
@@ -78,7 +81,7 @@ namespace Coflnet.Sky.Commands.Services
                 Id = tag,
                 Image = response.RawBytes == null ? null : Convert.ToBase64String(response.RawBytes),
                 ImageUrl = uri.ToString(),
-                Name = details?.Names?.FirstOrDefault(),
+                Name = details?.Name,
                 MimeType = response?.ContentType
             };
         }
@@ -92,19 +95,20 @@ namespace Coflnet.Sky.Commands.Services
             Console.Write(JsonConvert.SerializeObject(itemData).Truncate(200));
             if (targetItem == null)
                 throw new CoflnetException("unkown_item", "there was no image found for the item " + tag);
+            var skycryptBase = "https://skycrypt.coflnet.com";
             if (targetItem.Material == "SKULL_ITEM")
             {
                 dynamic skinData = JsonConvert.DeserializeObject(System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(targetItem.Skin)));
-                url = "https://sky.shiiyu.moe/head/" + ((string)skinData.textures.SKIN.url).Replace("http://textures.minecraft.net/texture/", "");
+                url = skycryptBase + "/head/" + ((string)skinData.textures.SKIN.url).Replace("http://textures.minecraft.net/texture/", "");
                 GlobalTracer.Instance.ActiveSpan.Log("headUrl " + url);
             }
             else if (targetItem.Material == "INK_SACK")
             {
-                url = $"https://sky.shiiyu.moe/item/{targetItem.Material}:{targetItem.Durability}";
+                url = $"{skycryptBase}/item/{targetItem.Material}:{targetItem.Durability}";
             }
             else
             {
-                url = "https://sky.shiiyu.moe/item/" + targetItem.Material;
+                url = skycryptBase + "/item/" + targetItem.Material;
             }
             Console.WriteLine(url);
 
