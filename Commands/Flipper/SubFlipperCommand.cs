@@ -42,11 +42,6 @@ namespace Coflnet.Sky.Commands
                 var accountUpdateTask = UpdateAccountInfo(data, expires);
                 await data.Ok();
                 await accountUpdateTask;
-
-                if (MessagePack.MessagePackSerializer.Serialize(con.Settings).SequenceEqual(MessagePack.MessagePackSerializer.Serialize(lastSettings.Settings)))
-                    return; // nothing actually changed
-
-                await FlipperService.Instance.UpdateSettings(lastSettings);
                 return;
             }
             catch (CoflnetException)
