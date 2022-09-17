@@ -24,12 +24,20 @@ namespace Coflnet.Sky.Commands
 
                 var lastSettings = con.LatestSettings;
 
-                var expires = await DiHandler.ServiceProvider.GetService<PremiumService>().ExpiresWhen(data.UserId);
-                if (expires < DateTime.UtcNow)
+                var expires = await DiHandler.ServiceProvider.GetService<PremiumService>().GetCurrentTier(data.UserId);
+                switch(expires.Item1){
+                    case AccountTier.STARTER_PREMIUM:
+                        FlipperService.Instance.AddStarterConnection(con);
+                        break;
+                    case AccountTier.PREMIUM:
+                        FlipperService.Instance.AddConnection(con);
+                        break;
+                    case AccountTier.PREMIUM_PLUS:
+                        FlipperService.Instance.AddConnectionPlus(con);
+                        break;
+                    default:
                     FlipperService.Instance.AddNonConnection(con);
-                else
-                {
-                    FlipperService.Instance.AddConnection(con);
+                        break;
                 }
 
                 // load settings
@@ -39,7 +47,7 @@ namespace Coflnet.Sky.Commands
                 if (lastSettings?.Settings?.AllowedFinders == LowPricedAuction.FinderType.UNKOWN)
                     lastSettings.Settings.AllowedFinders = LowPricedAuction.FinderType.FLIPPER;
 
-                var accountUpdateTask = UpdateAccountInfo(data, expires);
+                var accountUpdateTask = UpdateAccountInfo(data, expires.Item2);
                 await data.Ok();
                 await accountUpdateTask;
                 return;
