@@ -14,7 +14,7 @@ namespace Coflnet.Sky.Commands
             {
                 var userId = data.UserId;
 
-                var request = new RestRequest("Subscription/{userId}/sub/all", Method.DELETE)
+                var request = new RestRequest("Subscription/{userId}/sub/all", Method.Delete)
                     .AddUrlSegment("userId", userId);
                 var response = await SubscribeClient.Client.ExecuteAsync(request);
 

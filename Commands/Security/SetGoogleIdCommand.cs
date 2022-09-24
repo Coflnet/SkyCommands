@@ -34,7 +34,7 @@ namespace Coflnet.Sky.Commands
             }
             catch (Exception)
             {
-                var request = new RestRequest("user", Method.POST).AddJsonBody(new GoogleUser() { GoogleId = token.Subject, Email = token.Email });
+                var request = new RestRequest("user", Method.Post).AddJsonBody(new GoogleUser() { GoogleId = token.Subject, Email = token.Email });
                 var response = await IndexerClient.Client.ExecuteAsync<GoogleUser>(request);
                 user = response.Data;
                 Console.WriteLine("created new user " + user.Id);

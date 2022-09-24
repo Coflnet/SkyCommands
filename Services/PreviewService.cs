@@ -58,7 +58,7 @@ namespace Coflnet.Sky.Commands.Services
                     .AddUrlSegment("color", details.color.Replace(":",",")); */
 
             var uri = skyLeaClient.BuildUri(request);
-            IRestResponse response = await GetProxied(uri, size);
+            var response = await GetProxied(uri, size);
 
             Item details = null;
             if (response.StatusCode != System.Net.HttpStatusCode.OK)
@@ -115,7 +115,7 @@ namespace Coflnet.Sky.Commands.Services
             return url;
         }
 
-        private async Task<IRestResponse> GetProxied(Uri uri, int size)
+        private async Task<RestResponse> GetProxied(Uri uri, int size)
         {
             var proxyRequest = new RestRequest($"/a/rs:fit:{size}/plain/" + uri.ToString())
                         .AddUrlSegment("size", size);

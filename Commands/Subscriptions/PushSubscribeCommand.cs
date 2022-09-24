@@ -28,7 +28,7 @@ namespace Coflnet.Sky.Commands
                     throw new NoPremiumException("Nonpremium users can only have 3 subscriptions");
             }
 
-            var request = new RestRequest("Subscription/{userId}/sub", Method.POST)
+            var request = new RestRequest("Subscription/{userId}/sub", Method.Post)
                 .AddJsonBody(new SubscribeItem()
                 {
                     Type = args.Type,

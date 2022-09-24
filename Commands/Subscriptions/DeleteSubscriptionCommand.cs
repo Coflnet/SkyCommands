@@ -15,7 +15,7 @@ namespace Coflnet.Sky.Commands
                 var args = data.GetAs<Arguments>();
                 var userId = data.UserId;
 
-                var request = new RestRequest("Subscription/{userId}/sub", Method.DELETE)
+                var request = new RestRequest("Subscription/{userId}/sub", Method.Delete)
                     .AddJsonBody(new SubscribeItem()
                     {
                         Type = args.Type,

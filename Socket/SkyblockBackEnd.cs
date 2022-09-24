@@ -64,6 +64,8 @@ namespace Coflnet.Sky.Commands
         /// <returns></returns>
         public SettingsChange LatestSettings { get; set; } = new SettingsChange();
 
+        AccountInfo IFlipConnection.AccountInfo => throw new NotImplementedException();
+
         private TimeLimiter limiter;
         public static event Action NextUpdateStart;
         private static System.Threading.Timer updateTimer;
@@ -481,6 +483,14 @@ namespace Coflnet.Sky.Commands
         void IFlipConnection.Log(string message, Microsoft.Extensions.Logging.LogLevel level)
         {
             // has no log target
+        }
+
+        public async Task SendBatch(IEnumerable<LowPricedAuction> flips)
+        {
+            foreach (var flip in flips)
+            {
+                await SendFlip(flip);
+            }
         }
     }
 }

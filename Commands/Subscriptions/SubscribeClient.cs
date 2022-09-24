@@ -13,7 +13,7 @@ namespace Coflnet.Sky.Commands
 
         public static async Task<UserResponse> GetSubscriptions(int userId)
         {
-            var userSubsRequest = new RestRequest("Subscription/{userId}", Method.GET)
+            var userSubsRequest = new RestRequest("Subscription/{userId}", Method.Get)
                 .AddUrlSegment("userId", userId);
 
             var subscriptionsResponse = (await SubscribeClient.Client.ExecuteAsync(userSubsRequest)).Content;
