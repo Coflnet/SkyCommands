@@ -60,7 +60,7 @@ namespace Coflnet.Sky.Commands.Services
             var uri = skyLeaClient.BuildUri(request);
             var response = await GetProxied(uri, size);
 
-            Item details = null;
+            Items.Client.Model.Item details = null;
             if (response.StatusCode != System.Net.HttpStatusCode.OK)
             {
                 dev.Logger.Instance.Error($"Failed to load item preview for {tag} from {uri} code {response.StatusCode}");

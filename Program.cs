@@ -23,7 +23,6 @@ namespace SkyCommands
             RunIsolatedForever(FlipperService.Instance.ListentoUnavailableTopics, "flip wait");
             RunIsolatedForever(FlipperService.Instance.ListenToNewFlips, "flip wait");
             RunIsolatedForever(FlipperService.Instance.ListenToLowPriced, "low priced auctions");
-            RunIsolatedForever(FlipperService.Instance.ListenForSettingsChange, "settings sync");
 
             // hook up cache refreshing
             CacheService.Instance.OnCacheRefresh += Server.ExecuteCommandHeadless;
