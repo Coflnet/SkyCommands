@@ -257,7 +257,8 @@ namespace Coflnet.Sky.Commands
             //context.ContentEncoding = Encoding.UTF8;
             if (filePath == "index.html" && !filePath.EndsWith(".js") && !filePath.EndsWith(".css"))
             {
-                throw new Exception("site generation is now handled by the frontent");
+                await context.WriteAsync("site generation is now handled by the frontent itself.");
+                return;
             }
 
 
