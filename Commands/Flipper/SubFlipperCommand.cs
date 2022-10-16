@@ -40,6 +40,7 @@ namespace Coflnet.Sky.Commands
                         FlipperService.Instance.AddNonConnection(con);
                         break;
                 }
+                await data.SendBack(data.Create("debug", $"Subbed to tier " + expires.Item1));
 
                 // load settings
                 await updateTask;
