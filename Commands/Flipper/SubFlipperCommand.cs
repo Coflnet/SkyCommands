@@ -54,9 +54,10 @@ namespace Coflnet.Sky.Commands
                 await accountUpdateTask;
                 return;
             }
-            catch (CoflnetException)
+            catch (CoflnetException e)
             {
                 FlipperService.Instance.AddNonConnection(con);
+                await data.SendBack(data.Create("debug", $"exception " + e));
             }
             // not logged no settings, tell the frontend (request its settings)
             if (settings == null)
