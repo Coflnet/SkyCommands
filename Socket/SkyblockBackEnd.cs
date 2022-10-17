@@ -427,7 +427,7 @@ namespace Coflnet.Sky.Commands
                 return true;
             }
             await FlipperService.FillVisibilityProbs(flip, this.Settings);
-            if(!Settings.MatchesSettings(flip).Item1)
+            if (!Settings.MatchesSettings(flip).Item1)
                 return true; // test again after filling visibility probs
             var data = new MessageData("flip", JSON.Stringify(flip));
             FlipSendCount.Inc();
@@ -483,6 +483,8 @@ namespace Coflnet.Sky.Commands
         void IFlipConnection.Log(string message, Microsoft.Extensions.Logging.LogLevel level)
         {
             // has no log target
+            if (UserId < 10)
+                Console.WriteLine(level + ": " + message);
         }
 
         public async Task SendBatch(IEnumerable<LowPricedAuction> flips)
