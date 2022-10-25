@@ -40,6 +40,7 @@ namespace Coflnet.Sky.Commands
                 Console.WriteLine("created new user " + user.Id);
             }
             data.UserId = user.Id;
+            await data.Ok();
             try
             {
                 if ((data is SocketMessageData con))
@@ -47,6 +48,13 @@ namespace Coflnet.Sky.Commands
                     var settings = await CacheService.Instance.GetFromRedis<SettingsChange>("uflipset" + user.Id);
                     if (settings != null)
                         con.Connection.LatestSettings = settings;
+                    con.Connection.AccountInfo = await SelfUpdatingValue<AccountInfo>.Create(user.Id.ToString(), "accountInfo");
+                    var accountInfo = con.Connection.AccountInfo;
+                    if(string.IsNullOrEmpty(accountInfo.Value.Locale))
+                    {
+                        accountInfo.Value.Locale = token.Locale;
+                        await accountInfo.Update();
+                    }
                 }
             }
             catch (Exception e)
@@ -54,7 +62,6 @@ namespace Coflnet.Sky.Commands
                 dev.Logger.Instance.Error(e, "loading flip settings on login");
             }
             loginCount.Inc();
-            await data.Ok();
         }
 
         public static async Task<GoogleJsonWebSignature.Payload> ValidateToken(string token)
