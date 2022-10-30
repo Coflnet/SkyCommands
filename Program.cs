@@ -20,17 +20,9 @@ namespace SkyCommands
             var itemLoad = ItemDetails.Instance.LoadLookup();
             var serverTask = Task.Run(() => server.Start()).ConfigureAwait(false);
 
-            RunIsolatedForever(FlipperService.Instance.ListentoUnavailableTopics, "flip wait");
-            RunIsolatedForever(FlipperService.Instance.ListenToNewFlips, "flip wait");
-            RunIsolatedForever(FlipperService.Instance.ListenToLowPriced, "low priced auctions");
-
             // hook up cache refreshing
             CacheService.Instance.OnCacheRefresh += Server.ExecuteCommandHeadless;
-            var ignore = Task.Run(async () =>
-            {
-                await itemLoad;
-                RunIsolatedForever(FlipperService.Instance.ProcessSlowQueue, "flip process slow", 10);
-            }).ConfigureAwait(false);
+
             CreateHostBuilder(args).Build().Run();
         }
 
