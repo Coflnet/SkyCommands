@@ -64,7 +64,7 @@ namespace Coflnet.Sky.Commands
         /// <returns></returns>
         public SettingsChange LatestSettings { get; set; } = new SettingsChange();
 
-        AccountInfo IFlipConnection.AccountInfo => throw new NotImplementedException();
+        AccountInfo IFlipConnection.AccountInfo => AccountInfo;
 
         private TimeLimiter limiter;
         public static event Action NextUpdateStart;
