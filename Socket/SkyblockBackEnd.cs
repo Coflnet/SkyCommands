@@ -182,7 +182,7 @@ namespace Coflnet.Sky.Commands
                             }
                         }, null, next - DateTime.Now, TimeSpan.FromMinutes(1));
                 }
-                updateTimer.Change(next - DateTime.Now, TimeSpan.FromMinutes(1));
+                updateTimer.Change(next - DateTime.Now, TimeSpan.FromSeconds(59));
             });
         }
 
