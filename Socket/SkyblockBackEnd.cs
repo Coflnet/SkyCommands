@@ -489,7 +489,6 @@ namespace Coflnet.Sky.Commands
 
         public async Task SendBatch(IEnumerable<LowPricedAuction> flips)
         {
-            SendBack(new MessageData("debug", "batchSize" + flips.Count()));
             foreach (var flip in flips)
             {
                 await SendFlip(flip);
