@@ -489,6 +489,11 @@ namespace Coflnet.Sky.Commands
 
         public async Task SendBatch(IEnumerable<LowPricedAuction> flips)
         {
+            if(ConnectionState == WebSocketState.Closed)
+            {
+                FlipperService.Instance.RemoveConnection(this);
+                return;
+            }
             foreach (var flip in flips)
             {
                 await SendFlip(flip);
