@@ -40,26 +40,27 @@ namespace Coflnet.Sky.Commands
                 Console.WriteLine("created new user " + user.Id);
             }
             data.UserId = user.Id;
-            await data.Ok();
             try
             {
                 if ((data is SocketMessageData con))
                 {
-                    var settings = await CacheService.Instance.GetFromRedis<SettingsChange>("uflipset" + user.Id);
-                    if (settings != null)
-                        con.Connection.LatestSettings = settings;
                     con.Connection.AccountInfo = await SelfUpdatingValue<AccountInfo>.Create(user.Id.ToString(), "accountInfo");
+                    await data.Ok();
                     var accountInfo = con.Connection.AccountInfo;
-                    if(string.IsNullOrEmpty(accountInfo.Value.Locale))
+                    if (string.IsNullOrEmpty(accountInfo.Value.Locale))
                     {
                         accountInfo.Value.Locale = token.Locale;
                         await accountInfo.Update();
                     }
+                    var settings = await CacheService.Instance.GetFromRedis<SettingsChange>("uflipset" + user.Id);
+                    if (settings != null)
+                        con.Connection.LatestSettings = settings;
                 }
             }
             catch (Exception e)
             {
                 dev.Logger.Instance.Error(e, "loading flip settings on login");
+                await data.Ok();
             }
             loginCount.Inc();
         }
