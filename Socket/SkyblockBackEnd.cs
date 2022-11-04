@@ -494,6 +494,7 @@ namespace Coflnet.Sky.Commands
                 FlipperService.Instance.RemoveConnection(this);
                 return;
             }
+            await Task.Delay(500); // make sure nobody skips mod delay with website socket
             foreach (var flip in flips)
             {
                 await SendFlip(flip);
