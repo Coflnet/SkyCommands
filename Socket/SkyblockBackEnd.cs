@@ -455,6 +455,7 @@ namespace Coflnet.Sky.Commands
             var data = new MessageData("flip", JSON.Stringify(flip));
 
             await TrackFlipReceive(flip);
+            await Task.Delay(flipDelay); // make sure nobody skips mod delay with website socket
             FlipSendCount.Inc();
             return TrySendData(data);
         }
@@ -533,7 +534,6 @@ namespace Coflnet.Sky.Commands
                 FlipperService.Instance.RemoveConnection(this);
                 return;
             }
-            await Task.Delay(flipDelay); // make sure nobody skips mod delay with website socket
             foreach (var flip in flips)
             {
                 await SendFlip(flip);
