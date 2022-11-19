@@ -55,6 +55,7 @@ namespace Coflnet.Sky.Commands
 
         public SelfUpdatingValue<FlipSettings> FlipSettings;
         public SelfUpdatingValue<AccountInfo> AccountInfo;
+        private TimeSpan flipDelay = TimeSpan.FromSeconds(2);
 
         public event Action<SkyblockBackEnd> OnBeforeClose;
 
@@ -343,7 +344,29 @@ namespace Coflnet.Sky.Commands
             {
                 await Task.Delay(TimeSpan.FromSeconds(30));
                 this.TrySendData(new MessageData("ping", null));
+                await UpdateFlipDelay();
             });
+        }
+
+        /// <summary>
+        /// Ask the flip tracker service for an flip delay estimate
+        /// Uses a simplified calculation compared to the mod just to stop people from using the website socket instead.
+        /// </summary>
+        /// <returns></returns>
+        private async Task UpdateFlipDelay()
+        {
+            if (AccountInfo?.Value?.McIds == null || AccountInfo.Value.McIds.Count == 0)
+                return; // leave delay at default of 2 if no account verified
+            try
+            {
+                var breakdown = await DiHandler.GetService<FlipTrackingService>().GetSpeedComp(AccountInfo.Value.McIds);
+                var hourCount = breakdown?.Times?.Where(t => t.TotalSeconds > 1).GroupBy(t => System.TimeSpan.Parse(t.Age).Hours).Count() ?? 0;
+                flipDelay = TimeSpan.FromSeconds((breakdown?.Penalty ?? 2) + Math.Min(hourCount, 5));
+            }
+            catch (System.Exception e)
+            {
+                dev.Logger.Instance.Error(e, "trying to update delay");
+            }
         }
 
         protected override void OnOpen()
@@ -430,8 +453,24 @@ namespace Coflnet.Sky.Commands
             if (!Settings.MatchesSettings(flip).Item1)
                 return true; // test again after filling visibility probs
             var data = new MessageData("flip", JSON.Stringify(flip));
+
+            await TrackFlipReceive(flip);
             FlipSendCount.Inc();
             return TrySendData(data);
+        }
+
+        /// <summary>
+        /// Tracks flip receive to estimate buy time (and prevent macroing)
+        /// </summary>
+        /// <param name="flip"></param>
+        /// <returns></returns>
+        private async Task TrackFlipReceive(FlipInstance flip)
+        {
+            var flippingAs = AccountInfo?.Value?.McIds?.LastOrDefault();
+            if (flippingAs != null)
+                // this is actually syncronous
+                await DiHandler.GetService<FlipTrackingService>()
+                    .ReceiveFlip(flip.Uuid, flippingAs, DateTime.Now);
         }
 
         private bool TrySendData(MessageData data)
@@ -489,12 +528,12 @@ namespace Coflnet.Sky.Commands
 
         public async Task SendBatch(IEnumerable<LowPricedAuction> flips)
         {
-            if(ConnectionState == WebSocketState.Closed)
+            if (ConnectionState == WebSocketState.Closed)
             {
                 FlipperService.Instance.RemoveConnection(this);
                 return;
             }
-            await Task.Delay(500); // make sure nobody skips mod delay with website socket
+            await Task.Delay(flipDelay); // make sure nobody skips mod delay with website socket
             foreach (var flip in flips)
             {
                 await SendFlip(flip);
