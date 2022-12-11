@@ -523,7 +523,7 @@ namespace Coflnet.Sky.Commands
         void IFlipConnection.Log(string message, Microsoft.Extensions.Logging.LogLevel level)
         {
             // has no log target
-            if (UserId < 10)
+            if (_userId != 0 && UserId < 10)
                 Console.WriteLine(level + ": " + message);
         }
 
