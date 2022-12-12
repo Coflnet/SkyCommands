@@ -64,7 +64,7 @@ namespace Coflnet.Sky.Commands.Services
             if (response.StatusCode != System.Net.HttpStatusCode.OK)
             {
                 dev.Logger.Instance.Error($"Failed to load item preview for {tag} from {uri} code {response.StatusCode}");
-                details = await DiHandler.GetService<Items.Client.Api.IItemsApi>().ItemItemTagGetAsync(tag);
+                details = await DiHandler.GetService<Items.Client.Api.IItemsApi>().ItemItemTagGetAsync(tag, true);
                 // mc-heads has issues currently
                 var url = details.IconUrl;
                 if (details.IconUrl == null)
