@@ -67,6 +67,12 @@ namespace Coflnet.Sky.Commands.Services
                 details = await DiHandler.GetService<Items.Client.Api.IItemsApi>().ItemItemTagGetAsync(tag, true);
                 // mc-heads has issues currently
                 var url = details.IconUrl;
+                if(url.StartsWith("https://sky.coflnet.com"))
+                    return new Preview()
+                    {
+                        Id = tag,
+                        Name = "image unobtainable (loop)",
+                    };
                 if (details.IconUrl == null)
                 {
                     url = await GetIconUrl(tag);
