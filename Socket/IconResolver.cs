@@ -37,7 +37,7 @@ namespace Coflnet.Sky.Commands
                 if (!ItemDetails.Instance.TagLookup.ContainsKey(tag))
                     throw new CoflnetException("unkown_item", "The requested item was not found, please file a bugreport");
                 preview = await PreviewService.Instance.GetItemPreview(tag, 64);
-                if (preview.Image == "cmVxdWVzdGVkIFVSTCBpcyBub3QgYWxsb3dlZAo=" || preview.Image == null)
+                if (preview.Image == "cmVxdWVzdGVkIFVSTCBpcyBub3QgYWxsb3dlZAo=" || preview.Image == null || preview.Image.Length < 50)
                 {
                     // transparent 64x64 image
                     preview.Image = "iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAQAAAAAYLlVAAAAOUlEQVR42u3OIQEAAAACIP1/2hkWWEBzVgEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAYF3YDicAEE8VTiYAAAAAElFTkSuQmCC";
