@@ -51,6 +51,8 @@ namespace Coflnet.Sky.Commands
             context.SetContentType(preview.MimeType);
             if (cacheTime > TimeSpan.FromHours(1))
                 context.AddHeader("cache-control", $"public,max-age={3600 * 24 * 365}");
+            else
+                context.AddHeader("cache-control", $"public,max-age=120");
             context.WriteAsync(Convert.FromBase64String(preview.Image));
             if (save != null)
                 await save;
