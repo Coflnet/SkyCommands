@@ -65,8 +65,12 @@ namespace Coflnet.Sky.Commands.Services
             {
                 dev.Logger.Instance.Error($"Failed to load item preview for {tag} from {uri} code {response.StatusCode}");
                 details = await DiHandler.GetService<Items.Client.Api.IItemsApi>().ItemItemTagGetAsync(tag, true);
-                // mc-heads has issues currently
                 var url = details.IconUrl;
+                if (details.IconUrl == null)
+                {
+                    Console.WriteLine($"retrieving from api");
+                    url = await GetIconUrl(tag);
+                };
                 if (url.StartsWith("https://sky.coflnet.com"))
                 {
                     Console.WriteLine($"skipping loop {url}");
@@ -76,11 +80,6 @@ namespace Coflnet.Sky.Commands.Services
                         Name = "image unobtainable (loop)",
                     };
                 }
-                if (details.IconUrl == null)
-                {
-                    Console.WriteLine($"retrieving from api");
-                    url = await GetIconUrl(tag);
-                };
                 Console.WriteLine($"alternate url {url}");
                 uri = skyClient.BuildUri(new RestRequest(url));
                 response = await GetProxied(uri, size);
@@ -89,7 +88,7 @@ namespace Coflnet.Sky.Commands.Services
             return new Preview()
             {
                 Id = tag,
-                Image = response.RawBytes == null ? null : Convert.ToBase64String(response.RawBytes),
+                Image = response?.RawBytes == null ? null : Convert.ToBase64String(response.RawBytes),
                 ImageUrl = uri.ToString(),
                 Name = details?.Name,
                 MimeType = response?.ContentType
