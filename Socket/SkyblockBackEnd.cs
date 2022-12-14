@@ -455,7 +455,8 @@ namespace Coflnet.Sky.Commands
             var data = new MessageData("flip", JSON.Stringify(flip));
 
             await TrackFlipReceive(flip);
-            await Task.Delay(flipDelay); // make sure nobody skips mod delay with website socket
+            if (flipDelay > TimeSpan.FromSeconds(0))
+                await Task.Delay(flipDelay); // make sure nobody skips mod delay with website socket
             FlipSendCount.Inc();
             return TrySendData(data);
         }
