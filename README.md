@@ -768,3 +768,4 @@ Events have the command type `event`
 }
 ```
 The content of the event `data` depends on the source type.
+
