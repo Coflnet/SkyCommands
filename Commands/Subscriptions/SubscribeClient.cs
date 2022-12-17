@@ -9,7 +9,9 @@ namespace Coflnet.Sky.Commands
 {
     public static class SubscribeClient
     {
-        public static RestClient Client = new RestClient("http://" + SimplerConfig.Config.Instance["SUBSCRIPTION_HOST"]);
+        public static RestClient Client = new RestClient(
+                    SimplerConfig.Config.Instance["SUBSCRIPTION_BASE_URL"] 
+                    ?? "http://" + SimplerConfig.Config.Instance["SUBSCRIPTION_HOST"]);
 
         public static async Task<UserResponse> GetSubscriptions(int userId)
         {
