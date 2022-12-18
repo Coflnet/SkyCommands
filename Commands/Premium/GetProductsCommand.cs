@@ -4,6 +4,7 @@ using Coflnet.Payments.Client.Api;
 using Newtonsoft.Json;
 using Stripe;
 using Coflnet.Sky.Core;
+using Coflnet.Sky.Commands.Shared;
 
 namespace Coflnet.Sky.Commands
 {
@@ -11,7 +12,7 @@ namespace Coflnet.Sky.Commands
     {
         public override async Task Execute(MessageData data)
         {
-            var productsApi = new ProductsApi("http://" + SimplerConfig.Config.Instance["PAYMENTS_HOST"]);
+            var productsApi = DiHandler.GetService<UserApi>();
             var topUpProducts = await productsApi.ProductsTopupGetAsync(0,100);
 
             await data.SendBack(new MessageData("productsResponse", JsonConvert.SerializeObject(topUpProducts), A_HOUR));

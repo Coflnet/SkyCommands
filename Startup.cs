@@ -47,17 +47,18 @@ namespace SkyCommands
             services.AddScoped<PricesService>();
             services.AddSingleton<AuctionService>();
             services.AddDbContext<HypixelContext>();
+            var paymentsUrl = Configuration["PAYMENTS_BASE_URL"] ?? "http://" + Configuration["PAYMENTS_HOST"];
             services.AddSingleton<ProductsApi>(sp =>
             {
-                return new ProductsApi("http://" + SimplerConfig.Config.Instance["PAYMENTS_HOST"]);
+                return new ProductsApi(paymentsUrl);
             });
             services.AddSingleton<UserApi>(sp =>
             {
-                return new UserApi("http://" + SimplerConfig.Config.Instance["PAYMENTS_HOST"]);
+                return new UserApi(paymentsUrl);
             });
             services.AddSingleton<TopUpApi>(sp =>
             {
-                return new TopUpApi("http://" + SimplerConfig.Config.Instance["PAYMENTS_HOST"]);
+                return new TopUpApi(paymentsUrl);
             });
 
 

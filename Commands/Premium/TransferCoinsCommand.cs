@@ -2,6 +2,7 @@ using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using Coflnet.Payments.Client.Api;
 using Coflnet.Sky.Core;
+using Coflnet.Sky.Commands.Shared;
 
 namespace Coflnet.Sky.Commands
 {
@@ -10,7 +11,7 @@ namespace Coflnet.Sky.Commands
         public override bool Cacheable => false;
         public override async Task Execute(MessageData data)
         {
-            var productsApi = new UserApi("http://" + SimplerConfig.Config.Instance["PAYMENTS_HOST"]);
+            var userApi = DiHandler.GetService<UserApi>();
             var args = data.GetAs<TransferRequest>();
             var targetUser = "0";
             if(!string.IsNullOrEmpty(args.TargetUserEmail))
@@ -26,7 +27,7 @@ namespace Coflnet.Sky.Commands
                 throw new CoflnetException("missing_argument","Either `email` or `mcId` have to be passed to know where to send funds to");
             if(targetUser == "0")
                 throw new CoflnetException("not_found","There was no user found with this identifier");
-            var transaction = await productsApi.UserUserIdTransferPostAsync(data.UserId.ToString(), new Coflnet.Payments.Client.Model.TransferRequest()
+            var transaction = await userApi.UserUserIdTransferPostAsync(data.UserId.ToString(), new Coflnet.Payments.Client.Model.TransferRequest()
             {
                 Amount = args.Amount,
                 Reference = (args.TargetUserEmail ?? args.TargetUserMc) + args.Reference.Truncate(5),
