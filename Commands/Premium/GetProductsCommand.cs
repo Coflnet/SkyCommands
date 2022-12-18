@@ -12,7 +12,7 @@ namespace Coflnet.Sky.Commands
     {
         public override async Task Execute(MessageData data)
         {
-            var productsApi = DiHandler.GetService<UserApi>();
+            var productsApi = DiHandler.GetService<ProductsApi>();
             var topUpProducts = await productsApi.ProductsTopupGetAsync(0,100);
 
             await data.SendBack(new MessageData("productsResponse", JsonConvert.SerializeObject(topUpProducts), A_HOUR));
