@@ -14,6 +14,8 @@ using Prometheus;
 using System.Diagnostics;
 using OpenTracing.Propagation;
 using Coflnet.Sky.Core;
+using System.Collections.Generic;
+using Coflnet.Sky.Commands.Shared;
 
 namespace Coflnet.Sky.Commands
 {
@@ -72,7 +74,7 @@ namespace Coflnet.Sky.Commands
                         var tracer = OpenTracing.Util.GlobalTracer.Instance;
                         var parts = e.Request.RawUrl.Trim('/').Split('/', '?');
                         var operationName = "GET:" + parts[0];
-                        if(parts.Length >2 && parts[0] == "command")
+                        if (parts.Length > 2 && parts[0] == "command")
                         {
                             operationName = "GETc:" + parts[1];
                         }
@@ -80,7 +82,7 @@ namespace Coflnet.Sky.Commands
                                     .WithTag("route", e.Request.RawUrl)
                                     .AsChildOf(tracer.Extract(BuiltinFormats.HttpHeaders, new HeaderMap(e.Request.Headers)));
 
-                        if(e.Request.QueryString["tag"] != null)
+                        if (e.Request.QueryString["tag"] != null)
                         {
                             builder.WithTag("tag", e.Request.QueryString["tag"]);
                         }
@@ -399,10 +401,13 @@ namespace Coflnet.Sky.Commands
                 requestErrors.Inc();
                 context.SetStatusCode(500);
 
-                using var span = OpenTracing.Util.GlobalTracer.Instance.BuildSpan("error").WithTag("error",true).StartActive();
-                span.Span.Log(ex.ToString());
-                var traceId = System.Net.Dns.GetHostName().Replace("commands", "").Trim('-') + "." + span.Span.Context.TraceId;
-                await data.SendBack(new MessageData("error", JsonConvert.SerializeObject(new { Slug = "error", Message = "An unexpected internal error occured, make sure the format of Data is correct", traceId })));
+                var source = DiHandler.GetService<ActivitySource>();
+                using var activity = source.StartActivity("error", ActivityKind.Producer);
+                activity.AddEvent(new ActivityEvent("error", default, new ActivityTagsCollection(new KeyValuePair<string, object>[] {
+                        new ("error", ex?.Message),
+                        new ("stack", ex?.StackTrace) })));
+                var traceId = System.Net.Dns.GetHostName().Replace("commands", "").Trim('-') + "." + activity?.TraceId;
+                await data.SendBack(new MessageData("error", JsonConvert.SerializeObject(new { Slug = "error", Message = "An unexpected internal error occured, make sure the format of Data is correct " + activity?.TraceId, traceId })));
                 TrackingService.Instance.CommandError(data.Type);
                 dev.Logger.Instance.Error(ex, "Fatal error on Command");
             }
