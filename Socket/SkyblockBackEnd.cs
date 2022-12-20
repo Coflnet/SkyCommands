@@ -2,7 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Diagnostics;
 using MessagePack;
 using WebSocketSharp;
 using WebSocketSharp.Server;
@@ -252,25 +252,19 @@ namespace Coflnet.Sky.Commands
                 {
                     if (Commands[data.Type].Cacheable && (await CacheService.Instance.TryFromCacheAsync(data)).IsFlagSet(CacheStatus.VALID))
                         return;
-                    var tracer = OpenTracing.Util.GlobalTracer.Instance;
-                    var builder = tracer.BuildSpan(data.Type)
-                            .WithTag("type", "websocket")
-                            .WithTag("body", data.Data.Truncate(20));
+                    var source = DiHandler.GetService<ActivitySource>();
 
-                    using (var scope = builder.StartActive(true))
+                    using var span = source.StartActivity(data.Type).AddTag("type", "websocket").AddTag("body", data.Data.Truncate(20));
+                    data.Span = span;
+                    try
                     {
-                        var span = scope.Span;
-                        data.Span = span;
-                        try
-                        {
-                            await Commands[data.Type].Execute(data);
-                        }
-                        catch (Exception e)
-                        {
-                            data.LogError(e, "executing command");
-                            traceId = scope.Span.Context.TraceId;
-                            throw;
-                        }
+                        await Commands[data.Type].Execute(data);
+                    }
+                    catch (Exception e)
+                    {
+                        data.LogError(e, "executing command");
+                        traceId = span.TraceId.ToString();
+                        throw;
                     }
                 }
                 catch (CoflnetException ex)

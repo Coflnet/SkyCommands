@@ -5,7 +5,7 @@ using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using Coflnet.Sky.Commands.Shared;
 using Coflnet.Sky.Core;
-using Coflnet.Sky.Items.Client.Model;
+using System.Diagnostics;
 using Newtonsoft.Json;
 using OpenTracing.Util;
 using RestSharp;
@@ -109,7 +109,7 @@ namespace Coflnet.Sky.Commands.Services
             {
                 dynamic skinData = JsonConvert.DeserializeObject(System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(targetItem.Skin)));
                 url = skycryptBase + "/head/" + ((string)skinData.textures.SKIN.url).Replace("http://textures.minecraft.net/texture/", "");
-                GlobalTracer.Instance.ActiveSpan.Log("headUrl " + url);
+                Activity.Current?.AddTag("headUrl", url);
             }
             else if (targetItem.Material == "INK_SACK")
             {

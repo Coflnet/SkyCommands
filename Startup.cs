@@ -18,6 +18,7 @@ using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
 using Prometheus;
 using StackExchange.Redis;
+using System.Diagnostics;
 
 namespace SkyCommands
 {
@@ -143,15 +144,16 @@ namespace SkyCommands
                     }
                     else
                     {
-                        using var span = OpenTracing.Util.GlobalTracer.Instance.BuildSpan("error").StartActive();
-                        span.Span.Log(exceptionHandlerPathFeature?.Error?.Message);
-                        span.Span.Log(exceptionHandlerPathFeature?.Error?.StackTrace);
-                        var traceId = System.Net.Dns.GetHostName().Replace("commands", "").Trim('-') + "." + span.Span.Context.TraceId;
+                        var spanProvider = DiHandler.GetService<ActivitySource>();
+                        using var span = spanProvider.StartActivity("error");
+                        span.AddTag("message", exceptionHandlerPathFeature?.Error?.Message);
+                        span.AddTag("stackTrace", exceptionHandlerPathFeature?.Error?.StackTrace);
+                        var traceId = System.Net.Dns.GetHostName().Replace("commands", "").Trim('-') + "." + span.TraceId;
                         await context.Response.WriteAsync(
                             JsonConvert.SerializeObject(new
                             {
                                 Slug = "internal_error",
-                                Message = "An unexpected internal error occured. Please check that your request is valid. If it is please report he error and include the Trace.",
+                                Message = "An unexpected internal error occured. Please check that your request is valid. If it is please report he error and include the Trace " + span.TraceId,
                                 Trace = traceId
                             }));
                     }

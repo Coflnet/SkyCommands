@@ -71,26 +71,23 @@ namespace Coflnet.Sky.Commands
                 {
                     try
                     {
-                        var tracer = OpenTracing.Util.GlobalTracer.Instance;
                         var parts = e.Request.RawUrl.Trim('/').Split('/', '?');
                         var operationName = "GET:" + parts[0];
                         if (parts.Length > 2 && parts[0] == "command")
                         {
                             operationName = "GETc:" + parts[1];
                         }
-                        var builder = tracer.BuildSpan(operationName)
-                                    .WithTag("route", e.Request.RawUrl)
-                                    .AsChildOf(tracer.Extract(BuiltinFormats.HttpHeaders, new HeaderMap(e.Request.Headers)));
+
+                        var spanProvider = DiHandler.GetService<ActivitySource>();
+                        using var span = spanProvider.StartActivity(operationName).AddTag("route", e.Request.RawUrl);
+                        //   .AsChildOf(tracer.Extract(BuiltinFormats.HttpHeaders, new HeaderMap(e.Request.Headers)));
 
                         if (e.Request.QueryString["tag"] != null)
                         {
-                            builder.WithTag("tag", e.Request.QueryString["tag"]);
+                            span.AddTag("tag", e.Request.QueryString["tag"]);
                         }
-                        using (var scope = builder.StartActive(true))
-                        {
-                            var span = scope.Span;
-                            await AnswerGetRequest(new WebsocketRequestContext(e, span));
-                        }
+                        await AnswerGetRequest(new WebsocketRequestContext(e, span));
+
 
                     }
                     catch (CoflnetException ex)
@@ -455,17 +452,17 @@ namespace Coflnet.Sky.Commands
                     if (RecentlyStartedCommands.TryGetValue(key, out SemaphoreSlim value))
                     {
                         await value.WaitAsync(200 + new Random().Next(300));
-                        OpenTracing.Util.GlobalTracer.Instance.ActiveSpan?.SetTag("cache", "waited");
+                        Activity.Current?.SetTag("cache", "waited");
                         // if it is available now, return it
                         if ((await CacheService.Instance.TryFromCacheAsync(data)).IsFlagSet(CacheStatus.VALID))
                         {
-                            OpenTracing.Util.GlobalTracer.Instance.ActiveSpan?.Log("hit after wait");
+                            Activity.Current?.AddTag("hit after wait", true);
                             return;
                         }
                     }
                     RecentlyStartedCommands[key] = new SemaphoreSlim(1, 1);
 
-                    OpenTracing.Util.GlobalTracer.Instance.ActiveSpan?.Log("miss");
+                    Activity.Current?.SetTag("cache", "miss");
                     await SkyblockBackEnd.Commands[data.Type].Execute(data);
                 }
                 finally
@@ -476,7 +473,7 @@ namespace Coflnet.Sky.Commands
             }
             else
             {
-                OpenTracing.Util.GlobalTracer.Instance.ActiveSpan?.SetTag("cache", "hit");
+                Activity.Current?.SetTag("cache", "hit");
             }
         }
 

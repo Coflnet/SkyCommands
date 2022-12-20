@@ -3,6 +3,7 @@ using WebSocketSharp;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using Coflnet.Sky.Core;
+using System.Diagnostics;
 
 namespace Coflnet.Sky.Commands
 {
@@ -10,7 +11,7 @@ namespace Coflnet.Sky.Commands
         {
             public HttpRequestEventArgs original;
 
-            public WebsocketRequestContext(HttpRequestEventArgs original, OpenTracing.ISpan span)
+            public WebsocketRequestContext(HttpRequestEventArgs original, Activity span)
             {
                 this.original = original;
                 this.original.Response.SendChunked = true;
