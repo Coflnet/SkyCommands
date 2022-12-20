@@ -87,8 +87,6 @@ namespace Coflnet.Sky.Commands
                             span.AddTag("tag", e.Request.QueryString["tag"]);
                         }
                         await AnswerGetRequest(new WebsocketRequestContext(e, span));
-
-
                     }
                     catch (CoflnetException ex)
                     {
@@ -97,24 +95,14 @@ namespace Coflnet.Sky.Commands
                         getEvent.Response.WriteContent(Encoding.UTF8.GetBytes(ex.Message));
                         return;
                     }
-
                 }
                 catch (Exception ex)
                 {
                     dev.Logger.Instance.Error(ex, $"Ran into an error on get `{e.Request.RawUrl}`");
                     return;
                 }
-
             };
 
-            server.OnPost += async (sender, e) =>
-            {
-
-
-                //if (e.Request.RawUrl.StartsWith("/command/"))
-                //    await HandleCommand(e.Request, e.Response);
-
-            };
             server.Log.Output = (a, b) =>
             {
                 Console.Write("socket error " + a.Message + b);
@@ -125,8 +113,6 @@ namespace Coflnet.Sky.Commands
             await Task.Delay(Timeout.Infinite);
             server.Stop();
         }
-
-
 
         private static RestClient aspNet;
         private static string ProdFrontend;
