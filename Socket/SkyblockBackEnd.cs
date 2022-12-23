@@ -430,6 +430,8 @@ namespace Coflnet.Sky.Commands
 
         public void SendBack(MessageData data)
         {
+            if(ConnectionState == WebSocketState.Closed)
+                return;
             Send(MessagePackSerializer.ToJson(data));
         }
 
