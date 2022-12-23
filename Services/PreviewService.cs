@@ -63,10 +63,12 @@ namespace Coflnet.Sky.Commands.Services
             Items.Client.Model.Item details = null;
             if (response.StatusCode != System.Net.HttpStatusCode.OK)
             {
-                dev.Logger.Instance.Error($"Failed to load item preview for {tag} from {uri} code {response.StatusCode}");
+                var isPet = tag.StartsWith("PET_");
+                if (!isPet)
+                    dev.Logger.Instance.Error($"Failed to load item preview for {tag} from {uri} code {response.StatusCode}");
                 details = await DiHandler.GetService<Items.Client.Api.IItemsApi>().ItemItemTagGetAsync(tag, true);
                 var url = details.IconUrl;
-                if (details.IconUrl == null)
+                if (details.IconUrl == null && !isPet)
                 {
                     Console.WriteLine($"retrieving from api");
                     url = await GetIconUrl(tag);
