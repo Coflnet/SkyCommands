@@ -44,7 +44,7 @@ namespace Coflnet.Sky.Commands
             {
                 if ((data is SocketMessageData con))
                 {
-                    con.Connection.AccountInfo = await SelfUpdatingValue<AccountInfo>.Create(user.Id.ToString(), "accountInfo");
+                    con.Connection.AccountInfo = await SelfUpdatingValue<AccountInfo>.Create(user.Id.ToString(), "accountInfo", () => new());
                     await data.Ok();
                     var accountInfo = con.Connection.AccountInfo;
                     if (string.IsNullOrEmpty(accountInfo.Value.Locale))
