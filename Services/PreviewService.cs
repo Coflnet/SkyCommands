@@ -104,6 +104,8 @@ namespace Coflnet.Sky.Commands.Services
             var itemData = JsonConvert.DeserializeObject<HypixelItems>(itemDataString.Content);
             var targetItem = itemData.Items.Where(i => i.Id == tag).FirstOrDefault();
             Console.Write(JsonConvert.SerializeObject(itemData).Truncate(200));
+            if (targetItem == null && tag.StartsWith("POTION_"))
+                return skyLeaClient.BuildUri(new RestRequest("/item/POTION")).ToString();
             if (targetItem == null)
                 throw new CoflnetException("unkown_item", "there was no image found for the item " + tag);
             var skycryptBase = "https://skycrypt.coflnet.com";
