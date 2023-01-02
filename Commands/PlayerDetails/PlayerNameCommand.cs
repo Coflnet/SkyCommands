@@ -18,7 +18,7 @@ namespace Coflnet.Sky.Commands
                 return data.Create("nameResponse", uuid, 60);
             var name = await PlayerSearch.Instance.GetName(uuid);
             // player names don't change often, but are easy to compute
-            return data.Create("nameResponse", name, 0);
+            return data.Create("nameResponse", name, 600);
         }
     }
 }
