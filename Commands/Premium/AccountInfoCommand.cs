@@ -3,8 +3,9 @@ using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using Coflnet.Sky.Commands;
 using Newtonsoft.Json;
-using RestSharp;
+using System;
 using Coflnet.Sky.Core;
+using Coflnet.Sky.Commands.Shared;
 
 namespace Coflnet.Sky.Commands
 {
@@ -19,7 +20,8 @@ namespace Coflnet.Sky.Commands
             var activeAccount = await McAccountService.Instance.GetActiveAccount(user.Id);
                     
             if (activeAccount != null && activeAccount.AccountUuid != null)
-                mcName = await PlayerSearch.Instance.GetNameWithCacheAsync(activeAccount.AccountUuid);
+                mcName = (await DiHandler.GetService<PlayerName.Client.Api.PlayerNameApi>()
+                    .PlayerNameNameUuidGetAsync(activeAccount.AccountUuid)).Trim('"');
             await data.SendBack(data.Create("acInfo", new Response(user.Email, token, activeAccount?.AccountUuid, mcName)));
         }
 

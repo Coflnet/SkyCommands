@@ -37,7 +37,8 @@ namespace Coflnet.Sky.Commands.Services
                 Id = id,
                 Image = response.RawBytes == null ? null : Convert.ToBase64String(response.RawBytes),
                 ImageUrl = uri.ToString(),
-                Name = await PlayerSearch.Instance.GetName(id)
+                Name = await Shared.DiHandler.GetService<PlayerName.PlayerNameService>()
+                    .GetName(id)
             };
         }
 
