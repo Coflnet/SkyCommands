@@ -29,6 +29,7 @@ namespace Coflnet.Sky.Commands
         public int SubFlipMsgId;
 
         private static Prometheus.Counter FlipSendCount = Prometheus.Metrics.CreateCounter("sky_commands_flip_send", "How many flips were sent ");
+        private static Prometheus.Gauge OpenSessions = Prometheus.Metrics.CreateGauge("sky_commands_connections", "How many connections are open");
 
         private int _userId;
         /// <summary>
@@ -371,6 +372,7 @@ namespace Coflnet.Sky.Commands
             base.OnOpen();
             SetConnectionId(this.ID);
             NextUpdateStart += SendNextUpdate;
+            OpenSessions.Set(Sessions.Count);
         }
 
         public void SetConnectionId(string stringId)

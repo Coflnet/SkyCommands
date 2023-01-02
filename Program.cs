@@ -32,28 +32,6 @@ namespace SkyCommands
                 {
                     webBuilder.UseStartup<Startup>();
                 });
-
-        private static TaskFactory factory = new TaskFactory();
-        public static void RunIsolatedForever(Func<Task> todo, string message, int backoff = 2000)
-        {
-            factory.StartNew(async () =>
-            {
-                while (true)
-                {
-                    try
-                    {
-                        await todo();
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine();
-                        Console.WriteLine($"{message}: {e.Message} {e.StackTrace}\n {e.InnerException?.Message} {e.InnerException?.StackTrace} {e.InnerException?.InnerException?.Message} {e.InnerException?.InnerException?.StackTrace}");
-                        await Task.Delay(2000);
-                    }
-                    await Task.Delay(backoff);
-                }
-            }, TaskCreationOptions.LongRunning).ConfigureAwait(false);
-        }
     }
 
     public static class CommandSettings
