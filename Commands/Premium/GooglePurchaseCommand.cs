@@ -2,7 +2,6 @@ using System.Security.Cryptography.X509Certificates;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Services;
 using Newtonsoft.Json;
-using Stripe;
 using Google.Apis.AndroidPublisher.v3;
 using System;
 using MessagePack;

@@ -2,7 +2,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Coflnet.Payments.Client.Api;
 using Newtonsoft.Json;
-using Stripe;
 using Coflnet.Sky.Core;
 using Coflnet.Sky.Commands.Shared;
 

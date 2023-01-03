@@ -50,7 +50,6 @@
     <PackageReference Include="SimplerConfig" Version="1.0.4" />
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0007" />
     <PackageReference Include="StackExchange.Redis" Version="2.2.4" />
-    <PackageReference Include="Stripe.net" Version="39.31.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.1.5" />
     <PackageReference Include="Swashbuckle.AspNetCore.Newtonsoft" Version="6.1.5" />
     <PackageReference Include="Coflnet.Sky.Items.Client" Version="0.8.0" />

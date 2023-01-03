@@ -98,7 +98,6 @@ namespace Coflnet.Sky.Commands
             Commands.Add("pricerdicer", new PricerDicerCommand());
             Commands.Add("recentAuctions", new GetRecentAuctionsCommand());
             Commands.Add("activeAuctions", new GetActiveAuctionsCommand());
-            Commands.Add("paymentSession", new CreatePaymentCommand());
             Commands.Add("premiumExpiration", new PremiumExpirationCommand());
             Commands.Add("setConId", new SetConnectionIdCommand());
             Commands.Add("getRefInfo", new GetRefInfoCommand());
