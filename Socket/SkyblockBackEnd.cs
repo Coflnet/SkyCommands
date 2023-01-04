@@ -129,7 +129,6 @@ namespace Coflnet.Sky.Commands
             Commands.Add("getProducts", new GetProductsCommand());
             Commands.Add("getPrices", new GetPricesCommand());
             Commands.Add("gPurchase", new GooglePurchaseCommand());
-            Commands.Add("paypalPurchase", new ValidatePaypalCommand());
 
             Commands.Add("getFilter", new GetFilterOptionsCommand());
             Commands.Add("filterFor", new GetFilterForCommand());
