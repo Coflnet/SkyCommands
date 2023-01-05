@@ -39,7 +39,7 @@ namespace Coflnet.Sky.Commands
 
 
             lastSettings.UserId = data.UserId;
-            var expires = await DiHandler.ServiceProvider.GetService<PremiumService>().GetCurrentTier(data.UserId);
+            var expires = await DiHandler.ServiceProvider.GetService<PremiumService>().GetCurrentTier(data.UserId.ToString());
             await SubFlipperCommand.UpdateAccountInfo(data, expires);
             await authTask;
         }

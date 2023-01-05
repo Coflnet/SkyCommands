@@ -24,7 +24,7 @@ namespace Coflnet.Sky.Commands
 
                 var lastSettings = con.LatestSettings;
 
-                var expires = await DiHandler.ServiceProvider.GetService<PremiumService>().GetCurrentTier(data.UserId);
+                var expires = await DiHandler.ServiceProvider.GetService<PremiumService>().GetCurrentTier(data.UserId.ToString());
                 switch (expires.Item1)
                 {
                     case AccountTier.STARTER_PREMIUM:
@@ -76,7 +76,7 @@ namespace Coflnet.Sky.Commands
                 if (con.AccountInfo.Value == default)
                     con.AccountInfo = await SelfUpdatingValue<AccountInfo>.Create(data.UserId.ToString(), "accountInfo", () => new AccountInfo()
                     {
-                        UserId = data.UserId,
+                        UserId = data.UserId.ToString(),
                     });
 
 
@@ -130,17 +130,6 @@ namespace Coflnet.Sky.Commands
             data.SendBack(update, false);
         }
 
-        private static AccountInfo SettingsToAccountInfo(SettingsChange lastSettings)
-        {
-            return new AccountInfo()
-            {
-                ConIds = lastSettings.ConIds,
-                ExpiresAt = lastSettings.ExpiresAt,
-                McIds = lastSettings.McIds,
-                Tier = lastSettings.Tier,
-                UserId = lastSettings.UserId
-            };
-        }
 
         protected FlipSettings GetSettings(MessageData data)
         {

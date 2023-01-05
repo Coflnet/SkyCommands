@@ -48,6 +48,8 @@ namespace Coflnet.Sky.Commands
                 _userId = value;
             }
         }
+        string IFlipConnection.UserId => UserId.ToString(); 
+        
 
         public FlipSettings Settings => FlipSettings?.Value ?? OldFallbackSettings;
 
@@ -128,7 +130,6 @@ namespace Coflnet.Sky.Commands
             Commands.Add("transferCofl", new TransferCoinsCommand());
             Commands.Add("getProducts", new GetProductsCommand());
             Commands.Add("getPrices", new GetPricesCommand());
-            Commands.Add("gPurchase", new GooglePurchaseCommand());
 
             Commands.Add("getFilter", new GetFilterOptionsCommand());
             Commands.Add("filterFor", new GetFilterForCommand());
