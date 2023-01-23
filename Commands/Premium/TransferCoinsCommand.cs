@@ -14,30 +14,37 @@ namespace Coflnet.Sky.Commands
             var userApi = DiHandler.GetService<UserApi>();
             var args = data.GetAs<TransferRequest>();
             var targetUser = "0";
-            if(!string.IsNullOrEmpty(args.TargetUserEmail))
+            if (!string.IsNullOrEmpty(args.TargetUserEmail))
                 targetUser = (await UserService.Instance.GetUserIdByEmail(args.TargetUserEmail)).ToString();
-            else if(!string.IsNullOrEmpty(args.TargetUserMc) && args.TargetUserMc.Length == 32)
+            else if (!string.IsNullOrEmpty(args.TargetUserMc) && args.TargetUserMc.Length == 32)
             {
                 var userInfo = await McAccountService.Instance.GetUserId(args.TargetUserMc);
-                if(userInfo == null)
+                if (userInfo == null)
                     throw new CoflnetException("not_found", "That user doesn't have any verified accounts. Please tell them to connect their Minecraft account to their Coflnet account or ask them for their email");
                 targetUser = userInfo.ExternalId;
             }
-            else 
-                throw new CoflnetException("missing_argument","Either `email` or `mcId` have to be passed to know where to send funds to");
-            if(targetUser == "0")
-                throw new CoflnetException("not_found","There was no user found with this identifier");
-            var transaction = await userApi.UserUserIdTransferPostAsync(data.UserId.ToString(), new Coflnet.Payments.Client.Model.TransferRequest()
+            else
+                throw new CoflnetException("missing_argument", "Either `email` or `mcId` have to be passed to know where to send funds to");
+            if (targetUser == "0")
+                throw new CoflnetException("not_found", "There was no user found with this identifier");
+            try
             {
-                Amount = args.Amount,
-                Reference = (args.TargetUserEmail ?? args.TargetUserMc) + args.Reference.Truncate(5),
-                TargetUser = targetUser
-            });
-            await data.SendBack(data.Create("success", args.Amount));
+                var transaction = await userApi.UserUserIdTransferPostAsync(data.UserId.ToString(), new Coflnet.Payments.Client.Model.TransferRequest()
+                {
+                    Amount = args.Amount,
+                    Reference = (args.TargetUserEmail ?? args.TargetUserMc) + args.Reference.Truncate(5),
+                    TargetUser = targetUser
+                });
+                await data.SendBack(data.Create("success", args.Amount));
+            }
+            catch (Payments.Client.Client.ApiException ex)
+            {
+                throw new CoflnetException("payment_error", ex.Message.Substring("Error calling UserUserIdTransferPost: {.Message.:".Length));
+            }
         }
 
         [DataContract]
-        public class TransferRequest 
+        public class TransferRequest
         {
             [DataMember(Name = "email")]
             public string TargetUserEmail;
