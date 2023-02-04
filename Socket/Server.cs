@@ -109,7 +109,6 @@ namespace Coflnet.Sky.Commands
             };
             server.Start();
             Console.WriteLine("started http");
-            //Console.ReadKey (true);
             await Task.Delay(Timeout.Infinite);
             server.Stop();
         }
