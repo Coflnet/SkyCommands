@@ -12,6 +12,8 @@ namespace Coflnet.Sky.Commands
         {
             var productsApi = DiHandler.GetService<UserApi>();
             var userData = await productsApi.UserUserIdGetAsync(data.UserId.ToString());
+            if(userData == null)
+                throw new CoflnetException("user_balance_unretrievable","We had issues loading your balance, if this persists please contact support");
             await data.SendBack(data.Create("coflBalance", userData.Balance));
         }
     }
