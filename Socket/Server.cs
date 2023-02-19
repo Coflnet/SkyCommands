@@ -48,7 +48,6 @@ namespace Coflnet.Sky.Commands
             server = new HttpServer(port);
 
             server.AddWebSocketService<SkyblockBackEnd>(urlPath);
-            //server.AddWebSocketService<MinecraftSocket>("/modsocket");
             // do NOT timeout after 60 sec
             server.KeepClean = false;
             server.OnOptions += (sender, e) =>
