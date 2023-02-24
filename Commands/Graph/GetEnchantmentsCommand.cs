@@ -23,5 +23,3 @@ namespace Coflnet.Sky.Commands
         }
     }
 }
-
-
