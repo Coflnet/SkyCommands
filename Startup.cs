@@ -19,6 +19,7 @@ using Newtonsoft.Json;
 using Prometheus;
 using StackExchange.Redis;
 using System.Diagnostics;
+using Coflnet.Sky.Commands.Services;
 
 namespace SkyCommands
 {
@@ -61,6 +62,7 @@ namespace SkyCommands
             {
                 return new TopUpApi(paymentsUrl);
             });
+            services.AddSingleton<PreviewService>();
 
 
             services.AddSwaggerGenNewtonsoftSupport();

@@ -9,20 +9,24 @@ using System.Diagnostics;
 using Newtonsoft.Json;
 using OpenTracing.Util;
 using RestSharp;
+using Microsoft.Extensions.Configuration;
 
 namespace Coflnet.Sky.Commands.Services
 {
     public class PreviewService
     {
-        public static PreviewService Instance;
-        private RestClient crafatarClient = new RestClient("https://crafatar.com");
-        private RestClient skyLeaClient = new RestClient("https://skycrypt.coflnet.com");
-        private RestClient skyClient = new RestClient("https://sky.coflnet.com");
-        private RestClient proxyClient = new RestClient(SimplerConfig.SConfig.Instance["IMGPROXY_BASE_URL"] ?? "http://imgproxy");
-        private RestClient hypixelClient = new RestClient("https://api.hypixel.net/");
-        static PreviewService()
+        private RestClient crafatarClient;
+        private RestClient skyCryptClient;
+        private RestClient skyClient;
+        private RestClient proxyClient;
+        private RestClient hypixelClient;
+        public PreviewService(IConfiguration config)
         {
-            Instance = new PreviewService();
+            skyClient = new RestClient(config["SKY_BASE_URL"] ?? "https://sky.coflnet.com");
+            skyCryptClient = new RestClient(config["SKYCRYPT_BASE_URL"] ?? "https://skycrypt.coflnet.com");
+            crafatarClient = new RestClient(config["CRAFATAR_BASE_URL"] ?? "https://crafatar.com");
+            proxyClient = new RestClient(config["IMGPROXY_BASE_URL"] ?? "http://imgproxy");
+            hypixelClient = new RestClient(config["HYPIXEL_BASE_URL"] ?? "https://api.hypixel.net/");
         }
 
         public async Task<Preview> GetPlayerPreview(string id)
@@ -58,7 +62,7 @@ namespace Coflnet.Sky.Commands.Services
                     .AddUrlSegment("type", details.MinecraftType.Replace("Leather ","").ToLower())
                     .AddUrlSegment("color", details.color.Replace(":",",")); */
 
-            var uri = skyLeaClient.BuildUri(request);
+            var uri = skyCryptClient.BuildUri(request);
             var response = await GetProxied(uri, size);
 
             Items.Client.Model.Item details = null;
@@ -106,7 +110,7 @@ namespace Coflnet.Sky.Commands.Services
             var targetItem = itemData.Items.Where(i => i.Id == tag).FirstOrDefault();
             Console.Write(JsonConvert.SerializeObject(itemData).Truncate(200));
             if (targetItem == null && tag.StartsWith("POTION_"))
-                return skyLeaClient.BuildUri(new RestRequest("/item/POTION")).ToString();
+                return skyCryptClient.BuildUri(new RestRequest("/item/POTION")).ToString();
             if (targetItem == null)
                 throw new CoflnetException("unkown_item", "there was no image found for the item " + tag);
             var skycryptBase = "https://skycrypt.coflnet.com";

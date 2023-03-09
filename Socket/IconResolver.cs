@@ -3,7 +3,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Coflnet.Sky.Commands.Services;
+using Coflnet.Sky.Commands.Shared;
 using Coflnet.Sky.Core;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Coflnet.Sky.Commands
 {
@@ -36,7 +38,7 @@ namespace Coflnet.Sky.Commands
             {
                 if (!ItemDetails.Instance.TagLookup.ContainsKey(tag))
                     throw new CoflnetException("unkown_item", "The requested item was not found, please file a bugreport");
-                preview = await PreviewService.Instance.GetItemPreview(tag, 64);
+                preview = await DiHandler.ServiceProvider.GetRequiredService<PreviewService>().GetItemPreview(tag, 64);
                 if (preview.Image == "cmVxdWVzdGVkIFVSTCBpcyBub3QgYWxsb3dlZAo=" || preview.Image == null || preview.Image.Length < 50)
                 {
                     // transparent 64x64 image
