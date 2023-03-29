@@ -131,35 +131,7 @@ namespace SkyCommands
 
             app.UseExceptionHandler(errorApp =>
             {
-                errorApp.Run(async context =>
-                {
-                    context.Response.StatusCode = (int)HttpStatusCode.InternalServerError; ;
-                    context.Response.ContentType = "text/json";
-
-                    var exceptionHandlerPathFeature =
-                        context.Features.Get<IExceptionHandlerPathFeature>();
-
-                    if (exceptionHandlerPathFeature?.Error is CoflnetException ex)
-                    {
-                        await context.Response.WriteAsync(
-                                        JsonConvert.SerializeObject(new { ex.Slug, ex.Message }));
-                    }
-                    else
-                    {
-                        var spanProvider = DiHandler.GetService<ActivitySource>();
-                        using var span = spanProvider.StartActivity("error");
-                        span.AddTag("message", exceptionHandlerPathFeature?.Error?.Message);
-                        span.AddTag("stackTrace", exceptionHandlerPathFeature?.Error?.StackTrace);
-                        var traceId = System.Net.Dns.GetHostName().Replace("commands", "").Trim('-') + "." + span.TraceId;
-                        await context.Response.WriteAsync(
-                            JsonConvert.SerializeObject(new
-                            {
-                                Slug = "internal_error",
-                                Message = "An unexpected internal error occured. Please check that your request is valid. If it is please report he error and include the Trace " + span.TraceId,
-                                Trace = traceId
-                            }));
-                    }
-                });
+                ErrorHandler.Add(errorApp, "commands");
             });
 
             app.UseEndpoints(endpoints =>

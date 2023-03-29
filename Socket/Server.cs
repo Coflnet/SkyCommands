@@ -349,14 +349,14 @@ namespace Coflnet.Sky.Commands
                     catch (CoflnetException ex)
                     {
                         context.SetStatusCode(400);
-                        await context.WriteAsync(JsonConvert.SerializeObject(new { ex.Slug, ex.Message }));
+                        await WriteError(context, ex);
                     }
                     catch (Exception e)
                     {
                         if (e.InnerException is CoflnetException ex)
                         {
                             context.SetStatusCode(400);
-                            await context.WriteAsync(JsonConvert.SerializeObject(new { ex.Slug, ex.Message }));
+                            await WriteError(context, ex);
 
                         }
                         else
@@ -375,7 +375,7 @@ namespace Coflnet.Sky.Commands
             catch (CoflnetException ex)
             {
                 context.SetStatusCode(400);
-                await context.WriteAsync(JsonConvert.SerializeObject(new { ex.Slug, ex.Message }));
+                await WriteError(context, ex);
             }
             catch (Exception ex)
             {
@@ -388,10 +388,15 @@ namespace Coflnet.Sky.Commands
                         new ("error", ex?.Message),
                         new ("stack", ex?.StackTrace) })));
                 var traceId = System.Net.Dns.GetHostName().Replace("commands", "").Trim('-') + "." + activity?.TraceId;
-                await data.SendBack(new MessageData("error", JsonConvert.SerializeObject(new { Slug = "error", Message = "An unexpected internal error occured, make sure the format of Data is correct " + activity?.TraceId, traceId })));
+                await data.SendBack(new MessageData("error", JsonConvert.SerializeObject(new { slug = "error", message = "An unexpected internal error occured, make sure the format of Data is correct " + activity?.TraceId, traceId })));
                 TrackingService.Instance.CommandError(data.Type);
                 dev.Logger.Instance.Error(ex, "Fatal error on Command");
             }
+        }
+
+        private static async Task WriteError(RequestContext context, CoflnetException ex)
+        {
+            await context.WriteAsync(JsonConvert.SerializeObject(new { slug = ex.Slug, message = ex.Message }));
         }
 
         public static void ExecuteCommandHeadless(MessageData data)

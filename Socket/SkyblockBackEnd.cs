@@ -48,8 +48,8 @@ namespace Coflnet.Sky.Commands
                 _userId = value;
             }
         }
-        string IFlipConnection.UserId => UserId.ToString(); 
-        
+        string IFlipConnection.UserId => UserId.ToString();
+
 
         public FlipSettings Settings => FlipSettings?.Value ?? OldFallbackSettings;
 
@@ -286,9 +286,9 @@ namespace Coflnet.Sky.Commands
                     dev.Logger.Instance.Error($"Fatal error on Command {JsonConvert.SerializeObject(data)} {ex.Message} {ex.StackTrace} \n{ex.InnerException?.Message} {ex.InnerException?.StackTrace}");
                     await data.SendBack(new MessageData("error", JsonConvert.SerializeObject(new
                     {
-                        Slug = "unknown",
-                        Message = "An unexpected error occured, please report this with the trace id " + traceId,
-                        TraceId = traceId
+                        slug = "unknown",
+                        message = "An unexpected error occured, please report this with the trace id " + traceId,
+                        traceId = traceId
                     }))
                     { mId = data.mId });
                 }
@@ -297,7 +297,7 @@ namespace Coflnet.Sky.Commands
 
         private static Task SendCoflnetException(SocketMessageData data, CoflnetException ex)
         {
-            return data.SendBack(new MessageData("error", JsonConvert.SerializeObject(new { ex.Slug, ex.Message })) { mId = data.mId });
+            return data.SendBack(new MessageData("error", JsonConvert.SerializeObject(new { slug = ex.Slug, message = ex.Message })) { mId = data.mId });
         }
 
         private static SocketMessageData ParseData(string body)
@@ -431,7 +431,7 @@ namespace Coflnet.Sky.Commands
 
         public void SendBack(MessageData data)
         {
-            if(ConnectionState == WebSocketState.Closed)
+            if (ConnectionState == WebSocketState.Closed)
                 return;
             Send(MessagePackSerializer.ToJson(data));
         }
