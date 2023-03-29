@@ -32,7 +32,6 @@ namespace Coflnet.Sky.Commands
                     .AddQueryParameter("url", "http://s/search/" + value)
                     .AddQueryParameter("cid", "1234567890abcdef")
                     .AddQueryParameter("pf_srv", genMs));
-
         }
 
         public void TrackPage(string url, string title, MessageData data)
