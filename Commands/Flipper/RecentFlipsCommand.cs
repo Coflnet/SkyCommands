@@ -9,13 +9,13 @@ namespace Coflnet.Sky.Commands
     {
         public override Task Execute(MessageData data)
         {
-            var flipps = FlipperService.Instance.Flipps.Take(50);
+            var flipps = data.GetService<FlipperService>().Flipps.Take(50);
             try
             {
                 if (data.UserId != 0)
-                    flipps = FlipperService.Instance.Flipps.Skip(50).Take(50);
+                    flipps = data.GetService<FlipperService>().Flipps.Skip(50).Take(50);
                 if (data.User.HasPremium)
-                    flipps = FlipperService.Instance.Flipps.Reverse().Skip(2).Take(50);
+                    flipps = data.GetService<FlipperService>().Flipps.Reverse().Skip(2).Take(50);
             }
             catch (CoflnetException)
             {

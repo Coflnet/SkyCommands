@@ -402,7 +402,7 @@ namespace Coflnet.Sky.Commands
         public static void ExecuteCommandHeadless(MessageData data)
         {
             if (!SkyblockBackEnd.Commands.TryGetValue(data.Type, out Command command))
-                return; // unkown command
+                return; // unknow command
 
             try
             {

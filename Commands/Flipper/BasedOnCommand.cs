@@ -21,7 +21,7 @@ namespace Coflnet.Sky.Commands
                 var auction = AuctionService.Instance.GetAuction(uuid);
                 if (auction == null)
                     throw new CoflnetException("auction_unkown", "Auction not found yet, please try again in a few seconds");
-                List<SaveAuction> result = await FlipperService.Instance.GetReferences(uuid);
+                List<SaveAuction> result = await data.GetService<FlipperService>().GetReferences(uuid);
                 await data.SendBack(data.Create("basedOnResp", result
                             .Select(a => new BasedOnCommandResponse()
                             {

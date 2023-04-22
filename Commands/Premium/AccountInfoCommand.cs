@@ -11,7 +11,7 @@ namespace Coflnet.Sky.Commands
         {
             var user = data.User;
             var token = LoginExternalCommand.GenerateToken(user.Email);
-            var mcName = "unkown";
+            var mcName = "unknow";
 
             var activeAccount = await McAccountService.Instance.GetActiveAccount(user.Id);
                     

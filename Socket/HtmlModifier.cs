@@ -158,7 +158,7 @@ namespace Coflnet.Sky.Commands
                 }
                 if (refBy != null)
                     description += " | invited by " + refBy;
-                // unkown site, write the header
+                // unknow site, write the header
                 await WriteStart(res, headerStart);
                 await WriteHeader(path, res, description, title, imageUrl, keyword, header);
             }

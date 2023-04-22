@@ -28,16 +28,16 @@ namespace Coflnet.Sky.Commands
                 switch (expires.Item1)
                 {
                     case AccountTier.STARTER_PREMIUM:
-                        FlipperService.Instance.AddStarterConnection(con);
+                        data.GetService<FlipperService>().AddStarterConnection(con);
                         break;
                     case AccountTier.PREMIUM:
-                        FlipperService.Instance.AddConnection(con);
+                        data.GetService<FlipperService>().AddConnection(con);
                         break;
                     case AccountTier.PREMIUM_PLUS:
-                        FlipperService.Instance.AddConnectionPlus(con);
+                        data.GetService<FlipperService>().AddConnectionPlus(con);
                         break;
                     default:
-                        FlipperService.Instance.AddNonConnection(con);
+                        data.GetService<FlipperService>().AddNonConnection(con);
                         break;
                 }
                 await data.SendBack(data.Create("debug", $"Subbed on " + System.Net.Dns.GetHostName()));
@@ -56,7 +56,7 @@ namespace Coflnet.Sky.Commands
             }
             catch (CoflnetException e)
             {
-                FlipperService.Instance.AddNonConnection(con);
+                data.GetService<FlipperService>().AddNonConnection(con);
                 await data.SendBack(data.Create("debug", $"exception " + e));
             }
             // not logged no settings, tell the frontend (request its settings)

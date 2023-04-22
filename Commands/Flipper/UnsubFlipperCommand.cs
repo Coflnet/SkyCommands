@@ -9,7 +9,7 @@ namespace Coflnet.Sky.Commands
         public override Task Execute(MessageData data)
         {
             var con = (data as SocketMessageData).Connection;
-            FlipperService.Instance.RemoveConnection(con);
+            data.GetService<FlipperService>().RemoveConnection(con);
             return data.Ok();
         }
     }

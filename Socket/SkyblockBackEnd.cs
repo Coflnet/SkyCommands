@@ -503,7 +503,7 @@ namespace Coflnet.Sky.Commands
         {
             this.LatestSettings = settings;
             if (!TrySendData(new MessageData("settingsUpdate", JsonConvert.SerializeObject(settings.Settings))))
-                FlipperService.Instance.RemoveConnection(this);
+                DiHandler.GetService<FlipperService>().RemoveConnection(this);
         }
 
         public static IEnumerable<SkyblockBackEnd> GetConnectionsOfUser(long userId)
@@ -532,7 +532,7 @@ namespace Coflnet.Sky.Commands
         {
             if (ConnectionState == WebSocketState.Closed)
             {
-                FlipperService.Instance.RemoveConnection(this);
+                DiHandler.GetService<FlipperService>().RemoveConnection(this);
                 return;
             }
             foreach (var flip in flips)

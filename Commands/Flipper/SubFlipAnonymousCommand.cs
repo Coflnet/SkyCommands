@@ -12,7 +12,7 @@ namespace Coflnet.Sky.Commands
             var settings = GetSettings(data);
             con.OldFallbackSettings = settings;
             con.SubFlipMsgId = (int)data.mId;
-            FlipperService.Instance.AddNonConnection(con);
+            data.GetService<FlipperService>().AddNonConnection(con);
             await data.Ok();
         }
     }
