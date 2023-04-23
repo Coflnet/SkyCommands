@@ -9,7 +9,9 @@ namespace Coflnet.Sky.Commands
     {
         public override Task Execute(MessageData data)
         {
-            var flipps = data.GetService<FlipperService>().Flipps.Take(50);
+            var flipps = data.GetService<FlipperService>()?.Flipps.Take(50);
+            if(flipps == null)
+                flipps = new FlipInstance[0];
             try
             {
                 if (data.UserId != 0)
