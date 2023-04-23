@@ -82,6 +82,7 @@ namespace SkyCommands
             services.AddSingleton<IIpPolicyStore, DistributedCacheIpPolicyStore>();
             services.AddSingleton<IRateLimitCounterStore, DistributedCacheRateLimitCounterStore>();
             services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
+            services.AddHostedService<FlipperService>(s => s.GetRequiredService<FlipperService>());
             services.AddCoflService();
             services.AddHostedService<FlipperService>();
         }
