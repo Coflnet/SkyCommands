@@ -78,7 +78,7 @@ namespace Coflnet.Sky.Commands.Services
                     Console.WriteLine($"retrieving from api");
                     url = await GetIconUrl(tag);
                 };
-                if (url.StartsWith("https://sky.coflnet.com"))
+                if (url.StartsWith("https://sky.coflnet.com") && url.Length >= ("https://sky.coflnet.com/static/icon/" + tag).Length)
                 {
                     Console.WriteLine($"skipping loop {url}");
                     return new Preview()
