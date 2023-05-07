@@ -87,9 +87,9 @@ namespace Coflnet.Sky.Commands.Services
                         Name = "image unobtainable (loop)",
                     };
                 }
-                Console.WriteLine($"alternate url {url}");
                 uri = skyClient.BuildUri(new RestRequest(url));
                 response = await GetProxied(uri, size);
+                Console.WriteLine($"alternate url {url} {response.StatusCode} {response.RawBytes?.Length}");
             }
 
             return new Preview()
