@@ -236,7 +236,7 @@ namespace Coflnet.Sky.Commands
                 Console.WriteLine(ex.StackTrace);
                 SendBack(new MessageData("error", "The Message has to follow the format {\"type\":\"SomeType\",\"data\":\"\"}") { mId = mId });
 
-                throw ex;
+                throw new Exception("unkown error onmessage from websocket", ex);
             }
         }
 
