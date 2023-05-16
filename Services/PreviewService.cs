@@ -72,8 +72,8 @@ namespace Coflnet.Sky.Commands.Services
                 if (!isPet)
                     dev.Logger.Instance.Error($"Failed to load item preview for {tag} from {uri} code {response.StatusCode}");
                 details = await DiHandler.GetService<Items.Client.Api.IItemsApi>().ItemItemTagGetAsync(tag, true);
-                var url = details.IconUrl;
-                if (details.IconUrl == null && !isPet)
+                var url = details?.IconUrl;
+                if (details?.IconUrl == null && !isPet)
                 {
                     Console.WriteLine($"retrieving from api");
                     url = await GetIconUrl(tag);
@@ -88,15 +88,16 @@ namespace Coflnet.Sky.Commands.Services
                     };
                 }
                 uri = skyClient.BuildUri(new RestRequest(url));
+                Console.WriteLine($"alternate url {url} for {tag}");
                 response = await GetProxied(uri, size);
-                Console.WriteLine($"alternate url {url} {response.StatusCode} {response.RawBytes?.Length}");
+                Console.WriteLine($"response for {tag} {response.StatusCode} {response.RawBytes?.Length}");
             }
 
             return new Preview()
             {
                 Id = tag,
                 Image = response?.RawBytes == null ? null : Convert.ToBase64String(response.RawBytes),
-                ImageUrl = uri.ToString(),
+                ImageUrl = uri?.ToString(),
                 Name = details?.Name,
                 MimeType = response?.ContentType
             };
