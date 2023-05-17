@@ -71,7 +71,18 @@ namespace Coflnet.Sky.Commands.Services
                 var isPet = tag.StartsWith("PET_");
                 if (!isPet)
                     dev.Logger.Instance.Error($"Failed to load item preview for {tag} from {uri} code {response.StatusCode}");
-                details = await DiHandler.GetService<Items.Client.Api.IItemsApi>().ItemItemTagGetAsync(tag, true);
+                var info = await DiHandler.GetService<Items.Client.Api.IItemsApi>().ItemItemTagGetWithHttpInfoAsync(tag, true);
+
+                if (info.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    details = info.Data;
+                    if(info.Data == null) // parse manually to find json issues
+                        details = JsonConvert.DeserializeObject<Items.Client.Model.Item>(info.RawContent);
+                }
+                else
+                {
+                    Console.WriteLine($"failed to load item details for {tag} from api");
+                }
                 var url = details?.IconUrl;
                 if (details?.IconUrl == null && !isPet)
                 {
