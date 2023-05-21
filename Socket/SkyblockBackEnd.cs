@@ -372,6 +372,12 @@ namespace Coflnet.Sky.Commands
             SetConnectionId(this.ID);
             NextUpdateStart += SendNextUpdate;
             OpenSessions.Set(Sessions.Count);
+            // call Close after one hour
+            Task.Run(async () =>
+            {
+                await Task.Delay(TimeSpan.FromHours(1));
+                Close();
+            });
         }
 
         public void SetConnectionId(string stringId)
