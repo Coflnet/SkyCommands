@@ -444,8 +444,16 @@ namespace Coflnet.Sky.Commands
 
         public async Task<bool> SendFlip(FlipInstance flip)
         {
-            if (Settings == null || !Settings.MatchesSettings(flip).Item1)
+            try
+            {
+                if (Settings == null || !Settings.MatchesSettings(flip).Item1)
+                    return true;
+            }
+            catch (Exception e)
+            {
+                dev.Logger.Instance.Error(e, "error while settings matching flip");
                 return true;
+            }
             if (!SentFlips.TryAdd(flip.UId, DateTime.Now))
             {
                 foreach (var item in SentFlips.Keys.ToList())
