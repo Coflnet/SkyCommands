@@ -151,76 +151,9 @@ namespace Coflnet.Sky.Commands
             return moreThanOneBidQuery;
         }
 
-        private static Dictionary<string, Dictionary<int, DayCache>> cache = new Dictionary<string, Dictionary<int, DayCache>>();
-
-        public static int CacheSize => cache.Sum(c => c.Value.Count);
 
         DateTime earliest = new DateTime(2019, 10, 10);
 
-        private void Cache(string name, IEnumerable<Result> result)
-        {
-            var byDay = result.GroupBy(r => r.End.Date).OrderByDescending(r => r.Key);
-
-            Console.WriteLine($"Caching total of {byDay.Count()}");
-
-            // today 
-            if (byDay.Count() < 2)
-                return;
-
-            if (!cache.TryGetValue(name, out Dictionary<int, DayCache> dayCache))
-            {
-                dayCache = new Dictionary<int, DayCache>();
-                cache[name] = dayCache;
-            }
-            foreach (var day in byDay)
-            {
-                dayCache[GetKey(day.Key)] = new DayCache() { Results = day.ToList() };
-            }
-        }
-
-        private List<Result> GetFromCache(string itemName, DateTime start, DateTime end)
-        {
-            SetBoundaries(ref start, ref end);
-            List<Result> result = new List<Result>();
-
-            if (!cache.ContainsKey(itemName))
-                return result;
-
-            var cacheForItem = cache[itemName];
-
-            Console.WriteLine($"{start} {end} {itemName} ");
-
-            // find cacheItems
-            for (var index = start; index < end; index = index.AddDays(1))
-            {
-                var key = GetKey(index);
-                if (cacheForItem.ContainsKey(key))
-                    result.AddRange(cacheForItem[key].Results);
-            }
-
-            return result;
-        }
-
-        private void SetBoundaries(ref DateTime start, ref DateTime end)
-        {
-            if (start > end)
-            {
-                start = end;
-            }
-            if (end > DateTime.Now.Add(new TimeSpan(7, 0, 0, 0)))
-            {
-                end = DateTime.Now;
-            }
-            if (start < earliest)
-            {
-                start = earliest;
-            }
-        }
-
-        private int GetKey(DateTime index)
-        {
-            return (int)(index - earliest).TotalDays;
-        }
 
         [MessagePackObject]
         public class Result
