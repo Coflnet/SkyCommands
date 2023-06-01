@@ -458,7 +458,7 @@ namespace Coflnet.Sky.Commands
             {
                 foreach (var item in SentFlips.Keys.ToList())
                 {
-                    if (SentFlips.TryGetValue(item, out DateTime time) && time + TimeSpan.FromMinutes(5) < DateTime.Now)
+                    if (SentFlips.TryGetValue(item, out DateTime time) && time + TimeSpan.FromMinutes(3) < DateTime.Now)
                         SentFlips.TryRemove(item, out _);
                 }
                 return true;
