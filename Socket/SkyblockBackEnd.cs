@@ -57,6 +57,7 @@ namespace Coflnet.Sky.Commands
 
 
         public SelfUpdatingValue<FlipSettings> FlipSettings;
+        public string ClientIp => Context.Headers["X-Real-Ip"];
         public SelfUpdatingValue<AccountInfo> AccountInfo;
         private TimeSpan flipDelay = TimeSpan.FromSeconds(2);
 
@@ -407,7 +408,7 @@ namespace Coflnet.Sky.Commands
         {
             Task.Run(async () =>
             {
-                await IpRateLimiter.Instance.WaitUntilAllowed(this.Context.Headers["X-Real-Ip"]);
+                await IpRateLimiter.Instance.WaitUntilAllowed(ClientIp);
 
                 var constraint2 = new CountByIntervalAwaitableConstraint(10, TimeSpan.FromSeconds(2));
                 var heavyUsage = new CountByIntervalAwaitableConstraint(40, TimeSpan.FromSeconds(20));

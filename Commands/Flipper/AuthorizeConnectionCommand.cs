@@ -31,7 +31,10 @@ namespace Coflnet.Sky.Commands
                 }
                 if (sum % 256 != checksum)
                     throw new CoflnetException("invalid_id", "The passed connection id is invalid, please get the link from minecraft again");
+                if(data is not SocketMessageData socketData)
+                    throw new CoflnetException("invalid_id", "This command can not be called via api");
                 newId = Convert.ToBase64String(idBytes, 0, 16);
+                Console.WriteLine($"New id for {data.UserId}: " + newId);
             }
 
             var service = DiHandler.ServiceProvider.GetRequiredService<SettingsService>();
