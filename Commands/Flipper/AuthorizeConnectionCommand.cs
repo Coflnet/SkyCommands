@@ -31,6 +31,7 @@ namespace Coflnet.Sky.Commands
                 }
                 if (sum % 256 != checksum)
                     throw new CoflnetException("invalid_id", "The passed connection id is invalid, please get the link from minecraft again");
+                newId = Convert.ToBase64String(idBytes, 0, 16);
             }
 
             var service = DiHandler.ServiceProvider.GetRequiredService<SettingsService>();
