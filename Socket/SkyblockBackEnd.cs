@@ -284,7 +284,8 @@ namespace Coflnet.Sky.Commands
                     using var span = source.StartActivity("error").AddTag("type", data.Type);
                     span?.AddTag("message", ex.Message);
                     span?.AddTag("stacktrace", ex.StackTrace);
-                    dev.Logger.Instance.Error($"Fatal error on Command {JsonConvert.SerializeObject(data)} {ex.Message} {ex.StackTrace} \n{ex.InnerException?.Message} {ex.InnerException?.StackTrace}");
+                    span?.AddTag("id", traceId);
+                    dev.Logger.Instance.Error($"Fatal error on Command {JsonConvert.SerializeObject(data)} {ex.Message} {ex.StackTrace} \n{ex.InnerException?.Message} {ex.InnerException?.StackTrace} {traceId}");
                     await data.SendBack(new MessageData("error", JsonConvert.SerializeObject(new
                     {
                         slug = "unknown",
