@@ -16,6 +16,23 @@ namespace Coflnet.Sky.Commands
         public override async Task Execute(MessageData data)
         {
             var newId = data.GetAs<string>();
+            // verify that id is valid
+            var idBytes = Convert.FromBase64String(newId);
+            if (idBytes.Length < 16)
+                throw new CoflnetException("invalid_id", "The passed connection id is invalid (too short)");
+            if (idBytes.Length == 17)
+            {
+                // check checksum
+                var checksum = idBytes[16];
+                var sum = 0;
+                for (int i = 0; i < 16; i++)
+                {
+                    sum += idBytes[i];
+                }
+                if (sum % 256 != checksum)
+                    throw new CoflnetException("invalid_id", "The passed connection id is invalid, please get the link from minecraft again");
+            }
+
             var service = DiHandler.ServiceProvider.GetRequiredService<SettingsService>();
             var authTask = service.UpdateSetting("mod", newId, data.UserId.ToString());
             await data.Ok();
