@@ -28,7 +28,7 @@ namespace Coflnet.Sky.Commands
                     .Select(p => new Result() { title = p.Name, url = "/player/" + p.UuId, img = SearchService.PlayerHeadUrl(p.UuId) }));
 
                 return data.SendBack(data.Create("popularSearches", pages
-                    .OrderBy(s => r.Next()).Take(50).ToList(), A_MINUTE * 5));
+                    .OrderBy(s => r.Next()).Take(50).ToList(), A_MINUTE * 15));
             }
         }
 

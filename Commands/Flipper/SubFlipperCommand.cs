@@ -142,14 +142,21 @@ namespace Coflnet.Sky.Commands
                                  // test if settings compile
                 settings.MatchesSettings(new FlipInstance()
                 {
-                    Auction = new SaveAuction()
+                    Auction = new Core.SaveAuction()
                     {
-                        Enchantments = new System.Collections.Generic.List<Enchantment>(),
-                        FlatenedNBT = new System.Collections.Generic.Dictionary<string, string>(),
-                        NBTLookup = new System.Collections.Generic.List<NBTLookup>(),
+                        ItemName = "test",
+                        Tag = "STICK",
+                        Bin = true,
                         StartingBid = 2,
-                        Tag = "STICK"
-                    }
+                        NBTLookup = new(),
+                        FlatenedNBT = new(),
+                        Enchantments = new(),
+                        Context = new()
+                    },
+                    Finder = LowPricedAuction.FinderType.SNIPER,
+                    MedianPrice = 100000000,
+                    LowestBin = 100000,
+                    Context = new()
                 });
             }
             catch (CoflnetException e)

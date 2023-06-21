@@ -451,6 +451,14 @@ namespace Coflnet.Sky.Commands
                 if (Settings == null || !Settings.MatchesSettings(flip).Item1)
                     return true;
             }
+            catch (CoflnetException e)
+            {
+                if (e.Slug == "filter_unknown")
+                {
+                    RemoveFiltersWithError(flip, Settings.BlackList);
+                    RemoveFiltersWithError(flip, Settings.WhiteList);
+                }
+            }
             catch (Exception e)
             {
                 dev.Logger.Instance.Error(e, "error while settings matching flip");
@@ -475,6 +483,23 @@ namespace Coflnet.Sky.Commands
                 await Task.Delay(flipDelay); // make sure nobody skips mod delay with website socket
             FlipSendCount.Inc();
             return TrySendData(data);
+        }
+
+        private void RemoveFiltersWithError(FlipInstance testFlip, List<ListEntry> blacklist, bool whiteList = false)
+        {
+            foreach (var item in blacklist.ToList())
+            {
+                try
+                {
+                    var expression = item.GetExpression();
+                    expression.Compile()(testFlip);
+                }
+                catch (System.Exception)
+                {
+                    blacklist.Remove(item);
+                    dev.Logger.Instance.Error($"Removed unknown filter {JsonConvert.SerializeObject(item)} for {UserId}");
+                }
+            }
         }
 
         /// <summary>
@@ -513,23 +538,6 @@ namespace Coflnet.Sky.Commands
             if (!SentFlips.ContainsKey(AuctionService.Instance.GetId(uuid)))
                 return Task.FromResult(true);
             return Task.FromResult(TrySendData(new MessageData("sold", uuid)));
-        }
-
-        public void UpdateSettings(SettingsChange settings)
-        {
-            this.LatestSettings = settings;
-            if (!TrySendData(new MessageData("settingsUpdate", JsonConvert.SerializeObject(settings.Settings))))
-                DiHandler.GetService<FlipperService>().RemoveConnection(this);
-        }
-
-        public static IEnumerable<SkyblockBackEnd> GetConnectionsOfUser(long userId)
-        {
-            foreach (var item in Subscribers)
-            {
-                var uId = item.Value._userId;
-                if (uId != 0 && uId == userId)
-                    yield return item.Value;
-            }
         }
 
         public Task<bool> SendFlip(LowPricedAuction flip)
