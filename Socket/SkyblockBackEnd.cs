@@ -333,6 +333,8 @@ namespace Coflnet.Sky.Commands
         {
             OnBeforeClose?.Invoke(this);
             Subscribers.TryRemove(Id, out SkyblockBackEnd value);
+            FlipSettings?.Dispose();
+            AccountInfo?.Dispose();
             NextUpdateStart -= SendNextUpdate;
         }
 
