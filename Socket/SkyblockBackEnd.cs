@@ -50,7 +50,6 @@ namespace Coflnet.Sky.Commands
         }
         string IFlipConnection.UserId => UserId.ToString();
 
-
         public FlipSettings Settings => FlipSettings?.Value ?? OldFallbackSettings;
 
         public FlipSettings OldFallbackSettings;
