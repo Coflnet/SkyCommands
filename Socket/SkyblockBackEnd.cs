@@ -334,7 +334,9 @@ namespace Coflnet.Sky.Commands
             Subscribers.TryRemove(Id, out SkyblockBackEnd value);
             FlipSettings?.Dispose();
             AccountInfo?.Dispose();
+            SentFlips.Clear();
             NextUpdateStart -= SendNextUpdate;
+            DiHandler.GetService<FlipperService>().RemoveConnection(this);
         }
 
         private void SendNextUpdate()
