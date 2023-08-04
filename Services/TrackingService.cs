@@ -9,8 +9,6 @@ namespace Coflnet.Sky.Commands
         RestClient trackClient = new RestClient("https://track.coflnet.com");
         public static TrackingService Instance { get; protected set; }
 
-        private string visitorId;
-
         static TrackingService()
         {
             Instance = new TrackingService();
