@@ -14,7 +14,7 @@ namespace Coflnet.Sky.Commands
             if (player == default(Player))
                 throw new CoflnetException("unkown_player", "This player was not found");
 
-            var restResponse = await McAccountService.Instance.ConnectAccount(userId.ToString(),uuid);
+            var restResponse = await data.GetService<McAccountService>().ConnectAccount(userId.ToString(),uuid);
             await data.SendBack(data.Create("connectMc", restResponse));
         }
     }

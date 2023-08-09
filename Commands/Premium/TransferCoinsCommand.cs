@@ -18,7 +18,7 @@ namespace Coflnet.Sky.Commands
                 targetUser = (await UserService.Instance.GetUserIdByEmail(args.TargetUserEmail)).ToString();
             else if (!string.IsNullOrEmpty(args.TargetUserMc) && args.TargetUserMc.Length == 32)
             {
-                var userInfo = await McAccountService.Instance.GetUserId(args.TargetUserMc);
+                var userInfo = await data.GetService<McAccountService>().GetUserId(args.TargetUserMc);
                 if (userInfo == null)
                     throw new CoflnetException("not_found", "That user doesn't have any verified accounts. Please tell them to connect their Minecraft account to their Coflnet account or ask them for their email");
                 targetUser = userInfo.ExternalId;

@@ -13,7 +13,7 @@ namespace Coflnet.Sky.Commands
             var token = LoginExternalCommand.GenerateToken(user.Email);
             var mcName = "unknow";
 
-            var activeAccount = await McAccountService.Instance.GetActiveAccount(user.Id);
+            var activeAccount = await data.GetService<McAccountService>().GetActiveAccount(user.Id);
                     
             if (activeAccount != null && activeAccount.AccountUuid != null)
                 mcName = (await DiHandler.GetService<PlayerName.Client.Api.PlayerNameApi>()
