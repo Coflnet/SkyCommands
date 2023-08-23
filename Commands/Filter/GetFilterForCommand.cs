@@ -2,6 +2,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Coflnet.Sky.Filter;
 using Coflnet.Sky.Core;
+using Coflnet.Sky.Items.Client.Api;
 
 namespace Coflnet.Sky.Commands
 {

@@ -1,5 +1,6 @@
 using System;
 using Coflnet.Sky.Core;
+using RestSharp;
 
 namespace Coflnet.Sky.Commands
 {

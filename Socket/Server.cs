@@ -13,6 +13,8 @@ using System.Diagnostics;
 using Coflnet.Sky.Core;
 using System.Collections.Generic;
 using Coflnet.Sky.Commands.Shared;
+using RestSharp;
+using Prometheus;
 
 namespace Coflnet.Sky.Commands
 {

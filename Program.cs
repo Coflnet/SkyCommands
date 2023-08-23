@@ -1,3 +1,7 @@
+global using RestSharp;
+global using System;
+global using System.Collections.Generic;
+global using System.Linq;
 using System.Threading.Tasks;
 using Coflnet.Sky.Core;
 using Microsoft.AspNetCore.Hosting;

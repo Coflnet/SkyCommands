@@ -2,6 +2,7 @@ using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using Coflnet.Sky.Core;
 using Coflnet.Sky.Commands.Shared;
+using Coflnet.Payments.Client.Api;
 
 namespace Coflnet.Sky.Commands
 {

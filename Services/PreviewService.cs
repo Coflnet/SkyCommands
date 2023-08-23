@@ -8,6 +8,7 @@ using Coflnet.Sky.Core;
 using System.Diagnostics;
 using Newtonsoft.Json;
 using Microsoft.Extensions.Configuration;
+using RestSharp;
 
 namespace Coflnet.Sky.Commands.Services
 {

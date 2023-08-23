@@ -28,8 +28,6 @@
     <PackageReference Include="AspNetCoreRateLimit" Version="4.0.1" />
     <PackageReference Include="AspNetCoreRateLimit.Redis" Version="1.0.0" />
     <PackageReference Include="ConcurrentHashSet" Version="1.1.0" />
-    <PackageReference Include="Confluent.Kafka" Version="1.7.0" />
-    <PackageReference Include="Confluent.SchemaRegistry.Serdes.Json" Version="1.7.0" />
     <PackageReference Include="Fastenshtein" Version="1.0.0.7" />
     <PackageReference Include="fNbt" Version="0.6.4" />
     <PackageReference Include="Hashids.net" Version="1.4.0" />

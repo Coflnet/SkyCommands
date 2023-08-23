@@ -14,6 +14,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using StackExchange.Redis;
 using Coflnet.Sky.Commands.Services;
+using Coflnet.Payments.Client.Api;
+using Prometheus;
 
 namespace SkyCommands
 {
