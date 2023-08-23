@@ -1,6 +1,5 @@
 using MessagePack;
 using Newtonsoft.Json;
-using Coflnet.Sky.Core;
 
 namespace Coflnet.Sky.Commands
 {

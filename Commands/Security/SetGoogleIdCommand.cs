@@ -1,10 +1,6 @@
 
 using System;
 using System.Threading.Tasks;
-using Google.Apis.Auth;
-using Newtonsoft.Json;
-using Prometheus;
-using RestSharp;
 using Coflnet.Sky.Core;
 using Coflnet.Sky.Commands.Shared;
 

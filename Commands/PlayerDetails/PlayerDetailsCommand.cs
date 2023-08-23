@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using MessagePack;
-using Microsoft.EntityFrameworkCore;
 using Coflnet.Sky.Core;
 
 namespace Coflnet.Sky.Commands

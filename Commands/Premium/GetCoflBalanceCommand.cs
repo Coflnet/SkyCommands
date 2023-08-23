@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using Coflnet.Payments.Client.Api;
 using Coflnet.Sky.Core;
 using Coflnet.Sky.Commands.Shared;
 

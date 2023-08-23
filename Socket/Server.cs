@@ -1,7 +1,6 @@
 using System;
 using System.Text;
 using System.Threading;
-using RestSharp;
 using WebSocketSharp.Server;
 using WebSocketSharp;
 using System.Linq;
@@ -10,9 +9,7 @@ using Newtonsoft.Json;
 using System.Collections.Concurrent;
 using RateLimiter;
 using Microsoft.EntityFrameworkCore;
-using Prometheus;
 using System.Diagnostics;
-using OpenTracing.Propagation;
 using Coflnet.Sky.Core;
 using System.Collections.Generic;
 using Coflnet.Sky.Commands.Shared;

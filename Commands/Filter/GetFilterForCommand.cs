@@ -2,9 +2,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Coflnet.Sky.Filter;
 using Coflnet.Sky.Core;
-using Coflnet.Sky.Commands.Shared;
-using Coflnet.Sky.Items.Client.Api;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Coflnet.Sky.Commands
 {

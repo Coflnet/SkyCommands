@@ -1,6 +1,5 @@
 using System.Threading.Tasks;
 using MessagePack;
-using RestSharp;
 using Coflnet.Sky.Core;
 
 namespace Coflnet.Sky.Commands

@@ -1,10 +1,8 @@
-using System;
 using System.Threading.Tasks;
 using Coflnet.Sky.Core;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using Coflnet.Sky.Filter;
-using Coflnet.Sky.Commands.Shared;
 using Coflnet.Sky.Commands;
 
 namespace SkyCommands

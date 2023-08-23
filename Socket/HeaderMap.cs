@@ -1,9 +1,7 @@
 using System;
-using OpenTracing.Propagation;
 using System.Collections.Generic;
 using System.Collections;
 using System.Linq;
-using Coflnet.Sky.Core;
 
 namespace Coflnet.Sky.Commands
 {

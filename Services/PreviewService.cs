@@ -7,8 +7,6 @@ using Coflnet.Sky.Commands.Shared;
 using Coflnet.Sky.Core;
 using System.Diagnostics;
 using Newtonsoft.Json;
-using OpenTracing.Util;
-using RestSharp;
 using Microsoft.Extensions.Configuration;
 
 namespace Coflnet.Sky.Commands.Services

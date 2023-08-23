@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using MessagePack;
-using WebSocketSharp;
 using Coflnet.Sky.Core;
 
 namespace Coflnet.Sky.Commands

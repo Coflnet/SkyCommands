@@ -1,7 +1,6 @@
 using System;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
-using Coflnet;
 using Coflnet.Sky.Core;
 
 namespace Coflnet.Sky.Commands

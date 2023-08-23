@@ -1,7 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using WebSocketSharp;
 using Coflnet.Sky.Core;
 
 namespace Coflnet.Sky.Commands

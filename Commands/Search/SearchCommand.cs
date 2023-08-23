@@ -1,8 +1,5 @@
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
-using RestSharp;
 using Coflnet.Sky.Core;
 
 namespace Coflnet.Sky.Commands

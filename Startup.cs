@@ -1,13 +1,10 @@
 using System;
 using System.IO;
-using System.Net;
 using System.Reflection;
 using AspNetCoreRateLimit;
 using AspNetCoreRateLimit.Redis;
-using Coflnet.Payments.Client.Api;
 using Coflnet.Sky.Core;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Coflnet.Sky.Commands.Shared;
@@ -15,10 +12,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
-using Newtonsoft.Json;
-using Prometheus;
 using StackExchange.Redis;
-using System.Diagnostics;
 using Coflnet.Sky.Commands.Services;
 
 namespace SkyCommands

@@ -1,7 +1,5 @@
 using System;
-using System.Linq;
 using System.Threading.Tasks;
-using Coflnet.Payments.Client.Api;
 using Coflnet.Sky.Commands.Shared;
 using Coflnet.Sky.Core;
 using Microsoft.Extensions.DependencyInjection;
