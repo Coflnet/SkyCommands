@@ -146,7 +146,7 @@ namespace Coflnet.Sky.Commands
                         Tag = "STICK",
                         Bin = true,
                         StartingBid = 2,
-                        NBTLookup = new(),
+                        NBTLookup = new NBTLookup[0],
                         FlatenedNBT = new(),
                         Enchantments = new(),
                         Context = new()
