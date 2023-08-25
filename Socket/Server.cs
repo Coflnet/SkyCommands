@@ -364,7 +364,7 @@ namespace Coflnet.Sky.Commands
                             requestErrors.Inc();
                             data.CompletionSource.TrySetException(e);
                             dev.Logger.Instance.Error(e);
-                            throw new Exception("unkown exception on command", e);
+                            throw new Exception("unkown exception on command " + data.Type, e);
                         }
                     }
                 }
