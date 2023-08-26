@@ -20,7 +20,7 @@ namespace Coflnet.Sky.Commands
 
             using (var context = new HypixelContext())
             {
-                data.UserId = context.Users.Where(u => u.Email == args.Email).Select(u => u.Id).FirstOrDefault();
+                //data.UserId = context.Users.Where(u => u.Email == args.Email).Select(u => u.Id).FirstOrDefault();
             }
             return data.SendBack(data.Create("login_success", "you were logged in"));
         }
