@@ -39,8 +39,6 @@ namespace Coflnet.Sky.Commands
         )
         {
             await response.WriteAsync(stringContent + "</body></html>");
-            //response.Close();
-
         }
 
         internal static void WriteBytes(
@@ -56,7 +54,6 @@ namespace Coflnet.Sky.Commands
         {
             var url = $"https://sky.coflnet.com" + (type == null ? "" : $"/{type}") + (parameter == null ? "" : $"/{parameter}") + (seoTerm == null ? "" : $"/{seoTerm}");
             res.Redirect(url);
-            //res.Close();
             return url;
         }
     }
