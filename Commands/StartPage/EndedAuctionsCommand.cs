@@ -15,6 +15,7 @@ namespace Coflnet.Sky.Commands
             if (response != null)
             {
                 await data.SendBack(data.Create("endedAuctions", response, A_MINUTE));
+                return;
             }
             using (var context = new HypixelContext())
             {
@@ -23,9 +24,9 @@ namespace Coflnet.Sky.Commands
                 var start = end - TimeSpan.FromMinutes(1.2);
                 var highVolumeIds = new System.Collections.Generic.HashSet<int>()
                 {
-                    ItemDetails.Instance.GetItemIdForTag("ENCHANTED_BOOK"),
+                    ItemDetails.Instance.GetItemIdForTag("GOD_POTION_2"),
                     ItemDetails.Instance.GetItemIdForTag("GRAPPLING_HOOK"),
-                    ItemDetails.Instance.GetItemIdForTag("KISMET_FEATHER"),
+                    ItemDetails.Instance.GetItemIdForTag("KAT_FLOWER"),
                     ItemDetails.Instance.GetItemIdForTag("ASPECT_OF_THE_DRAGON")
 
                 };
