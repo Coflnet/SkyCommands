@@ -3,24 +3,19 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Coflnet.Sky.Core;
 using System;
+using Coflnet.Sky.Commands.Shared;
 
 namespace Coflnet.Sky.Commands
 {
     public class EndedAuctionsCommand : Command
     {
-        public override Task Execute(MessageData data)
+        public override async Task Execute(MessageData data)
         {
-            /* TODO: get this directly from an updater
-            if(BinUpdater.SoldLastMin.Count > 0)
+            var response = await IndexerClient.RecentlyEnded();
+            if (response != null)
             {
-                var recentSold = BinUpdater.SoldLastMin.Take(50)
-                    .Select(a => new AuctionResult(a))
-                    .Select(AuctionService.Instance.GuessMissingProperties)
-                    .ToList();
-
-                return data.SendBack(data.Create("endedAuctions",recentSold , A_MINUTE));
-            }*/
-
+                await data.SendBack(data.Create("endedAuctions", response, A_MINUTE));
+            }
             using (var context = new HypixelContext())
             {
                 context.Database.SetCommandTimeout(30);
@@ -43,7 +38,7 @@ namespace Coflnet.Sky.Commands
                     .Take(30)
                     .Select(AuctionService.Instance.GuessMissingProperties)
                     .ToList();
-                return data.SendBack(data.Create("endedAuctions", pages, A_MINUTE));
+                await data.SendBack(data.Create("endedAuctions", pages, A_MINUTE));
             }
         }
     }
