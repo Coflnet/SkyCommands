@@ -14,7 +14,7 @@ namespace Coflnet.Sky.Commands
             var response = await IndexerClient.RecentlyEnded();
             if (response != null)
             {
-                await data.SendBack(data.Create("endedAuctions", response.OrderByDescending(a => a.End), A_MINUTE));
+                await data.SendBack(data.Create("endedAuctions", response.OrderByDescending(a => a.End).ToList(), A_MINUTE));
                 return;
             }
             using (var context = new HypixelContext())
