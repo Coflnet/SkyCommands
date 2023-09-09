@@ -257,6 +257,14 @@ namespace Coflnet.Sky.Commands
                     {
                         await Commands[data.Type].Execute(data);
                     }
+                    catch(Payments.Client.Client.ApiException pe)
+                    {
+                        data.LogError(pe, "executing command");
+                        span?.AddTag("extraData", JsonConvert.SerializeObject(pe.ErrorContent));
+                        span?.AddTag("statusCode", pe.ErrorCode);
+                        traceId = span.TraceId.ToString();
+                        throw;
+                    }
                     catch (Exception e)
                     {
                         data.LogError(e, "executing command");
