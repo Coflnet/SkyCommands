@@ -15,7 +15,7 @@ namespace Coflnet.Sky.Commands
             {
                 var pages = context.Items
                     .OrderByDescending(i => i.HitCount)
-                    .Select(i => new { Name = i.Names.FirstOrDefault(), i.Tag, i.IconUrl })
+                    .Select(i => new { Name = i.Names.OrderByDescending(i=>i.OccuredTimes).FirstOrDefault(), i.Tag, i.IconUrl })
                     .Take(40).ToList()
                     .Select(i => new Result() { title = i.Name?.Name, url = "/item/" + i.Tag, img = "/static/icon/"+i.Tag })
                     .ToList();
