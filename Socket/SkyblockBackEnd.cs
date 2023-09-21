@@ -217,7 +217,7 @@ namespace Coflnet.Sky.Commands
 
                 if (waiting > 20)
                 {
-                    dev.Logger.Instance.Error("triggered rate limit");
+                    dev.Logger.Instance.Error($"triggered rate limit {data.Type} {data.Connection?.Id}");
                     throw new CoflnetException("stop_it", "Your connection is sending to many requests. Please slow down.");
                 }
 
