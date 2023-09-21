@@ -53,7 +53,7 @@ namespace Coflnet.Sky.Commands
 
 
         public SelfUpdatingValue<FlipSettings> FlipSettings;
-        public string ClientIp => Context.Headers["X-Real-Ip"];
+        public string ClientIp => this.Headers["X-Real-Ip"];
         public SelfUpdatingValue<AccountInfo> AccountInfo;
         private TimeSpan flipDelay = TimeSpan.FromSeconds(2);
 
@@ -428,8 +428,7 @@ namespace Coflnet.Sky.Commands
 
         private long GetSessionId(string stringId)
         {
-            stringId = stringId ?? this.Context.CookieCollection["id"]?.Value;
-            stringId = stringId ?? this.Context.QueryString["id"];
+            stringId = stringId ?? this.QueryString["id"];
 
             long id = 0;
             if (stringId != null && stringId.Length > 4)
@@ -447,7 +446,7 @@ namespace Coflnet.Sky.Commands
 
         public void SendBack(MessageData data)
         {
-            if (ConnectionState == WebSocketState.Closed)
+            if (this.ReadyState == WebSocketState.Closed)
                 return;
             Send(MessagePackSerializer.ToJson(data));
         }
@@ -526,7 +525,7 @@ namespace Coflnet.Sky.Commands
 
         private bool TrySendData(MessageData data)
         {
-            if (ConnectionState != WebSocketState.Open)
+            if (this.ReadyState != WebSocketState.Open)
                 return false;
             data.mId = SubFlipMsgId;
             try
@@ -562,7 +561,7 @@ namespace Coflnet.Sky.Commands
 
         public async Task SendBatch(IEnumerable<LowPricedAuction> flips)
         {
-            if (ConnectionState == WebSocketState.Closed)
+            if (this.ReadyState == WebSocketState.Closed)
             {
                 DiHandler.GetService<FlipperService>().RemoveConnection(this);
                 return;

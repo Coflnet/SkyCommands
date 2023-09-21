@@ -50,7 +50,7 @@ namespace Coflnet.Sky.Commands
             }
             if (data is SocketMessageData socketData)
             {
-                userAgent = socketData.Connection.Context.Headers["User-Agent"];
+                userAgent = socketData.Connection.Headers["User-Agent"];
             }
 
             return userAgent;
