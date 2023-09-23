@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Coflnet.Sky.Commands.Shared;
 using Microsoft.Extensions.DependencyInjection;
 using Coflnet.Sky.Core;
+using Newtonsoft.Json;
 
 namespace Coflnet.Sky.Commands
 {
@@ -132,30 +133,31 @@ namespace Coflnet.Sky.Commands
         protected FlipSettings GetSettings(MessageData data)
         {
             FlipSettings settings = new FlipSettings();
+            var testFlip = new FlipInstance()
+            {
+                Auction = new Core.SaveAuction()
+                {
+                    ItemName = "test",
+                    Tag = "STICK",
+                    Bin = true,
+                    StartingBid = 2,
+                    NBTLookup = new NBTLookup[0],
+                    FlatenedNBT = new(),
+                    Enchantments = new(),
+                    Context = new()
+                },
+                Finder = LowPricedAuction.FinderType.SNIPER,
+                MedianPrice = 100000000,
+                LowestBin = 100000,
+                Context = new()
+            };
             try
             {
                 settings = data.GetAs<FlipSettings>();
                 if (settings == null)
                     return null; // special case to load settings
                                  // test if settings compile
-                settings.MatchesSettings(new FlipInstance()
-                {
-                    Auction = new Core.SaveAuction()
-                    {
-                        ItemName = "test",
-                        Tag = "STICK",
-                        Bin = true,
-                        StartingBid = 2,
-                        NBTLookup = new NBTLookup[0],
-                        FlatenedNBT = new(),
-                        Enchantments = new(),
-                        Context = new()
-                    },
-                    Finder = LowPricedAuction.FinderType.SNIPER,
-                    MedianPrice = 100000000,
-                    LowestBin = 100000,
-                    Context = new()
-                });
+                settings.MatchesSettings(testFlip);
             }
             catch (CoflnetException e)
             {
@@ -165,10 +167,31 @@ namespace Coflnet.Sky.Commands
             {
                 // could not get it continue with default
                 data.LogError(e, "subFlip");
-                throw new CoflnetException("invalid_settings", "Your settings are invalid, please revert your last change");
+                CheckListValidity(testFlip, settings.BlackList, data);
+                CheckListValidity(testFlip, settings.WhiteList, data, true);
             }
             return settings;
+        }
 
+        private void CheckListValidity(FlipInstance testFlip, List<ListEntry> blacklist, MessageData data, bool whiteList = false)
+        {
+            foreach (var item in blacklist.ToList())
+            {
+                try
+                {
+                    var expression = item.GetExpression();
+                    expression.Compile()(testFlip);
+                }
+                catch (Exception e)
+                {
+                    var jsonWithoutDefault = JsonConvert.SerializeObject(item, Formatting.Indented, new JsonSerializerSettings()
+                    {
+                        DefaultValueHandling = DefaultValueHandling.Ignore
+                    });
+                    data.SendBack(data.Create("error", $"The following list entry could not be loaded please fix or remove it: {jsonWithoutDefault}"));
+                    data.SendBack(data.Create("debug", $"Error: {e.Message}"));
+                }
+            }
         }
     }
 }
