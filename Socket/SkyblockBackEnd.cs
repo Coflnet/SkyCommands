@@ -13,6 +13,7 @@ using ComposableAsync;
 using Coflnet.Sky.Commands.Shared;
 using Coflnet.Sky.Core;
 using Coflnet.Sky.Commands.MC;
+using System.Threading;
 
 namespace Coflnet.Sky.Commands
 {
@@ -298,7 +299,7 @@ namespace Coflnet.Sky.Commands
                     }))
                     { mId = data.mId });
                 }
-            }).ConfigureAwait(false);
+            }, new CancellationTokenSource(TimeSpan.FromMinutes(1)).Token).ConfigureAwait(false);
         }
 
         private static Task SendCoflnetException(SocketMessageData data, CoflnetException ex)
@@ -352,7 +353,7 @@ namespace Coflnet.Sky.Commands
                 await Task.Delay(TimeSpan.FromSeconds(30));
                 this.TrySendData(new MessageData("ping", null));
                 await UpdateFlipDelay();
-            });
+            }, new CancellationTokenSource(TimeSpan.FromMinutes(1)).Token);
         }
 
         /// <summary>
@@ -382,12 +383,6 @@ namespace Coflnet.Sky.Commands
             SetConnectionId(this.ID);
             NextUpdateStart += SendNextUpdate;
             OpenSessions.Set(Sessions.Count);
-            // call Close after one hour
-            Task.Run(async () =>
-            {
-                await Task.Delay(TimeSpan.FromHours(1));
-                Close();
-            });
         }
 
         public void SetConnectionId(string stringId)

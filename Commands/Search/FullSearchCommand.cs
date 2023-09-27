@@ -18,6 +18,7 @@ namespace Coflnet.Sky.Commands
 
         public override async Task Execute(MessageData data)
         {
+            throw new CoflnetException("deprecated", "This command is deprecated, use the api instead");
             List<SearchResultItem> orderedResult = await NewMethod(data).ConfigureAwait(false);
             var maxAge = A_DAY;
             if (orderedResult.Count() == 0)
