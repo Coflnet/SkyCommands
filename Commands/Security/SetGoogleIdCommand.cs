@@ -41,33 +41,33 @@ namespace Coflnet.Sky.Commands
             data.UserId = user.Id;
             try
             {
-                if ((data is SocketMessageData con))
+                if (data is not SocketMessageData con)
+                    return;
+                con.Connection.AccountInfo = await SelfUpdatingValue<AccountInfo>.Create(user.Id.ToString(), "accountInfo", () => new());
+                await data.Ok();
+                var accountInfo = con.Connection.AccountInfo;
+                Console.WriteLine($"User {user.Id} logged in");
+                if (string.IsNullOrEmpty(accountInfo.Value.Locale))
                 {
-                    con.Connection.AccountInfo = await SelfUpdatingValue<AccountInfo>.Create(user.Id.ToString(), "accountInfo", () => new());
-                    await data.Ok();
-                    var accountInfo = con.Connection.AccountInfo;
-                    if (string.IsNullOrEmpty(accountInfo.Value.Locale))
-                    {
-                        accountInfo.Value.Locale = token.Locale;
-                        await accountInfo.Update();
-                    }
-                    var settings = await CacheService.Instance.GetFromRedis<SettingsChange>("uflipset" + user.Id);
-                    if (settings != null)
-                        con.Connection.LatestSettings = settings;
+                    accountInfo.Value.Locale = token.Locale;
+                    await accountInfo.Update();
                 }
+                var settings = await CacheService.Instance.GetFromRedis<SettingsChange>("uflipset" + user.Id);
+                if (settings != null)
+                    con.Connection.LatestSettings = settings;
             }
             catch (Exception e)
             {
                 dev.Logger.Instance.Error(e, "loading flip settings on login");
                 await data.Ok();
-            }
-            loginCount.Inc();
+    }
+    loginCount.Inc();
         }
 
-        public static async Task<GoogleJsonWebSignature.Payload> ValidateToken(string token)
-        {
-            var tokenData = await GoogleJsonWebSignature.ValidateAsync(token);
-            return tokenData;
-        }
+public static async Task<GoogleJsonWebSignature.Payload> ValidateToken(string token)
+{
+    var tokenData = await GoogleJsonWebSignature.ValidateAsync(token);
+    return tokenData;
+}
     }
 }
