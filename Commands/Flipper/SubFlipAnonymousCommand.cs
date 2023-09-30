@@ -14,6 +14,7 @@ namespace Coflnet.Sky.Commands
             con.SubFlipMsgId = (int)data.mId;
             data.GetService<FlipperService>().AddNonConnection(con);
             await data.Ok();
+            await Task.Delay(500); // backof attempt
         }
     }
 }
