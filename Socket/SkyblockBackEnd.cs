@@ -22,6 +22,8 @@ namespace Coflnet.Sky.Commands
         public static Dictionary<string, Command> Commands = new Dictionary<string, Command>();
         private static ConcurrentDictionary<long, SkyblockBackEnd> Subscribers = new ConcurrentDictionary<long, SkyblockBackEnd>();
         public static int ConnectionCount => Subscribers.Count;
+        // readonly access to subscribers
+        public static IEnumerable<SkyblockBackEnd> SubscribersReadOnly => Subscribers.Values;
 
         public long Id { get; set; }
         public int SubFlipMsgId;
