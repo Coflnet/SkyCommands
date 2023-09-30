@@ -11,7 +11,7 @@ namespace Coflnet.Sky.Commands
         public override bool Cacheable => false;
         public override async Task Execute(MessageData data)
         {
-            var userApi = DiHandler.GetService<UserApi>();
+            var userApi = data.GetService<UserApi>();
             var args = data.GetAs<TransferRequest>();
             var targetUser = "0";
             if (!string.IsNullOrEmpty(args.TargetUserEmail))

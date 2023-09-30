@@ -63,6 +63,7 @@ namespace Coflnet.Sky.Commands
                 await data.SendBack(data.Create<string>("flipSettings", null));
             else
                 await data.Ok();
+            await Task.Delay(500); // backof attempt
         }
 
         public static async Task UpdateAccountInfo(MessageData data, (AccountTier, DateTime) expires)
