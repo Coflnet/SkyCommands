@@ -13,7 +13,7 @@ RUN dotnet test
 RUN touch /build/dev/keyfile.p12 
 RUN dotnet publish -c release -o /app
 
-FROM mcr.microsoft.com/dotnet/aspnet:7.0
+FROM mcr.microsoft.com/dotnet/sdk:7.0
 WORKDIR /app
 
 COPY --from=build /app .
