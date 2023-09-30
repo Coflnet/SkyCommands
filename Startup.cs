@@ -80,7 +80,6 @@ namespace SkyCommands
             services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
             services.AddHostedService<FlipperService>(s => s.GetRequiredService<FlipperService>());
             services.AddCoflService();
-            services.AddHostedService<FlipperService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
