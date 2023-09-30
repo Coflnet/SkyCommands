@@ -216,10 +216,14 @@ namespace Coflnet.Sky.Commands
                     return;
                 }
 
-                if (waiting > 20)
+                var limit = 20;
+                if (_userId == 0) // not logged in
+                    limit = 5;
+
+                if (waiting > limit)
                 {
                     dev.Logger.Instance.Error($"triggered rate limit {data.Type} {data.Connection?.Id}");
-                    throw new CoflnetException("stop_it", "Your connection is sending to many requests. Please slow down.");
+                    SendBack(new MessageData("error", JsonConvert.SerializeObject(new { Slug = "stop_it", Message = "Your connection is sending to many requests. Please slow down." })) { mId = mId });
                 }
 
                 ExecuteCommand(data);
@@ -258,7 +262,7 @@ namespace Coflnet.Sky.Commands
                     {
                         await Commands[data.Type].Execute(data);
                     }
-                    catch(Payments.Client.Client.ApiException pe)
+                    catch (Payments.Client.Client.ApiException pe)
                     {
                         data.LogError(pe, "executing command");
                         span?.AddTag("extraData", JsonConvert.SerializeObject(pe.ErrorContent));
@@ -299,6 +303,7 @@ namespace Coflnet.Sky.Commands
                     }))
                     { mId = data.mId });
                 }
+                await Task.Delay(100); // take a break (cpu wise)
             }, new CancellationTokenSource(TimeSpan.FromMinutes(1)).Token).ConfigureAwait(false);
         }
 
