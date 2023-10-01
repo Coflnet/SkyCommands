@@ -16,7 +16,10 @@ namespace Coflnet.Sky.Commands
             try
             {
                 if (settings != null)
+                {
+                    con.OldFallbackSettings?.CancelCompilation();
                     con.OldFallbackSettings = settings;
+                }
                 con.SubFlipMsgId = (int)data.mId;
                 var userId = data.UserId;
                 var updateTask = UpdateSettings(data, settings, userId);

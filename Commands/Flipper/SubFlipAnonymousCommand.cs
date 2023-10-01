@@ -10,6 +10,7 @@ namespace Coflnet.Sky.Commands
         {
             var con = (data as SocketMessageData).Connection;
             var settings = GetSettings(data);
+            con.OldFallbackSettings?.CancelCompilation();
             con.OldFallbackSettings = settings;
             con.SubFlipMsgId = (int)data.mId;
             data.GetService<FlipperService>().AddNonConnection(con);
