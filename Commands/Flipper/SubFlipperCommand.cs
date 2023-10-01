@@ -22,7 +22,9 @@ namespace Coflnet.Sky.Commands
                 }
                 con.SubFlipMsgId = (int)data.mId;
                 var userId = data.UserId;
+                await data.SendBack(data.Create("debug", $"Validating"));
                 var updateTask = UpdateSettings(data, settings, userId);
+                await data.SendBack(data.Create("debug", $"Validated successfully"));
 
                 var lastSettings = con.LatestSettings;
 
@@ -60,6 +62,13 @@ namespace Coflnet.Sky.Commands
             {
                 data.GetService<FlipperService>().AddNonConnection(con);
                 await data.SendBack(data.Create("debug", $"exception " + e));
+            }
+            catch(Exception e)
+            {
+                data.GetService<FlipperService>().AddNonConnection(con);
+                dev.Logger.Instance.Error(e, "flip error");
+                await data.SendBack(data.Create("debug", $"unkown exception "));
+                throw e;
             }
             // not logged no settings, tell the frontend (request its settings)
             if (settings == null)
