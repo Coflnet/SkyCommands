@@ -13,7 +13,9 @@ namespace Coflnet.Sky.Commands
         public override async Task Execute(MessageData data)
         {
             var con = (data as SocketMessageData).Connection;
+            await data.SendBack(data.Create("debug", $"Validating"));
             var settings = GetSettings(data);
+            await data.SendBack(data.Create("debug", $"Validated successfully"));
             try
             {
                 if (settings != null)
@@ -23,9 +25,7 @@ namespace Coflnet.Sky.Commands
                 }
                 con.SubFlipMsgId = (int)data.mId;
                 var userId = data.UserId;
-                await data.SendBack(data.Create("debug", $"Validating"));
                 var updateTask = UpdateSettings(data, settings, userId);
-                await data.SendBack(data.Create("debug", $"Validated successfully"));
 
                 var lastSettings = con.LatestSettings;
 
