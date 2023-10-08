@@ -123,6 +123,7 @@ namespace Coflnet.Sky.Commands
             Commands.Add("genToken", new GenerateTokenFor());
             Commands.Add("loginExt", new LoginExternalCommand());
             Commands.Add("accountInfo", new AccountInfoCommand());
+            Commands.Add("loginWithToken", new LoginWithToken());
 
 
             Commands.Add("getCoflOwned", new GetCoflOwnerShipCommand());

@@ -1,11 +1,8 @@
-
-using System;
 using System.Threading.Tasks;
 using Coflnet.Sky.Core;
 using Coflnet.Sky.Commands.Shared;
 using Google.Apis.Auth;
 using Prometheus;
-using RestSharp;
 
 namespace Coflnet.Sky.Commands
 {
@@ -55,19 +52,21 @@ namespace Coflnet.Sky.Commands
                 var settings = await CacheService.Instance.GetFromRedis<SettingsChange>("uflipset" + user.Id);
                 if (settings != null)
                     con.Connection.LatestSettings = settings;
+                var internalToken = data.GetService<TokenService>().CreateToken(user.Email);
+                await con.SendBack(data.Create("token", internalToken));
             }
             catch (Exception e)
             {
                 dev.Logger.Instance.Error(e, "loading flip settings on login");
                 await data.Ok();
-    }
-    loginCount.Inc();
+            }
+            loginCount.Inc();
         }
 
-public static async Task<GoogleJsonWebSignature.Payload> ValidateToken(string token)
-{
-    var tokenData = await GoogleJsonWebSignature.ValidateAsync(token);
-    return tokenData;
-}
+        public static async Task<GoogleJsonWebSignature.Payload> ValidateToken(string token)
+        {
+            var tokenData = await GoogleJsonWebSignature.ValidateAsync(token);
+            return tokenData;
+        }
     }
 }
