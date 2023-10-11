@@ -41,19 +41,15 @@ namespace Coflnet.Sky.Commands
                 if (data is not SocketMessageData con)
                     return;
                 con.Connection.AccountInfo = await SelfUpdatingValue<AccountInfo>.Create(user.Id.ToString(), "accountInfo", () => new());
-                await data.Ok();
                 var accountInfo = con.Connection.AccountInfo;
+                var internalToken = data.GetService<TokenService>().CreateToken(user.Email);
+                await con.SendBack(data.Create("token", internalToken));
                 Console.WriteLine($"User {user.Id} logged in");
                 if (string.IsNullOrEmpty(accountInfo.Value.Locale))
                 {
                     accountInfo.Value.Locale = token.Locale;
                     await accountInfo.Update();
                 }
-                var settings = await CacheService.Instance.GetFromRedis<SettingsChange>("uflipset" + user.Id);
-                if (settings != null)
-                    con.Connection.LatestSettings = settings;
-                var internalToken = data.GetService<TokenService>().CreateToken(user.Email);
-                await con.SendBack(data.Create("token", internalToken));
             }
             catch (Exception e)
             {

@@ -13,5 +13,7 @@ public class LoginWithToken : Command
         if (data is not SocketMessageData con)
             return;
         con.Connection.AccountInfo = await SelfUpdatingValue<AccountInfo>.Create(user.Id.ToString(), "accountInfo", () => new());
+        var internalToken = data.GetService<TokenService>().CreateToken(email);
+        await con.SendBack(data.Create("token", internalToken));
     }
 }
