@@ -146,7 +146,8 @@ namespace Coflnet.Sky.Commands.Services
 
         private async Task<RestResponse> GetProxied(Uri uri, int size)
         {
-            var proxyRequest = new RestRequest($"/a/rs:fit:{size}/plain/" + uri.ToString())
+            // request image to be squared
+            var proxyRequest = new RestRequest($"/a/rs:fill:{size}:{size}/plain/" + uri.ToString())
                         .AddUrlSegment("size", size);
             var response = await proxyClient.ExecuteAsync(proxyRequest);
             return response;
