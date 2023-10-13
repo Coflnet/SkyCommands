@@ -5,6 +5,7 @@ using Coflnet.Sky.Core;
 namespace Coflnet.Sky.Commands;
 public class LoginWithToken : Command
 {
+    public override bool Cacheable => false;
     public override async Task Execute(MessageData data)
     {
         try
