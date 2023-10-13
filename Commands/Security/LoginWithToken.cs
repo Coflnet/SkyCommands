@@ -29,5 +29,6 @@ public class LoginWithToken : Command
         con.Connection.AccountInfo = await SelfUpdatingValue<AccountInfo>.Create(user.Id.ToString(), "accountInfo", () => new());
         var internalToken = data.GetService<TokenService>().CreateToken(email);
         await con.SendBack(data.Create("token", internalToken));
+        await data.SendBack(data.Create("debug", user.Id));
     }
 }
