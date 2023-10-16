@@ -24,9 +24,10 @@ public class LoginWithToken : Command
     private static async Task LoginWithSelfToken(MessageData data, SocketMessageData con)
     {
         var email = data.GetService<TokenService>().GetEmailFromToken(data.GetAs<string>());
-        var user = await UserService.Instance.GetUserByEmail(email);
+        GoogleUser user = await UserService.Instance.GetUserByEmail(email);
         data.UserId = user.Id;
         con.Connection.AccountInfo = await SelfUpdatingValue<AccountInfo>.Create(user.Id.ToString(), "accountInfo", () => new());
+        con.Log($"User {user.Id} logged in with token {email}");
         var internalToken = data.GetService<TokenService>().CreateToken(email);
         await con.SendBack(data.Create("token", internalToken));
         await data.SendBack(data.Create("debug", user.Id));
