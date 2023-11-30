@@ -1,4 +1,3 @@
-using System;
 using System.Threading.Tasks;
 using Coflnet.Sky.Commands.Shared;
 using Microsoft.Extensions.DependencyInjection;
@@ -69,7 +68,7 @@ namespace Coflnet.Sky.Commands
                 data.GetService<FlipperService>().AddNonConnection(con);
                 dev.Logger.Instance.Error(e, "flip error");
                 await data.SendBack(data.Create("debug", $"unkown exception "));
-                throw e;
+                throw new Exception("unkown exception on subFlip",e);
             }
             // not logged no settings, tell the frontend (request its settings)
             if (settings == null)
