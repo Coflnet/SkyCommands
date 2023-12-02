@@ -1,4 +1,3 @@
-using System;
 using System.Threading.Tasks;
 using Coflnet.Sky.Commands.Shared;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,7 +20,7 @@ namespace Coflnet.Sky.Commands
             var service = DiHandler.ServiceProvider.GetRequiredService<SettingsService>();
             if (string.IsNullOrEmpty(arguments.Key))
                 throw new CoflnetException("missing_key", "available options are:\n" + String.Join(",\n", updater.Options()));
-            var value = arguments.Value.Replace('$', '§').Replace('�','§');
+            var value = arguments.Value.Replace('$', '§').Replace('�', '§');
             var socket = (data as SocketMessageData).Connection;
 
             var lazyLock = Locks.GetOrAdd(data.UserId, id => new SemaphoreSlim(1));
@@ -30,6 +29,8 @@ namespace Coflnet.Sky.Commands
                 await lazyLock.WaitAsync();
                 if (socket.FlipSettings == null)
                     socket.FlipSettings = await SelfUpdatingValue<FlipSettings>.Create(data.UserId.ToString(), "flipSettings");
+                if (socket.FlipSettings.Value == null)
+                    await data.SendBack(data.Create<string>("flipSettings", null));
                 await updater.Update(socket, arguments.Key, value);
                 socket.Settings.Changer = arguments.Changer;
                 var settings = socket.FlipSettings.Value;
@@ -51,9 +52,9 @@ namespace Coflnet.Sky.Commands
                 {
                     Auction = new SaveAuction()
                     {
-                        Enchantments = new System.Collections.Generic.List<Enchantment>(),
-                        FlatenedNBT = new System.Collections.Generic.Dictionary<string, string>(),
-                        NBTLookup = new System.Collections.Generic.List<NBTLookup>(),
+                        Enchantments = new List<Enchantment>(),
+                        FlatenedNBT = new Dictionary<string, string>(),
+                        NBTLookup = new List<NBTLookup>(),
                         StartingBid = 2
                     }
                 });
