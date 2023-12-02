@@ -1,7 +1,4 @@
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
 using System.Diagnostics;
 using MessagePack;
 using WebSocketSharp;
@@ -297,6 +294,7 @@ namespace Coflnet.Sky.Commands
                     span?.AddTag("message", ex.Message);
                     span?.AddTag("stacktrace", ex.StackTrace);
                     span?.AddTag("id", traceId);
+                    span?.AddTag("userId", data.Connection._userId);
                     dev.Logger.Instance.Error($"Fatal error on Command {JsonConvert.SerializeObject(data)} {ex.Message} {ex.StackTrace} \n{ex.InnerException?.Message} {ex.InnerException?.StackTrace} {traceId}");
                     await data.SendBack(new MessageData("error", JsonConvert.SerializeObject(new
                     {
