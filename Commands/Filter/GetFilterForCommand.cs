@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Threading.Tasks;
 using Coflnet.Sky.Filter;
 using Coflnet.Sky.Core;
@@ -8,11 +7,11 @@ namespace Coflnet.Sky.Commands
 {
     public class GetFilterForCommand : Command
     {
-        static FilterEngine fe = new FilterEngine();
         public override async Task Execute(MessageData data)
         {
             var itemTag = data.GetAs<string>();
             var itemApi = data.GetService<IItemsApi>();
+            var fe = data.GetService<FilterEngine>();
             var optionsTask = itemApi.ItemItemTagModifiersAllGetAsync("*");
             if (itemTag == "*")
             {
