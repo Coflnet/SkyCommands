@@ -173,7 +173,7 @@ namespace Coflnet.Sky.Commands
             }
             catch (CoflnetException e)
             {
-                throw e;
+                throw;
             }
             catch (Exception e)
             {

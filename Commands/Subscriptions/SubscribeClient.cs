@@ -27,7 +27,7 @@ namespace Coflnet.Sky.Commands
             {
                 dev.Logger.Instance.Error(e, "loading subscriptions");
                 dev.Logger.Instance.Log(subscriptionsResponse);
-                throw e;
+                throw;
             }
         }
 
