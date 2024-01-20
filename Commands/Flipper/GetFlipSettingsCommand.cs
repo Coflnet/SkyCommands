@@ -10,9 +10,20 @@ namespace Coflnet.Sky.Commands
         public override async Task Execute(MessageData data)
         {
             var con = (data as SocketMessageData).Connection;
-            var service = DiHandler.ServiceProvider.GetRequiredService<SettingsService>();
-            con.FlipSettings = await SelfUpdatingValue<FlipSettings>.Create(data.UserId.ToString(), "flipSettings");
+            await AssignSettings(con);
             await data.SendBack(data.Create("flipSettings", con.FlipSettings.Value));
+        }
+
+        public static async Task AssignSettings(SkyblockBackEnd con)
+        {
+            var userId = con.UserId;
+            con.FlipSettings = await SelfUpdatingValue<FlipSettings>.Create(userId.ToString(), "flipSettings", () => new FlipSettings()
+            {
+                MinProfit = 100000,
+                MinVolume = 2,
+                ModSettings = new ModSettings() { ShortNumbers = true },
+                Visibility = new VisibilitySettings() { SellerOpenButton = true, ExtraInfoMax = 3, Lore = true }
+            });
         }
     }
 }

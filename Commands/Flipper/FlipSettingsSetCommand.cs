@@ -28,7 +28,7 @@ namespace Coflnet.Sky.Commands
             {
                 await lazyLock.WaitAsync();
                 if (socket.FlipSettings == null)
-                    socket.FlipSettings = await SelfUpdatingValue<FlipSettings>.Create(data.UserId.ToString(), "flipSettings");
+                    await GetFlipSettingsCommand.AssignSettings(socket);
                 if (socket.FlipSettings.Value == null)
                     await data.SendBack(data.Create<string>("flipSettings", null));
                 await updater.Update(socket, arguments.Key, value);

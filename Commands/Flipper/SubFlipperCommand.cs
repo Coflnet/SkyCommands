@@ -68,7 +68,7 @@ namespace Coflnet.Sky.Commands
                 data.GetService<FlipperService>().AddNonConnection(con);
                 dev.Logger.Instance.Error(e, "flip error");
                 await data.SendBack(data.Create("debug", $"unkown exception "));
-                throw new Exception("unkown exception on subFlip",e);
+                throw new Exception("unkown exception on subFlip", e);
             }
             // not logged no settings, tell the frontend (request its settings)
             if (settings == null)
@@ -126,7 +126,7 @@ namespace Coflnet.Sky.Commands
 
         private static async Task SubscribeToUpdates(MessageData data, int userId, SkyblockBackEnd con)
         {
-            con.FlipSettings = await SelfUpdatingValue<FlipSettings>.Create(userId.ToString(), "flipSettings");
+            await GetFlipSettingsCommand.AssignSettings(con);
             con.FlipSettings.OnChange += (newsettings) =>
             {
                 SendBackUpdates(data, con, newsettings);
