@@ -15,7 +15,6 @@ namespace Coflnet.Sky.Commands
             if (userData == null)
                 throw new CoflnetException("user_balance_unretrievable", "We had issues loading your balance, if this persists please contact support");
             await data.SendBack(data.Create("coflBalance", userData.Balance));
-            await data.SendBack(data.Create("debug", $"userId: {data.UserId}"));
         }
     }
 
