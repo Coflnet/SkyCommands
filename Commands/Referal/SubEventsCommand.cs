@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using Coflnet.Sky.Commands.Shared;
 using Coflnet.Sky.Core;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 
 namespace Coflnet.Sky.Commands
 {
@@ -14,14 +15,17 @@ namespace Coflnet.Sky.Commands
                 throw new CoflnetException("invalid_protocol", "This is a socket command");
             var broker = DiHandler.ServiceProvider.GetRequiredService<EventBrokerClient>();
             var id = data.mId;
-            Console.WriteLine($"{data.UserId} subbed to events");
-            var sub = broker.SubEvents(data.UserId.ToString(), ev =>
+            var userId = data.UserId;
+            Console.WriteLine($"{userId} subbed to events");
+            var sub = broker.SubEvents(userId.ToString(), ev =>
             {
-                Console.WriteLine($"{data.UserId} receives event {ev.SourceType} {ev.Message}");
+                Console.WriteLine($"{userId} receives event {ev.SourceType} {ev.Message}");
                 try
                 {
-                    var response = data.Create("event", ev);
-                    response.mId = id;
+                    var response = new MessageData("event", JsonConvert.SerializeObject(ev))
+                    {
+                        mId = id
+                    };
                     data.SendBack(response);
                 }
                 catch (Exception e)
