@@ -224,6 +224,7 @@ namespace Coflnet.Sky.Commands
                 {
                     dev.Logger.Instance.Error($"triggered rate limit {data.Type} {data.Connection?.Id}");
                     SendBack(new MessageData("error", JsonConvert.SerializeObject(new { Slug = "stop_it", Message = "Your connection is sending to many requests. Please slow down." })) { mId = mId });
+                    return;
                 }
 
                 ExecuteCommand(data);
