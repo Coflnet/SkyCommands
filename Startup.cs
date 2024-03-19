@@ -78,6 +78,11 @@ namespace SkyCommands
             services.AddSingleton<IIpPolicyStore, DistributedCacheIpPolicyStore>();
             services.AddSingleton<IRateLimitCounterStore, DistributedCacheRateLimitCounterStore>();
             services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
+
+            services.AddSingleton<Coflnet.Sky.Subscriptions.Client.Api.ISubscriptionApi>(a =>
+            {
+                return new Coflnet.Sky.Subscriptions.Client.Api.SubscriptionApi(Configuration["SUBSCRIPTION_BASE_URL"]);
+            });
             services.AddHostedService<FlipperService>(s => s.GetRequiredService<FlipperService>());
             services.AddCoflService();
         }

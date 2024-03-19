@@ -22,6 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Coflnet.Sky.Subscriptions.Client" Version="0.1.0" />
     <PackageReference Include="ConcurrentHashSet" Version="1.1.0" />
     <PackageReference Include="fNbt" Version="0.6.4" />
     <PackageReference Include="Hashids.net" Version="1.4.0" />
