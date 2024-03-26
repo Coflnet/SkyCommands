@@ -13,7 +13,8 @@ namespace Coflnet.Sky.Commands
         {
             var userApi = data.GetService<UserApi>();
             var args = data.GetAs<TransferRequest>();
-            var targetUser = "0";
+            var userCheck = CanUserSend(data);
+            string targetUser;
             if (!string.IsNullOrEmpty(args.TargetUserEmail))
                 targetUser = (await UserService.Instance.GetUserIdByEmail(args.TargetUserEmail)).ToString();
             else if (!string.IsNullOrEmpty(args.TargetUserMc) && args.TargetUserMc.Length == 32)
@@ -27,6 +28,8 @@ namespace Coflnet.Sky.Commands
                 throw new CoflnetException("missing_argument", "Either `email` or `mcId` have to be passed to know where to send funds to");
             if (targetUser == "0")
                 throw new CoflnetException("not_found", "There was no user found with this identifier");
+            if (!await userCheck)
+                throw new CoflnetException("payment_error", "You need to verify your Minecraft account to send funds to other users");
             try
             {
                 var transaction = await userApi.UserUserIdTransferPostAsync(data.UserId.ToString(), new Coflnet.Payments.Client.Model.TransferRequest()
@@ -41,6 +44,12 @@ namespace Coflnet.Sky.Commands
             {
                 throw new CoflnetException("payment_error", ex.Message.Substring("Error calling UserUserIdTransferPost: {.Message.:".Length));
             }
+        }
+
+        private async Task<bool> CanUserSend(MessageData data)
+        {
+            var transactions = await data.GetService<ITransactionApi>().TransactionUUserIdGetAsync(data.UserId.ToString(), 0, 50);
+            return transactions.Count > 40 || transactions.Any(t => t.ProductId == "verify_mc");
         }
 
         [DataContract]
