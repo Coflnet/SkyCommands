@@ -19,8 +19,10 @@ namespace Coflnet.Sky.Commands.Services
         private RestClient skyClient;
         private RestClient proxyClient;
         private RestClient hypixelClient;
+        private IConfiguration config;
         public PreviewService(IConfiguration config)
         {
+            this.config = config;
             skyClient = new RestClient(config["SKY_BASE_URL"] ?? "https://sky.coflnet.com");
             skyCryptClient = new RestClient(config["SKYCRYPT_BASE_URL"] ?? "https://skycrypt.coflnet.com");
             crafatarClient = new RestClient(config["CRAFATAR_BASE_URL"] ?? "https://crafatar.com");
@@ -124,7 +126,7 @@ namespace Coflnet.Sky.Commands.Services
                 return skyCryptClient.BuildUri(new RestRequest("/item/POTION")).ToString();
             if (targetItem == null)
                 throw new CoflnetException("unkown_item", "there was no image found for the item " + tag);
-            var skycryptBase = "https://skycrypt.coflnet.com";
+            var skycryptBase = config["SKYCRYPT_BASE_URL"];
             if (targetItem.Material == "SKULL_ITEM")
             {
                 dynamic skinData = JsonConvert.DeserializeObject(System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(targetItem.Skin)));
