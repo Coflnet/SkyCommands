@@ -205,7 +205,7 @@ namespace Coflnet.Sky.Commands
                 var result = await aspNet.ExecuteAsync(new RestRequest(path));
                 context.SetContentType(result.ContentType);
                 context.SetStatusCode((int)result.StatusCode);
-                context.WriteAsync(result.RawBytes);
+                await context.WriteAsync(result.RawBytes);
                 return;
             }
 
