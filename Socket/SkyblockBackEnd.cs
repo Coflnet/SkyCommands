@@ -80,7 +80,6 @@ namespace Coflnet.Sky.Commands
             Commands.Add("version", new GetVersionCommand());
             Commands.Add("auctionDetails", new AuctionDetails());
             Commands.Add("itemDetails", new ItemDetailsCommand());
-            Commands.Add("clearCache", new ClearCacheCommand());
             Commands.Add("playerAuctions", new PlayerAuctionsCommand());
             Commands.Add("playerBids", new PlayerBidsCommand());
             Commands.Add("allItemNames", new AllItemNamesCommand());
