@@ -383,7 +383,7 @@ namespace Coflnet.Sky.Commands
 
                 var source = DiHandler.GetService<ActivitySource>();
                 using var activity = source.StartActivity("error", ActivityKind.Producer);
-                activity.AddEvent(new ActivityEvent("error", default, new ActivityTagsCollection(new KeyValuePair<string, object>[] {
+                activity?.AddEvent(new ActivityEvent("error", default, new ActivityTagsCollection(new KeyValuePair<string, object>[] {
                         new ("error", ex?.Message),
                         new ("stack", ex?.StackTrace) })));
                 var traceId = System.Net.Dns.GetHostName().Replace("commands", "").Trim('-') + "." + activity?.TraceId;

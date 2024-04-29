@@ -30,7 +30,7 @@ namespace Coflnet.Sky.Commands
             if (cache)
                 CacheService.Instance.Save(this, data, responseCounter++);
             Connection.SendBack(data);
-            Span.SetTag("result", data.Type);
+            Span?.SetTag("result", data.Type);
             return Task.CompletedTask;
         }
     }

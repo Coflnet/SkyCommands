@@ -256,7 +256,7 @@ namespace Coflnet.Sky.Commands
                     if (Commands[data.Type].Cacheable && (await CacheService.Instance.TryFromCacheAsync(data)).IsFlagSet(CacheStatus.VALID))
                         return;
 
-                    using var span = source.StartActivity(data.Type).AddTag("type", "websocket").AddTag("body", data.Data.Truncate(20));
+                    using var span = source.StartActivity(data.Type)?.AddTag("type", "websocket").AddTag("body", data.Data.Truncate(20));
                     data.Span = span;
                     try
                     {
@@ -267,13 +267,13 @@ namespace Coflnet.Sky.Commands
                         data.LogError(pe, "executing command");
                         span?.AddTag("extraData", JsonConvert.SerializeObject(pe.ErrorContent));
                         span?.AddTag("statusCode", pe.ErrorCode);
-                        traceId = span.TraceId.ToString();
+                        traceId = span?.TraceId.ToString();
                         throw;
                     }
                     catch (Exception e)
                     {
                         data.LogError(e, "executing command");
-                        traceId = span.TraceId.ToString();
+                        traceId = span?.TraceId.ToString();
                         throw;
                     }
                 }
@@ -290,7 +290,7 @@ namespace Coflnet.Sky.Commands
                         await SendCoflnetException(data, cofl);
                         return;
                     }
-                    using var span = source.StartActivity("error").AddTag("type", data.Type);
+                    using var span = source.StartActivity("error")?.AddTag("type", data.Type);
                     span?.AddTag("message", ex.Message);
                     span?.AddTag("stacktrace", ex.StackTrace);
                     span?.AddTag("id", traceId);
