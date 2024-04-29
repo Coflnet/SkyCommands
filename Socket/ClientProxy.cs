@@ -47,7 +47,7 @@ namespace Coflnet.Sky.Commands
 
             public override MessageData Create<T>(string type, T data, int maxAge = 0)
             {
-                return new MessageData(type, Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(MessagePackSerializer.ToJson(data))), maxAge);
+                return new MessageData(type, Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(MessagePackSerializer.ConvertToJson(MessagePackSerializer.Serialize(data)))), maxAge);
             }
         }
 
@@ -55,7 +55,7 @@ namespace Coflnet.Sky.Commands
         {
             data.mId = System.Threading.Interlocked.Increment(ref lastMessageId);
             data.Data = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(data.Data));
-            Console.WriteLine($"Proxying {data.Type} {data.mId} {MessagePackSerializer.ToJson(data)}");
+            Console.WriteLine($"Proxying {data.Type} {data.mId} {MessagePackSerializer.ConvertToJson(MessagePackSerializer.Serialize(data))}");
             var task = new TaskCompletionSource<MessageData>();
             WaitingResponse[data.mId] = task;
             Send(data);
@@ -101,7 +101,7 @@ namespace Coflnet.Sky.Commands
             {
                 try
                 {
-                    var data = MessagePackSerializer.Deserialize<MessageData>(MessagePackSerializer.FromJson(e.Data));
+                    var data = MessagePackSerializer.Deserialize<MessageData>(MessagePackSerializer.ConvertFromJson(e.Data));
                     if (ClientComands.ContainsKey(data.Type))
                     {
                         data = new ClientMessageData()
@@ -172,7 +172,7 @@ namespace Coflnet.Sky.Commands
             while (SendQueue.TryDequeue(out MessageData result))
             {
                 Console.WriteLine($"{DateTime.Now} sent {result.Type} {result.Data.Truncate(20)}");
-                socket.Send(MessagePackSerializer.ToJson(result));
+                socket.Send(MessagePackSerializer.ConvertToJson(MessagePackSerializer.Serialize(result)));
             }
             if (SendQueue.Count > 1 && !socket.Ping())
                 Console.WriteLine("did not receive pong");

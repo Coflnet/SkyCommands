@@ -315,7 +315,7 @@ namespace Coflnet.Sky.Commands
 
         private static SocketMessageData ParseData(string body)
         {
-            var data = MessagePackSerializer.Deserialize<SocketMessageData>(MessagePackSerializer.FromJson(body));
+            var data = MessagePackSerializer.Deserialize<SocketMessageData>(MessagePackSerializer.ConvertFromJson(body));
             if (data.Data != null)
                 data.Data = System.Text.Encoding.UTF8.GetString(System.Convert.FromBase64String(data.Data));
             return data;
@@ -449,7 +449,7 @@ namespace Coflnet.Sky.Commands
         {
             if (this.ReadyState == WebSocketState.Closed)
                 return;
-            Send(MessagePackSerializer.ToJson(data));
+            Send(MessagePackSerializer.ConvertToJson(MessagePackSerializer.Serialize(data)));
         }
 
         public async Task<bool> SendFlip(FlipInstance flip)
