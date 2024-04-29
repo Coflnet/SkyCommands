@@ -21,7 +21,8 @@ namespace Coflnet.Sky.Commands
                     {
                         Name = f.Key,
                         Options = f.Value.Options.Select(o => o.ToString()),
-                        Type = f.Value.FilterType
+                        Type = f.Value.FilterType,
+                        Description = (f.Value.GetType().GetCustomAttributes(typeof(FilterDescriptionAttribute), true).FirstOrDefault() as FilterDescriptionAttribute)?.Description
                     };
                 }
                 catch (System.Exception e)
