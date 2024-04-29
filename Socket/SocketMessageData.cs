@@ -12,6 +12,7 @@ namespace Coflnet.Sky.Commands
         public SkyblockBackEnd Connection;
         private int responseCounter = 0;
 
+        [IgnoreMember]
         public override int UserId
         {
             get => Connection.UserId;

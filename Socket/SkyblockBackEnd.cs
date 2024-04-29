@@ -315,10 +315,19 @@ namespace Coflnet.Sky.Commands
 
         private static SocketMessageData ParseData(string body)
         {
-            var data = MessagePackSerializer.Deserialize<SocketMessageData>(MessagePackSerializer.ConvertFromJson(body));
-            if (data.Data != null)
-                data.Data = System.Text.Encoding.UTF8.GetString(System.Convert.FromBase64String(data.Data));
-            return data;
+            try
+            {
+                var data = MessagePackSerializer.Deserialize<SocketMessageData>(MessagePackSerializer.ConvertFromJson(body));
+                if (data.Data != null)
+                    data.Data = System.Text.Encoding.UTF8.GetString(System.Convert.FromBase64String(data.Data));
+                return data;
+            }
+            catch (System.Exception e)
+            {
+                dev.Logger.Instance.Error(e, "parsing data");
+                throw;
+            }
+
         }
 
 
