@@ -77,7 +77,7 @@ namespace Coflnet.Sky.Commands
                         }
 
                         var spanProvider = DiHandler.GetService<ActivitySource>();
-                        using var span = spanProvider.StartActivity(operationName).AddTag("route", e.Request.RawUrl);
+                        using var span = spanProvider.StartActivity(operationName)?.AddTag("route", e.Request.RawUrl);
                         //   .AsChildOf(tracer.Extract(BuiltinFormats.HttpHeaders, new HeaderMap(e.Request.Headers)));
 
                         if (e.Request.QueryString["tag"] != null)
