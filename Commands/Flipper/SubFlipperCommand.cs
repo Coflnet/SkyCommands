@@ -171,7 +171,7 @@ namespace Coflnet.Sky.Commands
                                  // test if settings compile
                 settings.MatchesSettings(testFlip);
             }
-            catch (CoflnetException e)
+            catch (CoflnetException)
             {
                 throw;
             }
