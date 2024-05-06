@@ -27,6 +27,7 @@ namespace Coflnet.Sky.Commands
         public async Task Resolve(RequestContext context, string path)
         {
             var tag = path.Split("/").Last();
+            Console.WriteLine("Resolving icon for " + tag);
             var key = "img" + tag;
             PreviewService.Preview preview = null;// await CacheService.Instance.GetFromRedis<PreviewService.Preview>(key);
             var cacheTime = TimeSpan.FromDays(0.1);

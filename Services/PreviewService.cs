@@ -9,6 +9,9 @@ using System.Diagnostics;
 using Newtonsoft.Json;
 using Microsoft.Extensions.Configuration;
 using RestSharp;
+using System.Runtime.Intrinsics.Arm;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace Coflnet.Sky.Commands.Services
 {
@@ -65,9 +68,19 @@ namespace Coflnet.Sky.Commands.Services
 
             var uri = skyCryptClient.BuildUri(request);
             var response = await GetProxied(uri, size);
+            var hash = Encoding.UTF8.GetString(MD5.Create().ComputeHash(Encoding.UTF8.GetBytes(tag)));
+            if(hash == "��D`��9��U�\u0006�/�o" && !uri.Authority.Contains("coflnet"))
+            {
+                // try to get image from own instance
+                var coflSkyCryptClient = new RestClient("https://skycrypt.coflnet.com");
+                uri = coflSkyCryptClient.BuildUri(request);
+                response = await GetProxied(uri, size);
+                Console.WriteLine($"retrying with coflnet {uri} {response.StatusCode}");
+                hash = Encoding.UTF8.GetString(MD5.Create().ComputeHash(Encoding.UTF8.GetBytes(tag)));
+            }
 
             Items.Client.Model.Item details = null;
-            if (response.StatusCode != System.Net.HttpStatusCode.OK)
+            if (response.StatusCode != System.Net.HttpStatusCode.OK || hash == "��D`��9��U�\u0006�/�o")
             {
                 var isPet = tag.StartsWith("PET_");
                 if (!isPet)
