@@ -2,6 +2,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Coflnet.Sky.Commands.Shared;
 using Coflnet.Sky.Core;
+using Newtonsoft.Json;
 
 namespace Coflnet.Sky.Commands
 {
@@ -10,7 +11,7 @@ namespace Coflnet.Sky.Commands
         public override Task Execute(MessageData data)
         {
             var flipps = data.GetService<FlipperService>()?.Flipps.Take(50);
-            if(flipps == null)
+            if (flipps == null)
                 flipps = new FlipInstance[0];
             try
             {
@@ -23,7 +24,7 @@ namespace Coflnet.Sky.Commands
             {
                 // no premium, continue
             }
-            return data.SendBack(data.Create("flips", flipps, A_MINUTE));
+            return data.SendBack(new MessageData("flips", JsonConvert.SerializeObject(flipps), A_MINUTE));
         }
     }
 }
