@@ -29,7 +29,7 @@ namespace Coflnet.Sky.Commands
             if (targetUser == "0")
                 throw new CoflnetException("not_found", "There was no user found with this identifier");
             if (!await userCheck)
-                throw new CoflnetException("payment_error", "You need to verify your Minecraft account to send funds to other users");
+                throw new CoflnetException("payment_error", "You need to verify with a unique Minecraft account to send funds to other users (at most one email per account)");
             try
             {
                 var transaction = await userApi.UserUserIdTransferPostAsync(data.UserId.ToString(), new Coflnet.Payments.Client.Model.TransferRequest()
