@@ -1,3 +1,4 @@
+using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using Coflnet.Sky.Commands.Shared;
 
@@ -11,11 +12,13 @@ public class GetPublishedConfigsCommand : SelfDocumentingCommand<string, string[
     }
 }
 
+[DataContract]
 public class ConfigUpdateArgs
 {
+    [DataMember(Name = "configName")]
     public string ConfigName;
+    [DataMember(Name = "config")]
     public string ChangeNotes;
-
 }
 public class Void
 {
