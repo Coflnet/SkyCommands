@@ -258,7 +258,10 @@ namespace Coflnet.Sky.Commands
                     if (Commands[data.Type].Cacheable && (await CacheService.Instance.TryFromCacheAsync(data)).IsFlagSet(CacheStatus.VALID))
                         return;
 
-                    using var span = source.StartActivity(data.Type)?.AddTag("type", "websocket").AddTag("body", data.Data.Truncate(20));
+                    using var span = source.StartActivity(data.Type)
+                        ?.AddTag("type", "websocket")
+                        .AddTag("body", data.Data.Truncate(20))
+                        .AddTag("server", System.Net.Dns.GetHostName());
                     data.Span = span;
                     try
                     {
