@@ -168,7 +168,7 @@ namespace Coflnet.Sky.Commands
                 var next = nextUpdate - TimeSpan.FromSeconds(10);
                 if (updateTimer == null)
                 {
-                    updateTimer = new System.Threading.Timer((e) =>
+                    updateTimer = new Timer((e) =>
                         {
                             try
                             {
@@ -248,9 +248,9 @@ namespace Coflnet.Sky.Commands
         {
             Task.Run(async () =>
             {
-                System.Threading.Interlocked.Increment(ref waiting);
+                Interlocked.Increment(ref waiting);
                 await limiter;
-                System.Threading.Interlocked.Decrement(ref waiting);
+                Interlocked.Decrement(ref waiting);
                 string traceId = "";
                 var source = DiHandler.GetService<ActivitySource>();
                 try
