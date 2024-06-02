@@ -69,7 +69,7 @@ namespace Coflnet.Sky.Commands
 
         private TimeLimiter limiter;
         public static event Action NextUpdateStart;
-        private static System.Threading.Timer updateTimer;
+        private static Timer updateTimer;
         private ConcurrentDictionary<long, DateTime> SentFlips = new ConcurrentDictionary<long, DateTime>();
 
         static SkyblockBackEnd()
@@ -327,7 +327,7 @@ namespace Coflnet.Sky.Commands
                     data.Data = System.Text.Encoding.UTF8.GetString(System.Convert.FromBase64String(data.Data));
                 return data;
             }
-            catch (System.Exception e)
+            catch (Exception e)
             {
                 dev.Logger.Instance.Error(e, "parsing data");
                 throw;
@@ -391,7 +391,7 @@ namespace Coflnet.Sky.Commands
                 var hourCount = breakdown?.Times?.Where(t => t.TotalSeconds > 1).GroupBy(t => System.TimeSpan.Parse(t.Age).Hours).Count() ?? 0;
                 flipDelay = TimeSpan.FromSeconds((breakdown?.Penalty ?? 2) + Math.Min(hourCount, 5));
             }
-            catch (System.Exception e)
+            catch (Exception e)
             {
                 dev.Logger.Instance.Error(e, "trying to update delay");
             }
@@ -516,7 +516,7 @@ namespace Coflnet.Sky.Commands
                     var expression = item.GetExpression();
                     expression.Compile()(testFlip);
                 }
-                catch (System.Exception)
+                catch (Exception)
                 {
                     blacklist.Remove(item);
                     dev.Logger.Instance.Error($"Removed unknown filter {JsonConvert.SerializeObject(item)} for {UserId}");
