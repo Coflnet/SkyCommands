@@ -1,26 +1,11 @@
-using System;
 using System.Threading.Tasks;
 using Coflnet.Sky.Core;
-using static Coflnet.Sky.Core.ItemReferences;
 
-namespace Coflnet.Sky.Commands
+namespace Coflnet.Sky.Commands;
+public class GetRecentAuctionsCommand : Command
 {
-    public class GetRecentAuctionsCommand : Command
+    public override Task Execute(MessageData data)
     {
-        public override Task Execute(MessageData data)
-        {
-            ItemSearchQuery details = ItemPricesCommand.GetQuery(data);
-            if (Program.LightClient && details.Start < DateTime.Now - TimeSpan.FromDays(7))
-            {
-                return ClientProxy.Instance.Proxy(data);
-            }
-            // temporary map none (0) to any
-            if (details.Reforge == Reforge.None)
-                details.Reforge = Reforge.Any;
-
-            var res = ItemPrices.Instance.GetRecentAuctions(details);
-
-            return data.SendBack(data.Create("auctionResponse", res, A_MINUTE * 2));
-        }
+        return data.SendBack(data.Create("deprecated", "this command got replaced by the api https://sky.coflnet.com/api", A_MINUTE * 2000));
     }
 }
