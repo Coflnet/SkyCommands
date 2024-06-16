@@ -24,10 +24,6 @@ namespace Coflnet.Sky.Commands
                              .Where(a => a.Uuid == search));
                 if (result == null)
                 {
-                    if (Program.LightClient)
-                    {
-                        return ClientProxy.Instance.Proxy(data);
-                    }
                     throw new CoflnetException("error", $"The Auction `{search}` wasn't found");
                 }
                 var resultJson = JSON.Stringify(EnchantColorMapper.Instance.AddColors(result));
