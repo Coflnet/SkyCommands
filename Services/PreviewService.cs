@@ -69,7 +69,9 @@ namespace Coflnet.Sky.Commands.Services
             var uri = skyCryptClient.BuildUri(request);
             var response = await GetProxied(uri, size);
             var hash = Encoding.UTF8.GetString(MD5.Create().ComputeHash(Encoding.UTF8.GetBytes(tag)));
-            if(hash == "��D`��9��U�\u0006�/�o" && !uri.Authority.Contains("coflnet"))
+            var brokenFilehash = new HashSet<string>() { "1mfgd8A3YEGnfidqz4q0xg==" };
+
+            if (hash == "��D`��9��U�\u0006�/�o" && !uri.Authority.Contains("coflnet"))
             {
                 // try to get image from own instance
                 var coflSkyCryptClient = new RestClient("https://skycrypt.coflnet.com");
@@ -78,19 +80,19 @@ namespace Coflnet.Sky.Commands.Services
                 Console.WriteLine($"retrying with coflnet {uri} {response.StatusCode}");
                 hash = Encoding.UTF8.GetString(MD5.Create().ComputeHash(Encoding.UTF8.GetBytes(tag)));
             }
-
+            var fileHashBase64 = Convert.ToBase64String(MD5.Create().ComputeHash(response.RawBytes));
             Items.Client.Model.Item details = null;
-            if (response.StatusCode != System.Net.HttpStatusCode.OK || hash == "��D`��9��U�\u0006�/�o")
+            if (response.StatusCode != System.Net.HttpStatusCode.OK || brokenFilehash.Contains(fileHashBase64))
             {
                 var isPet = tag.StartsWith("PET_");
                 if (!isPet)
                     dev.Logger.Instance.Error($"Failed to load item preview for {tag} from {uri} code {response.StatusCode}");
                 var info = await DiHandler.GetService<Items.Client.Api.IItemsApi>().ItemItemTagGetWithHttpInfoAsync(tag, true);
-
+                Console.WriteLine($"info {info.StatusCode}");
                 if (info.StatusCode == System.Net.HttpStatusCode.OK)
                 {
                     details = info.Data;
-                    if(info.Data == null) // parse manually to find json issues
+                    if (info.Data == null) // parse manually to find json issues
                         details = JsonConvert.DeserializeObject<Items.Client.Model.Item>(info.RawContent);
                 }
                 else
