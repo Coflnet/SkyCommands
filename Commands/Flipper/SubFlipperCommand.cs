@@ -108,7 +108,11 @@ namespace Coflnet.Sky.Commands
             try
             {
                 if (settings != null)
+                {
+                    if (con.Settings != null)
+                        FlipFilter.CopyRelevantToNew(settings, con.Settings);
                     await service.UpdateSetting(userId.ToString(), "flipSettings", settings);
+                }
                 if (con.FlipSettings?.Value == default)
                 {
                     await SubscribeToUpdates(data, userId, con);
