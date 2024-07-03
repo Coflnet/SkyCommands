@@ -7,7 +7,7 @@ namespace Coflnet.Sky.Commands
     {
         private const string Type = "searchResponse";
 
-        public override async Task Execute(MessageData data)
+        public override Task Execute(MessageData data)
         {
             throw new CoflnetException("deprecated", "This command is deprecated, use the api instead");
         }
