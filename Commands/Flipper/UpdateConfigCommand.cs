@@ -18,6 +18,7 @@ public class UpdateConfigCommand : SelfDocumentingCommand<ConfigUpdateArgs, Void
         using var current = await SelfUpdatingValue<ConfigContainer>.Create(data.UserId.ToString(), key, () => throw new CoflnetException("config_not_found", "The config you are trying to update does not exist"));
         current.Value.Settings = settings;
         current.Value.ChangeNotes = data.Get().ChangeNotes;
+        current.Value.Version++;
         await current.Update();
         return null;
     }
