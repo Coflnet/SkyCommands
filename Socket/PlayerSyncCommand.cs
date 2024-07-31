@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using MessagePack;
 using Coflnet.Sky.Core;
@@ -20,7 +18,6 @@ namespace Coflnet.Sky.Commands
                 var response = new PlayerSyncData(context.Players.Skip(offset).Take(batchAmount).ToList(),offset+batchAmount);
                 
                 return data.SendBack(new MessageData("playerSyncResponse", System.Convert.ToBase64String(MessagePack.MessagePackSerializer.Serialize(response))));
-            
             }
         }
 
@@ -41,8 +38,6 @@ namespace Coflnet.Sky.Commands
                 Players = players;
                 Offset = offset;
             }
-
-            
         }
     }
 }
