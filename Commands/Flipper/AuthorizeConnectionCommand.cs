@@ -39,6 +39,7 @@ namespace Coflnet.Sky.Commands
 
             var service = DiHandler.ServiceProvider.GetRequiredService<SettingsService>();
             var authTask = service.UpdateSetting("mod", newId, data.UserId.ToString());
+            await service.UpdateSetting(newId, "userId", data.UserId.ToString());
             await data.Ok();
             // legacy
             var con = (data as SocketMessageData).Connection;
