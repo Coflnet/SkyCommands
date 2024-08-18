@@ -15,12 +15,6 @@ namespace Coflnet.Sky.Commands
                 details.Reforge = Reforge.Any;
 
 
-            if (Program.LightClient && details.Start < DateTime.Now - TimeSpan.FromDays(7))
-            {
-                await ClientProxy.Instance.Proxy(data);
-                return;
-            }
-
             var res = await ItemPrices.Instance.GetPriceFor(details);
 
             var maxAge = A_MINUTE;

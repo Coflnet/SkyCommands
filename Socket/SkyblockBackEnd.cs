@@ -146,7 +146,6 @@ namespace Coflnet.Sky.Commands
             Commands.Add("playerSync", new PlayerSyncCommand());
             Commands.Add("itemSync", new ItemSyncCommand());
             Commands.Add("pricesSync", new PricesSyncCommand());
-            Commands.Add("auctionSync", new AuctionSyncCommand());
 
 
             Commands.Add("newPlayers", new NewPlayersCommand());
