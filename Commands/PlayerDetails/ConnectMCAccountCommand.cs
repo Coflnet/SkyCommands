@@ -10,7 +10,7 @@ namespace Coflnet.Sky.Commands
             var uuid = data.GetAs<string>();
             var userId = data.UserId;
 
-            var player = await PlayerService.Instance.GetPlayer(uuid);
+            var player = await PlayerSearch.Instance.GetPlayerAsync(uuid);
             if (player == default(Player))
                 throw new CoflnetException("unkown_player", "This player was not found");
 

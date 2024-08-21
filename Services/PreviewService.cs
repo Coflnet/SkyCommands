@@ -78,7 +78,6 @@ namespace Coflnet.Sky.Commands.Services
                 uri = coflSkyCryptClient.BuildUri(request);
                 response = await GetProxied(uri, size);
                 Console.WriteLine($"retrying with coflnet {uri} {response.StatusCode}");
-                hash = Encoding.UTF8.GetString(MD5.Create().ComputeHash(Encoding.UTF8.GetBytes(tag)));
             }
             var fileHashBase64 = Convert.ToBase64String(MD5.Create().ComputeHash(response.RawBytes));
             Items.Client.Model.Item details = null;
@@ -166,6 +165,7 @@ namespace Coflnet.Sky.Commands.Services
             // request image to be squared
             var proxyRequest = new RestRequest($"/a/rs:fill:{size}:{size}/plain/" + uri.ToString())
                         .AddUrlSegment("size", size);
+            proxyRequest.Timeout = 5000;
             var response = await proxyClient.ExecuteAsync(proxyRequest);
             return response;
         }
