@@ -58,6 +58,8 @@ namespace Coflnet.Sky.Commands.Services
         /// <returns></returns>
         public async Task<Preview> GetItemPreview(string tag, int size = 32)
         {
+            if (tag.StartsWith("ENCHANTMENT_"))
+                tag = "ENCHANTED_BOOK";
             var request = new RestRequest("/item/{tag}").AddUrlSegment("tag", tag);
 
             /* Most icons are currently available via the texture pack
