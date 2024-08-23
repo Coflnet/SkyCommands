@@ -103,11 +103,6 @@ namespace SkyCommands
 
             app.UseRouting();
 
-            app.UseAuthorization();
-
-            app.UseResponseCaching();
-            app.UseIpRateLimiting();
-
             app.Use(async (context, next) =>
             {
                 context.Response.GetTypedHeaders().CacheControl =
