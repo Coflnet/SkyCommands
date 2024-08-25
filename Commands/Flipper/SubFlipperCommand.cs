@@ -172,7 +172,9 @@ namespace Coflnet.Sky.Commands
                 settings = data.GetAs<FlipSettings>();
                 if (settings == null)
                     return null; // special case to load settings
-                                 // test if settings compile
+                if (settings.WhiteList.Count > 10)
+                    data.Ok();
+                // test if settings compile
                 settings.MatchesSettings(testFlip);
             }
             catch (CoflnetException)

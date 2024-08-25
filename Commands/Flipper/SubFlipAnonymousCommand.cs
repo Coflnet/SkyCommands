@@ -11,11 +11,21 @@ namespace Coflnet.Sky.Commands
             var con = (data as SocketMessageData).Connection;
             con.OldFallbackSettings?.CancelCompilation();
             var settings = GetSettings(data);
+            CapListLength(settings.WhiteList);
+            CapListLength(settings.BlackList);
             con.OldFallbackSettings = settings;
             con.SubFlipMsgId = (int)data.mId;
             data.GetService<FlipperService>().AddNonConnection(con);
             await data.Ok();
             await Task.Delay(500); // backof attempt
+
+            static void CapListLength(List<ListEntry> list)
+            {
+                while (list.Count > 50)
+                {
+                    list.RemoveAt(0);
+                }
+            }
         }
     }
 }
