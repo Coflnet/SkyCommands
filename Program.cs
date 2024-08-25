@@ -19,6 +19,8 @@ namespace SkyCommands
             var server = new Server();
             var itemLoad = ItemDetails.Instance.LoadLookup();
             var serverTask = Task.Run(() => server.Start()).ConfigureAwait(false);
+            // increase threadpool size
+            System.Threading.ThreadPool.SetMinThreads(100, 100);
 
             // hook up cache refreshing
             CacheService.Instance.OnCacheRefresh += Server.ExecuteCommandHeadless;
