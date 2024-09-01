@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace Coflnet.Sky.Commands
 {
     public class ClassNameDictonary<T> : Dictionary<string, T>
