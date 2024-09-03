@@ -19,6 +19,10 @@ public class UpdateConfigCommand : SelfDocumentingCommand<ConfigUpdateArgs, Void
         current.Value.Settings = settings;
         current.Value.ChangeNotes = data.Get().ChangeNotes;
         current.Value.Version++;
+        var diff = SettingsDiffer.GetDifferences(current.Value.Settings, settings);
+        if (diff.GetDiffCount() == 0)
+            throw new CoflnetException("no_changes", "No changes found in the config, aborting update");
+        current.Value.Diffs.Add(current.Value.Version, diff);
         await current.Update();
         return null;
     }
