@@ -172,8 +172,8 @@ namespace Coflnet.Sky.Commands
                 settings = data.GetAs<FlipSettings>();
                 if (settings == null)
                     return null; // special case to load settings
-                if (settings.WhiteList.Count > 10)
-                    data.Ok();
+                RemoveDupplicate(settings.WhiteList);
+                RemoveDupplicate(settings.BlackList);
                 // test if settings compile
                 settings.MatchesSettings(testFlip);
             }
@@ -189,6 +189,15 @@ namespace Coflnet.Sky.Commands
                 CheckListValidity(testFlip, settings.WhiteList, data, true);
             }
             return settings;
+        }
+
+        private static void RemoveDupplicate(List<ListEntry> list)
+        {
+            foreach (var item in list.GroupBy(l => l.ItemTag + l.DisplayName + ListEntry.comparer.GetHashCode(l.filter)).Where(g => g.Count() > 1).SelectMany(g => g.Skip(1)).ToList())
+            {
+                var match = list.First(l => l.ItemTag == item.ItemTag && l.DisplayName == item.DisplayName && ListEntry.comparer.GetHashCode(l.filter) == ListEntry.comparer.GetHashCode(item.filter));
+                list.Remove(match);
+            }
         }
 
         private void CheckListValidity(FlipInstance testFlip, List<ListEntry> blacklist, MessageData data, bool whiteList = false)
