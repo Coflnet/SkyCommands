@@ -28,6 +28,10 @@ public class UpdateConfigCommand : SelfDocumentingCommand<ConfigUpdateArgs, Void
         current.Value.ChangeNotes = data.Get().ChangeNotes;
         current.Value.Version = newVersion;
         current.Value.Diffs.Add(newVersion, diff);
+        if(current.Value.Diffs.Count > 20)
+        {
+            current.Value.Diffs.Remove(current.Value.Diffs.Keys.Min());
+        }
         await current.Update();
         await DiHandler.GetService<SettingsService>().UpdateSetting(data.UserId.ToString() + "_archive", key + $"_version_{newVersion}", current.Value);
         return null;
