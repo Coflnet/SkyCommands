@@ -16,10 +16,10 @@ public class UpdateConfigCommand : SelfDocumentingCommand<ConfigUpdateArgs, Void
         var settings = data.Connection.Settings;
         var key = GetKeyFromname(data.Get().ConfigName);
         using var current = await SelfUpdatingValue<ConfigContainer>.Create(data.UserId.ToString(), key, () => throw new CoflnetException("config_not_found", "The config you are trying to update does not exist"));
-        var diff = SettingsDiffer.GetDifferences(current.Value.Settings, settings);
+        var diff = SettingsDiffer.GetDifferences(current.Value.Settings ?? throw new CoflnetException("load_issue", "couldn't load current settings, try again or report"), settings);
         if (diff.GetDiffCount() == 0)
             throw new CoflnetException("no_changes", "No changes found in the config, aborting update");
-        if (diff.BlacklistRemoved.Count > settings.BlackList.Count())
+        if (current.Value.Settings.BlackList.Count() > settings.BlackList.Count() * 2)
             throw new CoflnetException("blacklist_too_large", "More than half of the blacklisted items were removed, aborting update");
         var newVersion = current.Value.Version + 1;
         if (current.Value.Diffs.ContainsKey(newVersion))
