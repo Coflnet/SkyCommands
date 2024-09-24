@@ -19,8 +19,9 @@ public class UpdateConfigCommand : SelfDocumentingCommand<ConfigUpdateArgs, Void
         var diff = SettingsDiffer.GetDifferences(current.Value.Settings ?? throw new CoflnetException("load_issue", "couldn't load current settings, try again or report"), settings);
         if (diff.GetDiffCount() == 0)
             throw new CoflnetException("no_changes", "No changes found in the config, aborting update");
-        if (current.Value.Settings.BlackList.Count() > settings.BlackList.Count() * 2)
-            throw new CoflnetException("blacklist_too_large", "More than half of the blacklisted items were removed, aborting update");
+        var currentBlCount = current.Value.Settings.BlackList.Count();
+        if (currentBlCount > settings.BlackList.Count() * 2)
+            throw new CoflnetException("blacklist_too_large", $"More than half of the blacklisted items were removed ({currentBlCount}-{settings.BlackList.Count()}), aborting update");
         var newVersion = current.Value.Version + 1;
         if (current.Value.Diffs.ContainsKey(newVersion))
             throw new CoflnetException("version_already_exists", "Config already/very recently updated with a new version. Please wait a few seconds and try again");
@@ -28,7 +29,7 @@ public class UpdateConfigCommand : SelfDocumentingCommand<ConfigUpdateArgs, Void
         current.Value.ChangeNotes = data.Get().ChangeNotes;
         current.Value.Version = newVersion;
         current.Value.Diffs.Add(newVersion, diff);
-        if(current.Value.Diffs.Count > 20)
+        if (current.Value.Diffs.Count > 20)
         {
             current.Value.Diffs.Remove(current.Value.Diffs.Keys.Min());
         }
