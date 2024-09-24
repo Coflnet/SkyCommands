@@ -11,16 +11,24 @@ namespace Coflnet.Sky.Commands
             var con = (data as SocketMessageData).Connection;
             con.OldFallbackSettings?.CancelCompilation();
             var settings = GetSettings(data);
-            CapListLength(settings.WhiteList);
-            CapListLength(settings.BlackList);
+            CapListLength(settings.WhiteList, con);
+            CapListLength(settings.BlackList, con);
             con.OldFallbackSettings = settings;
             con.SubFlipMsgId = (int)data.mId;
             data.GetService<FlipperService>().AddNonConnection(con);
             await data.Ok();
             await Task.Delay(500); // backof attempt
 
-            static void CapListLength(List<ListEntry> list)
+            static void CapListLength(List<ListEntry> list, SkyblockBackEnd con)
             {
+                try
+                {
+                    var id = con.UserId.ToString();
+                }
+                catch (System.Exception)
+                {
+                    return; // actually logged in, don't cap
+                }
                 while (list.Count > 50)
                 {
                     list.RemoveAt(0);
