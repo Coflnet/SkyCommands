@@ -35,6 +35,7 @@ public class UpdateConfigCommand : SelfDocumentingCommand<ConfigUpdateArgs, Void
         }
         await current.Update();
         await DiHandler.GetService<SettingsService>().UpdateSetting(data.UserId.ToString() + "_archive", key + $"_version_{newVersion}", current.Value);
+        await data.SendBack(data.Create("display", new MessageDisplay { Message = $"Config updated to version {newVersion}", Type = MessageDisplay.Success }));
         return null;
     }
 
@@ -42,4 +43,14 @@ public class UpdateConfigCommand : SelfDocumentingCommand<ConfigUpdateArgs, Void
     {
         return "seller_config_" + name.ToLower().Truncate(20);
     }
+}
+
+public class MessageDisplay
+{
+    public string Message { get; set; }
+    public string Type { get; set; }
+
+    public static string Success = "success";
+    public static string Warning = "warning";
+    public static string Error = "error";
 }
