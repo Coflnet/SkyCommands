@@ -49,9 +49,9 @@ public class UpdateConfigCommand : SelfDocumentingCommand<ConfigUpdateArgs, Void
 [DataContract]
 public class MessageDisplay
 {
-    [DataMember]
+    [DataMember(Name ="message")]
     public string Message { get; set; }
-    [DataMember]
+    [DataMember(Name ="type")]
     public string Type { get; set; }
 
     public static string Success = "success";
