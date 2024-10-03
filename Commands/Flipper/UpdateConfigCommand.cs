@@ -1,3 +1,4 @@
+using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using Coflnet.Sky.Commands.Shared;
 using Coflnet.Sky.Core;
@@ -45,9 +46,12 @@ public class UpdateConfigCommand : SelfDocumentingCommand<ConfigUpdateArgs, Void
     }
 }
 
+[DataContract]
 public class MessageDisplay
 {
+    [DataMember]
     public string Message { get; set; }
+    [DataMember]
     public string Type { get; set; }
 
     public static string Success = "success";
