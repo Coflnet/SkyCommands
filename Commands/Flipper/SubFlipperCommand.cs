@@ -206,7 +206,7 @@ namespace Coflnet.Sky.Commands
             {
                 try
                 {
-                    var expression = item.GetExpression();
+                    var expression = item.GetExpression(null);
                     expression.Compile()(testFlip);
                 }
                 catch (Exception e)
