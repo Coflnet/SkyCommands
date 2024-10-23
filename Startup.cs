@@ -16,6 +16,7 @@ using StackExchange.Redis;
 using Coflnet.Sky.Commands.Services;
 using Coflnet.Payments.Client.Api;
 using Prometheus;
+using Coflnet.Sky.Core.Services;
 
 namespace SkyCommands
 {
@@ -45,6 +46,8 @@ namespace SkyCommands
             services.AddScoped<PricesService>();
             services.AddSingleton<AuctionService>();
             services.AddDbContext<HypixelContext>();
+            services.AddSingleton<HypixelItemService>();
+            services.AddHttpClient();
             var paymentsUrl = Configuration["PAYMENTS_BASE_URL"] ?? "http://" + Configuration["PAYMENTS_HOST"];
             services.AddSingleton<ProductsApi>(sp =>
             {
@@ -84,6 +87,7 @@ namespace SkyCommands
                 return new Coflnet.Sky.Subscriptions.Client.Api.SubscriptionApi(Configuration["SUBSCRIPTION_BASE_URL"]);
             });
             services.AddHostedService<FlipperService>(s => s.GetRequiredService<FlipperService>());
+            services.AddHostedService<WarmStart>();
             services.AddCoflService();
         }
 
