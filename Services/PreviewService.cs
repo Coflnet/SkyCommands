@@ -167,7 +167,7 @@ namespace Coflnet.Sky.Commands.Services
             // request image to be squared
             var proxyRequest = new RestRequest($"/a/rs:fill:{size}:{size}/plain/" + uri.ToString())
                         .AddUrlSegment("size", size);
-            proxyRequest.Timeout = 5000;
+            proxyRequest.Timeout = TimeSpan.FromSeconds(5);
             var response = await proxyClient.ExecuteAsync(proxyRequest);
             return response;
         }
