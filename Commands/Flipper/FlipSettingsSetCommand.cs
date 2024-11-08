@@ -19,7 +19,7 @@ namespace Coflnet.Sky.Commands
             var arguments = data.GetAs<Update>();
             var service = DiHandler.ServiceProvider.GetRequiredService<SettingsService>();
             if (string.IsNullOrEmpty(arguments.Key))
-                throw new CoflnetException("missing_key", "available options are:\n" + String.Join(",\n", updater.Options()));
+                throw new CoflnetException("missing_key", "available options are:\n" + string.Join(",\n", updater.Options()));
             var value = arguments.Value.Replace('$', '§').Replace('�', '§');
             var socket = (data as SocketMessageData).Connection;
 
