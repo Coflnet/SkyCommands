@@ -48,16 +48,7 @@ namespace Coflnet.Sky.Commands
         {
             try
             {
-                settings.MatchesSettings(new FlipInstance()
-                {
-                    Auction = new SaveAuction()
-                    {
-                        Enchantments = new List<Enchantment>(),
-                        FlatenedNBT = new Dictionary<string, string>(),
-                        NBTLookup = new List<NBTLookup>(),
-                        StartingBid = 2
-                    }
-                });
+                settings.MatchesSettings(GetTestFlip("test"));
             }
             catch (CoflnetException)
             {
@@ -68,6 +59,28 @@ namespace Coflnet.Sky.Commands
                 dev.Logger.Instance.Error(e, "validating settings\n" + JsonConvert.SerializeObject(settings, Formatting.Indented));
                 throw new CoflnetException("invalid_settings", "Your settings are invalid, please revert your last change");
             }
+        }
+
+        public static FlipInstance GetTestFlip(string tag)
+        {
+            return new FlipInstance()
+            {
+                Auction = new SaveAuction()
+                {
+                    ItemName = "test",
+                    Tag = tag ?? "test",
+                    Bin = true,
+                    StartingBid = 2,
+                    NBTLookup = Array.Empty<NBTLookup>(),
+                    FlatenedNBT = new(),
+                    Enchantments = new(),
+                    Context = new()
+                },
+                Finder = LowPricedAuction.FinderType.SNIPER,
+                MedianPrice = 100000000,
+                LowestBin = 100000,
+                Context = new()
+            };
         }
 
         [DataContract]
