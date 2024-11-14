@@ -106,6 +106,10 @@ namespace Coflnet.Sky.Commands.Services
                     Console.WriteLine($"retrieving from api");
                     url = await GetIconUrl(tag);
                 };
+                if(url.StartsWith("https://texture"))
+                {
+                    url = ConvertTextureUrlToSkull(config["SKYCRYPT_BASE_URL"], url);
+                }
                 if (url.StartsWith("https://sky.coflnet.com") && url.Length >= ("https://sky.coflnet.com/static/icon/" + tag).Length)
                 {
                     Console.WriteLine($"skipping loop {url}");
@@ -146,8 +150,8 @@ namespace Coflnet.Sky.Commands.Services
             if (targetItem.Material == "SKULL_ITEM")
             {
                 dynamic skinData = JsonConvert.DeserializeObject(System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(targetItem.Skin)));
-                url = skycryptBase + "/head/" + ((string)skinData.textures.SKIN.url).Replace("http://textures.minecraft.net/texture/", "");
-                Activity.Current?.AddTag("headUrl", url);
+                string skinUrl = skinData.textures.SKIN.url;
+                url = ConvertTextureUrlToSkull(skycryptBase, skinUrl);
             }
             else if (targetItem.Material == "INK_SACK")
             {
@@ -159,6 +163,13 @@ namespace Coflnet.Sky.Commands.Services
             }
             Console.WriteLine(url);
 
+            return url;
+        }
+
+        private static string ConvertTextureUrlToSkull(string skycryptBase, string skinUrl)
+        {
+            string url = skycryptBase + "/head/" + skinUrl.Replace("http://textures.minecraft.net/texture/", "");
+            Activity.Current?.AddTag("headUrl", url);
             return url;
         }
 
