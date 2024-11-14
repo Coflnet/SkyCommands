@@ -168,7 +168,9 @@ namespace Coflnet.Sky.Commands.Services
 
         private static string ConvertTextureUrlToSkull(string skycryptBase, string skinUrl)
         {
-            string url = skycryptBase + "/head/" + skinUrl.Replace("http://textures.minecraft.net/texture/", "");
+            string url = skycryptBase + "/head/" + skinUrl
+                .Replace("http://textures.minecraft.net/texture/", "")
+                .Replace("https://textures.minecraft.net/texture/", "");
             Activity.Current?.AddTag("headUrl", url);
             return url;
         }
