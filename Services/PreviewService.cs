@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using Coflnet.Sky.Commands.Shared;
@@ -8,8 +5,6 @@ using Coflnet.Sky.Core;
 using System.Diagnostics;
 using Newtonsoft.Json;
 using Microsoft.Extensions.Configuration;
-using RestSharp;
-using System.Runtime.Intrinsics.Arm;
 using System.Security.Cryptography;
 using System.Text;
 
