@@ -34,7 +34,7 @@ namespace Coflnet.Sky.Commands
             Task save = null;
             if (preview == null)
             {
-                if (ItemDetails.Instance.GetItemIdForTag(tag) > 0 && !ItemDetails.Instance.TagLookup.ContainsKey("PET_SKIN_" + tag))
+                if (ItemDetails.Instance.GetItemIdForTag(tag) <= 0 && !ItemDetails.Instance.TagLookup.ContainsKey("PET_SKIN_" + tag))
                     throw new CoflnetException("unkown_item", "The requested item was not found, please file a bugreport");
                 preview = await DiHandler.ServiceProvider.GetRequiredService<PreviewService>().GetItemPreview(tag, 64);
                 if (preview.Image == "cmVxdWVzdGVkIFVSTCBpcyBub3QgYWxsb3dlZAo=" || preview.Image == null || preview.Image.Length < 50)
