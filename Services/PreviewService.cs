@@ -66,7 +66,7 @@ namespace Coflnet.Sky.Commands.Services
             var uri = skyCryptClient.BuildUri(request);
             var response = await GetProxied(uri, size);
             var hash = Encoding.UTF8.GetString(MD5.Create().ComputeHash(Encoding.UTF8.GetBytes(tag)));
-            var brokenFilehash = new HashSet<string>() { "1mfgd8A3YEGnfidqz4q0xg==" };
+            var brokenFilehash = new HashSet<string>() { "1mfgd8A3YEGnfidqz4q0xg==", null };
 
             if (hash == "��D`��9��U�\u0006�/�o" && !uri.Authority.Contains("coflnet"))
             {
@@ -76,12 +76,11 @@ namespace Coflnet.Sky.Commands.Services
                 response = await GetProxied(uri, size);
                 Console.WriteLine($"retrying with coflnet {uri} {response.StatusCode}");
             }
-            var fileHashBase64 = Convert.ToBase64String(MD5.Create().ComputeHash(response.RawBytes));
+            var fileHashBase64 = response?.RawBytes == null ? null : Convert.ToBase64String(MD5.Create().ComputeHash(response.RawBytes));
             Items.Client.Model.Item details = null;
             if (response.StatusCode != System.Net.HttpStatusCode.OK || brokenFilehash.Contains(fileHashBase64))
             {
-                var isPet = tag.StartsWith("PET_");
-                if (!isPet)
+                if (!NBT.IsPet(tag))
                     dev.Logger.Instance.Error($"Failed to load item preview for {tag} from {uri} code {response.StatusCode}");
                 var info = await DiHandler.GetService<Items.Client.Api.IItemsApi>().ItemItemTagGetWithHttpInfoAsync(tag, true);
                 Console.WriteLine($"info {info.StatusCode}");
@@ -96,12 +95,12 @@ namespace Coflnet.Sky.Commands.Services
                     Console.WriteLine($"failed to load item details for {tag} from api");
                 }
                 var url = details?.IconUrl;
-                if (details?.IconUrl == null && !isPet)
+                if (details?.IconUrl == null && !NBT.IsPet(tag))
                 {
                     Console.WriteLine($"retrieving from api");
                     url = await GetIconUrl(tag);
                 };
-                if(url.StartsWith("https://texture"))
+                if (url.StartsWith("https://texture"))
                 {
                     url = ConvertTextureUrlToSkull(config["SKYCRYPT_BASE_URL"], url);
                 }
