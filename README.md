@@ -496,7 +496,7 @@ Response:
 ```
 {
     type:"newItemsResponse"
-    data:[{icon: "https://sky.coflnet.com/static/261-0.png", name: "Terminator", tag: "TERMINATOR"}]
+    data:[{name: "Terminator", tag: "TERMINATOR"}]
 }
 ```
 
