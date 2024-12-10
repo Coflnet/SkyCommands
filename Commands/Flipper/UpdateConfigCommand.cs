@@ -10,12 +10,13 @@ public class UpdateConfigCommand : SelfDocumentingCommand<ConfigUpdateArgs, Void
     protected override async Task<Void> Execute(TypedMessageData data)
     {
         using var createdConfigs = await SelfUpdatingValue<CreatedConfigs>.Create(data.UserId.ToString(), "created_configs", () => new());
-        if (!createdConfigs.Value.Configs.Contains(data.Get().ConfigName))
+        var publishAs = data.Get().ConfigName;
+        if (!createdConfigs.Value.Configs.Contains(publishAs))
         {
             throw new CoflnetException("config_not_found", "The config you are trying to update does not exist");
         }
         var settings = data.Connection.Settings;
-        var key = GetKeyFromname(data.Get().ConfigName);
+        var key = GetKeyFromname(publishAs);
         using var current = await SelfUpdatingValue<ConfigContainer>.Create(data.UserId.ToString(), key, () => throw new CoflnetException("config_not_found", "The config you are trying to update does not exist"));
         var diff = SettingsDiffer.GetDifferences(current.Value.Settings ?? throw new CoflnetException("load_issue", "couldn't load current settings, try again or report"), settings);
         if (diff.GetDiffCount() == 0)
@@ -30,6 +31,7 @@ public class UpdateConfigCommand : SelfDocumentingCommand<ConfigUpdateArgs, Void
         current.Value.ChangeNotes = data.Get().ChangeNotes;
         current.Value.Version = newVersion;
         current.Value.Diffs.Add(newVersion, diff);
+        current.Value.Settings.PublishedAs = publishAs;
         if (current.Value.Diffs.Count > 20)
         {
             current.Value.Diffs.Remove(current.Value.Diffs.Keys.Min());
