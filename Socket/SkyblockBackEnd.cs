@@ -133,6 +133,7 @@ namespace Coflnet.Sky.Commands
             Commands.Add("flipFilters", new GetFlipFiltersCommand());
             Commands.Add("publishedConfigs", new GetPublishedConfigsCommand());
             Commands.Add("updateConfig", new UpdateConfigCommand());
+            Commands.Add("loadConfig", new LoadConfigCommand());
 
             Commands.Add("subFlip", new SubFlipperCommand());
             Commands.Add("subFlipAnonym", new SubFlipAnonymousCommand());
