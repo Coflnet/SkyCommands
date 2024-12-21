@@ -30,6 +30,7 @@ public class UpdateConfigCommand : SelfDocumentingCommand<ConfigUpdateArgs, Void
         current.Value.Settings = settings;
         current.Value.ChangeNotes = data.Get().ChangeNotes;
         current.Value.Version = newVersion;
+        current.Value.Settings.UsedVersion = current.Value.Version;
         current.Value.Diffs.Add(newVersion, diff);
         if(current.Value.Settings.PublishedAs != null && current.Value.Settings.PublishedAs != publishAs)
         {
