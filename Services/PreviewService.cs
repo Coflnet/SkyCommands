@@ -132,7 +132,7 @@ namespace Coflnet.Sky.Commands.Services
         private async Task<string> GetIconUrl(string tag)
         {
             string url;
-            var itemDataString = await hypixelClient.ExecuteAsync(new RestRequest("resources/skyblock/items"));
+            var itemDataString = await hypixelClient.ExecuteAsync(new RestRequest("v2/resources/skyblock/items"));
             var itemData = JsonConvert.DeserializeObject<HypixelItems>(itemDataString.Content);
             var targetItem = itemData.Items.Where(i => i.Id == tag).FirstOrDefault();
             Console.Write(JsonConvert.SerializeObject(itemData).Truncate(200));
@@ -143,7 +143,7 @@ namespace Coflnet.Sky.Commands.Services
             var skycryptBase = config["SKYCRYPT_BASE_URL"];
             if (targetItem.Material == "SKULL_ITEM")
             {
-                dynamic skinData = JsonConvert.DeserializeObject(System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(targetItem.Skin)));
+                dynamic skinData = JsonConvert.DeserializeObject(System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(targetItem.Skin.Value)));
                 string skinUrl = skinData.textures.SKIN.url;
                 url = ConvertTextureUrlToSkull(skycryptBase, skinUrl);
             }
@@ -208,10 +208,15 @@ namespace Coflnet.Sky.Commands.Services
             public int Durability { get; set; }
 
             [JsonProperty("skin")]
-            public string Skin { get; set; }
+            public Skin Skin { get; set; }
 
             [JsonProperty("id")]
             public string Id { get; set; }
+        }
+
+        public class Skin
+        {
+            public string Value { get; set; }
         }
     }
 }
