@@ -2,6 +2,7 @@ using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using Coflnet.Sky.Commands.Shared;
 using Coflnet.Sky.Core;
+using Newtonsoft.Json;
 
 namespace Coflnet.Sky.Commands;
 
@@ -15,7 +16,9 @@ public class UpdateConfigCommand : SelfDocumentingCommand<ConfigUpdateArgs, Void
         {
             throw new CoflnetException("config_not_found", "The config you are trying to update does not exist");
         }
-        var settings = data.Connection.Settings;
+        var settings = JsonConvert.DeserializeObject<FlipSettings>(JsonConvert.SerializeObject(data.Connection.Settings));
+        RemoveBaseConfig(settings.WhiteList);
+        RemoveBaseConfig(settings.BlackList);
         var key = GetKeyFromname(publishAs);
         using var current = await SelfUpdatingValue<ConfigContainer>.Create(data.UserId.ToString(), key, () => throw new CoflnetException("config_not_found", "The config you are trying to update does not exist"));
         var diff = SettingsDiffer.GetDifferences(current.Value.Settings ?? throw new CoflnetException("load_issue", "couldn't load current settings, try again or report"), settings);
@@ -32,11 +35,11 @@ public class UpdateConfigCommand : SelfDocumentingCommand<ConfigUpdateArgs, Void
         current.Value.Version = newVersion;
         current.Value.Settings.UsedVersion = current.Value.Version;
         current.Value.Diffs.Add(newVersion, diff);
-        if(current.Value.Settings.PublishedAs != null && current.Value.Settings.PublishedAs != publishAs)
+        if (current.Value.Settings.PublishedAs != null && current.Value.Settings.PublishedAs != publishAs)
         {
             throw new CoflnetException("config_name_mismatch", $"You are trying to update {publishAs} but the config was previously published as {current.Value.Settings.PublishedAs}. Please edit the config name as file to switch.");
         }
-        if(current.Value.Settings.PublishedAs == null)
+        if (current.Value.Settings.PublishedAs == null)
         {
             current.Value.Settings.PublishedAs = publishAs;
         }
@@ -50,6 +53,30 @@ public class UpdateConfigCommand : SelfDocumentingCommand<ConfigUpdateArgs, Void
         return null;
     }
 
+    private static void RemoveDupplicates(List<ListEntry> list)
+    {
+        var dupplicates = list.ToList()
+                        .GroupBy(x => x.ItemTag + (x.filter == null ? "" : string.Join(',', x.filter.Select(f => f.ToString()))))
+                        .Where(g => g.Count() > 1).SelectMany(g => g.Skip(1));
+        foreach (var item in dupplicates)
+        {
+            list.Remove(item);
+            Console.WriteLine("Removed dupplicate");
+        }
+    }
+
+    private void RemoveBaseConfig(List<ListEntry> whiteList)
+    {
+        RemoveDupplicates(whiteList);
+        foreach (var item in whiteList.ToList())
+        {
+            if (item.Tags?.Contains("from BaseConfig") ?? false)
+            {
+                whiteList.Remove(item);
+            }
+        }
+    }
+
     public static string GetKeyFromname(string name)
     {
         return "seller_config_" + name.ToLower().Truncate(20);
@@ -59,9 +86,9 @@ public class UpdateConfigCommand : SelfDocumentingCommand<ConfigUpdateArgs, Void
 [DataContract]
 public class MessageDisplay
 {
-    [DataMember(Name ="message")]
+    [DataMember(Name = "message")]
     public string Message { get; set; }
-    [DataMember(Name ="type")]
+    [DataMember(Name = "type")]
     public string Type { get; set; }
 
     public static string Success = "success";
