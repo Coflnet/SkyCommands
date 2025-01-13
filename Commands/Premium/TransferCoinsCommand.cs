@@ -49,7 +49,7 @@ namespace Coflnet.Sky.Commands
         private async Task<bool> CanUserSend(MessageData data)
         {
             var transactions = await data.GetService<ITransactionApi>().TransactionUUserIdGetAsync(data.UserId.ToString(), 0, 50);
-            return transactions.Count > 10 || transactions.Any(t => t.ProductId == "verify_mc") || transactions.Any(t => t.ProductId == "premium_plus");
+            return transactions.Count > 10 || transactions.Any(t => t.ProductId == "verify_mc") || transactions.Any(t => t.ProductId.Contains("premium_plus"));
         }
 
         [DataContract]
