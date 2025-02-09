@@ -25,7 +25,7 @@ public class UpdateConfigCommand : SelfDocumentingCommand<ConfigUpdateArgs, Void
         if (diff.GetDiffCount() == 0)
             throw new CoflnetException("no_changes", "No changes found in the config, aborting update");
         var currentBlCount = current.Value.Settings.BlackList.Count();
-        if (currentBlCount > settings.BlackList.Count() * 2)
+        if (currentBlCount > settings.BlackList.Count * 2)
             throw new CoflnetException("blacklist_too_large", $"More than half of the blacklisted items were removed ({currentBlCount}-{settings.BlackList.Count()}), aborting update");
         var newVersion = current.Value.Version + 1;
         if (current.Value.Diffs.ContainsKey(newVersion))
