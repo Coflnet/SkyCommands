@@ -49,9 +49,10 @@ namespace Coflnet.Sky.Commands.Services
         /// Gets image preview for an item
         /// </summary>
         /// <param name="tag">The hypixel item tag to get an image for</param>
+        /// <param name="isVanilla"></param>
         /// <param name="size">the size to get the image in</param>
         /// <returns></returns>
-        public async Task<Preview> GetItemPreview(string tag, int size = 32)
+        public async Task<Preview> GetItemPreview(string tag, bool isVanilla, int size = 32)
         {
             if (tag.StartsWith("ENCHANTMENT_"))
                 tag = "ENCHANTED_BOOK";
@@ -68,19 +69,11 @@ namespace Coflnet.Sky.Commands.Services
             var hash = Encoding.UTF8.GetString(MD5.Create().ComputeHash(Encoding.UTF8.GetBytes(tag)));
             var brokenFilehash = new HashSet<string>() { "1mfgd8A3YEGnfidqz4q0xg==", null };
 
-            if (hash == "��D`��9��U�\u0006�/�o" && !uri.Authority.Contains("coflnet"))
-            {
-                // try to get image from own instance
-                var coflSkyCryptClient = new RestClient("https://skycrypt.coflnet.com");
-                uri = coflSkyCryptClient.BuildUri(request);
-                response = await GetProxied(uri, size);
-                Console.WriteLine($"retrying with coflnet {uri} {response.StatusCode}");
-            }
             var fileHashBase64 = response?.RawBytes == null ? null : Convert.ToBase64String(MD5.Create().ComputeHash(response.RawBytes));
             Items.Client.Model.Item details = null;
-            if (response.StatusCode != System.Net.HttpStatusCode.OK || brokenFilehash.Contains(fileHashBase64))
+            if (response.StatusCode != System.Net.HttpStatusCode.OK || brokenFilehash.Contains(fileHashBase64) || isVanilla)
             {
-                if (!NBT.IsPet(tag))
+                if (!NBT.IsPet(tag) && !isVanilla)
                     dev.Logger.Instance.Error($"Failed to load item preview for {tag} from {uri} code {response.StatusCode}");
                 var info = await DiHandler.GetService<Items.Client.Api.IItemsApi>().ItemItemTagGetWithHttpInfoAsync(tag, true);
                 Console.WriteLine($"info {info.StatusCode}");

@@ -26,7 +26,14 @@ namespace Coflnet.Sky.Commands
         /// <returns></returns>
         public async Task Resolve(RequestContext context, string path)
         {
-            var tag = path.Split("/").Last();
+            var parts = path.Split("/");
+            var tag = parts.Last();
+            var isVanilla = false;
+            if(tag == "vanilla")
+            {
+                tag = parts.Reverse().Skip(1).First();
+                isVanilla = true;
+            }
             Console.WriteLine("Resolving icon for " + tag);
             var key = "img" + tag;
             PreviewService.Preview preview = null;// await CacheService.Instance.GetFromRedis<PreviewService.Preview>(key);
@@ -41,7 +48,7 @@ namespace Coflnet.Sky.Commands
                     else
                         tag = "PET_SKIN_" + tag;
                 }
-                preview = await DiHandler.ServiceProvider.GetRequiredService<PreviewService>().GetItemPreview(tag, 64);
+                preview = await DiHandler.ServiceProvider.GetRequiredService<PreviewService>().GetItemPreview(tag, isVanilla, 64);
                 if (preview.Image == "cmVxdWVzdGVkIFVSTCBpcyBub3QgYWxsb3dlZAo=" || preview.Image == null || preview.Image.Length < 50)
                 {
                     // transparent 64x64 image
