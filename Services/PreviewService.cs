@@ -58,12 +58,6 @@ namespace Coflnet.Sky.Commands.Services
                 tag = "ENCHANTED_BOOK";
             var request = new RestRequest("/item/{tag}").AddUrlSegment("tag", tag);
 
-            /* Most icons are currently available via the texture pack
-            if(details.MinecraftType.StartsWith("Leather "))
-                request = new RestRequest("/leather/{type}/{color}")
-                    .AddUrlSegment("type", details.MinecraftType.Replace("Leather ","").ToLower())
-                    .AddUrlSegment("color", details.color.Replace(":",",")); */
-
             var uri = skyCryptClient.BuildUri(request);
             var response = await GetProxied(uri, size);
             var hash = Encoding.UTF8.GetString(MD5.Create().ComputeHash(Encoding.UTF8.GetBytes(tag)));
@@ -92,11 +86,13 @@ namespace Coflnet.Sky.Commands.Services
                 {
                     Console.WriteLine($"retrieving from api");
                     url = await GetIconUrl(tag);
-                };
+                }
                 if (url.StartsWith("https://texture"))
                 {
                     url = ConvertTextureUrlToSkull(config["SKYCRYPT_BASE_URL"], url);
                 }
+                if (details.MinecraftType.StartsWith("Leather "))
+                    url = "https://sky.shiiyu.moe/item/" + details.MinecraftType.ToUpper().Replace(" ", "_");
                 if (url.StartsWith("https://sky.coflnet.com") && url.Length >= ("https://sky.coflnet.com/static/icon/" + tag).Length)
                 {
                     Console.WriteLine($"skipping loop {url}");
