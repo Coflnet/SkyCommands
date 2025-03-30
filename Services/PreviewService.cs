@@ -56,7 +56,7 @@ namespace Coflnet.Sky.Commands.Services
         {
             if (tag.StartsWith("ENCHANTMENT_"))
                 tag = "ENCHANTED_BOOK";
-            var request = new RestRequest("/item/{tag}").AddUrlSegment("tag", tag);
+            var request = new RestRequest("/api/item/{tag}").AddUrlSegment("tag", tag);
 
             var uri = skyCryptClient.BuildUri(request);
             var response = await GetProxied(uri, size);
@@ -92,7 +92,7 @@ namespace Coflnet.Sky.Commands.Services
                     url = ConvertTextureUrlToSkull(config["SKYCRYPT_BASE_URL"], url);
                 }
                 if (details.MinecraftType.StartsWith("Leather "))
-                    url = "https://sky.shiiyu.moe/item/" + details.MinecraftType.ToUpper().Replace(" ", "_");
+                    url = "https://sky.shiiyu.moe/api/item/" + details.MinecraftType.ToUpper().Replace(" ", "_");
                 if (url.StartsWith("https://sky.coflnet.com") && url.Length >= ("https://sky.coflnet.com/static/icon/" + tag).Length)
                 {
                     Console.WriteLine($"skipping loop {url}");
@@ -126,7 +126,7 @@ namespace Coflnet.Sky.Commands.Services
             var targetItem = itemData.Items.Where(i => i.Id == tag).FirstOrDefault();
             Console.Write(JsonConvert.SerializeObject(itemData).Truncate(200));
             if (targetItem == null && tag.StartsWith("POTION_"))
-                return skyCryptClient.BuildUri(new RestRequest("/item/POTION")).ToString();
+                return skyCryptClient.BuildUri(new RestRequest("/api/item/POTION")).ToString();
             if (targetItem == null)
                 throw new CoflnetException("unkown_item", "there was no image found for the item " + tag);
             var skycryptBase = config["SKYCRYPT_BASE_URL"];
@@ -138,11 +138,11 @@ namespace Coflnet.Sky.Commands.Services
             }
             else if (targetItem.Material == "INK_SACK")
             {
-                url = $"{skycryptBase}/item/{targetItem.Material}:{targetItem.Durability}";
+                url = $"{skycryptBase}/api/item/{targetItem.Material}:{targetItem.Durability}";
             }
             else
             {
-                url = skycryptBase + "/item/" + targetItem.Material;
+                url = skycryptBase + "/api/item/" + targetItem.Material;
             }
             Console.WriteLine(url);
 
@@ -151,7 +151,7 @@ namespace Coflnet.Sky.Commands.Services
 
         private static string ConvertTextureUrlToSkull(string skycryptBase, string skinUrl)
         {
-            string url = skycryptBase + "/head/" + skinUrl
+            string url = skycryptBase + "/api/head/" + skinUrl
                 .Replace("http://textures.minecraft.net/texture/", "")
                 .Replace("https://textures.minecraft.net/texture/", "");
             Activity.Current?.AddTag("headUrl", url);
