@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Coflnet.Sky.Commands.Shared;
 using Coflnet.Sky.Core;
+using MessagePack;
 
 namespace Coflnet.Sky.Commands;
 
@@ -15,7 +16,9 @@ public class LoadConfigCommand : SelfDocumentingCommand<ConfigLoadArgs, Void>
     }
 }
 
+[MessagePackObject]
 public class ConfigLoadArgs
 {
+    [Key("configName")]
     public string ConfigName { get; set; }
 } 
