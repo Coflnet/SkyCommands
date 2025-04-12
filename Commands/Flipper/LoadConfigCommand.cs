@@ -21,4 +21,4 @@ public class ConfigLoadArgs
 {
     [Key("configName")]
     public string ConfigName { get; set; }
-} 
+}

@@ -35,6 +35,7 @@ public class UpdateConfigCommand : SelfDocumentingCommand<ConfigUpdateArgs, Void
         current.Value.Version = newVersion;
         current.Value.Settings.UsedVersion = current.Value.Version;
         current.Value.Diffs.Add(newVersion, diff);
+        current.Value.LastUpdated = DateTime.UtcNow;
         if (current.Value.Settings.PublishedAs != null && current.Value.Settings.PublishedAs != publishAs)
         {
             throw new CoflnetException("config_name_mismatch", $"You are trying to update {publishAs} but the config was previously published as {current.Value.Settings.PublishedAs}. Please edit the config name as file to switch.");
