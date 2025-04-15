@@ -167,6 +167,10 @@ namespace Coflnet.Sky.Commands
                 LowestBin = 100000,
                 Context = new()
             };
+            if(data.Data.Length > 2_000_000)
+            {
+                throw new CoflnetException("config_too_large", "The config you are trying to import appears to be bigger than the allowed maximum of 2MB");
+            }
             try
             {
                 settings = data.GetAs<FlipSettings>();
