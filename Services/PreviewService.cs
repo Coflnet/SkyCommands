@@ -22,7 +22,7 @@ namespace Coflnet.Sky.Commands.Services
         {
             this.config = config;
             skyClient = new RestClient(config["SKY_BASE_URL"] ?? "https://sky.coflnet.com");
-            skyCryptClient = new RestClient(config["SKYCRYPT_BASE_URL"] ?? "https://skycrypt.coflnet.com");
+            skyCryptClient = new RestClient(config["SKYCRYPT_BASE_URL"] ?? "https://sky.shiiyu.moe/");
             crafatarClient = new RestClient(config["CRAFATAR_BASE_URL"] ?? "https://crafatar.com");
             proxyClient = new RestClient(config["IMGPROXY_BASE_URL"] ?? "http://imgproxy");
             hypixelClient = new RestClient(config["HYPIXEL_BASE_URL"] ?? "https://api.hypixel.net/");
@@ -91,8 +91,6 @@ namespace Coflnet.Sky.Commands.Services
                 {
                     url = ConvertTextureUrlToSkull(config["SKYCRYPT_BASE_URL"], url);
                 }
-                if (details.MinecraftType.StartsWith("Leather "))
-                    url = "https://sky.shiiyu.moe/api/item/" + details.MinecraftType.ToUpper().Replace(" ", "_");
                 if (url.StartsWith("https://sky.coflnet.com") && url.Length >= ("https://sky.coflnet.com/static/icon/" + tag).Length)
                 {
                     Console.WriteLine($"skipping loop {url}");
