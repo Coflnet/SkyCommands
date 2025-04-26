@@ -88,10 +88,10 @@ namespace Coflnet.Sky.Commands.Services
                     url = await GetIconUrl(tag);
                 }
                 if (url.StartsWith("https://texture"))
-                {
-                    url = ConvertTextureUrlToSkull(config["SKYCRYPT_BASE_URL"], url);
-                }
-                if (url.StartsWith("https://sky.coflnet.com") && url.Length >= ("https://sky.coflnet.com/static/icon/" + tag).Length)
+                    {
+                        url = ConvertTextureUrlToSkull(config["SKYCRYPT_BASE_URL"], url);
+                    }
+                if (url.StartsWith("https://sky.coflnet.com") && url.Length >= ("https://sky.coflnet.com/static/icon/" + tag).Length && !isVanilla)
                 {
                     Console.WriteLine($"skipping loop {url}");
                     return new Preview()
