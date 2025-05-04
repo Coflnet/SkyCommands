@@ -157,6 +157,7 @@ namespace Coflnet.Sky.Commands
             Commands.Add("p", new PingCommand());
 
             Commands.Add("getFlipSettings", new GetFlipSettingsCommand());
+            Commands.Add("vpsLog", new VpsLogCommand());
             UpdateTimerPing();
         }
 

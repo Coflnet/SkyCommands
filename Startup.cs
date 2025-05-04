@@ -17,6 +17,8 @@ using Coflnet.Sky.Commands.Services;
 using Coflnet.Payments.Client.Api;
 using Prometheus;
 using Coflnet.Sky.Core.Services;
+using Coflnet.Sky.ModCommands.Client.Client;
+using Coflnet.Sky.ModCommands.Client.Extensions;
 
 namespace SkyCommands
 {
@@ -62,6 +64,10 @@ namespace SkyCommands
                 return new TopUpApi(paymentsUrl);
             });
             services.AddSingleton<PreviewService>();
+            services.AddApi(options => options.AddApiHttpClients(c =>
+                {
+                    c.BaseAddress = new Uri(Configuration["MOD_BASE_URL"]);
+                }));
 
 
             services.AddSwaggerGenNewtonsoftSupport();
