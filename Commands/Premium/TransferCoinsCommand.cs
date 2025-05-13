@@ -3,6 +3,8 @@ using System.Threading.Tasks;
 using Coflnet.Sky.Core;
 using Coflnet.Sky.Commands.Shared;
 using Coflnet.Payments.Client.Api;
+using Castle.Core.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace Coflnet.Sky.Commands
 {
@@ -44,6 +46,21 @@ namespace Coflnet.Sky.Commands
             {
                 throw new CoflnetException("payment_error", ex.Message.Substring("Error calling UserUserIdTransferPost: {.Message.:".Length));
             }
+
+            await RevertReferralAbuse(data, targetUser);
+        }
+
+        private static async Task RevertReferralAbuse(MessageData data, string targetUser)
+        {
+            var targetTransactions = await data.GetService<ITransactionApi>().TransactionUUserIdGetAsync(targetUser, 0, 50);
+            var referralBoni = targetTransactions.Where(t => t.ProductId == "referal_bonus" && t.Reference.Split('+')[0] == data.UserId.ToString()).ToList();
+            if (referralBoni.Count == 0)
+                return;
+            foreach (var item in referralBoni)
+            {
+                await data.GetService<IUserApi>().UserUserIdTransactionIdDeleteAsync(targetUser, int.Parse(item.Id));
+            }
+            data.GetService<ILogger<TransferCoinsCommand>>().LogInformation($"Reverted {referralBoni.Count} referral bonuses for {targetUser}");
         }
 
         private async Task<bool> CanUserSend(MessageData data)
