@@ -77,7 +77,7 @@ namespace Coflnet.Sky.Commands
             await Task.Delay(500); // backof attempt
         }
 
-        public static async Task UpdateAccountInfo(MessageData data, (AccountTier, DateTime) expires)
+        public static async Task UpdateAccountInfo(MessageData data, (AccountTier?, DateTime) expires)
         {
             var service = DiHandler.ServiceProvider.GetRequiredService<SettingsService>();
             var con = (data as SocketMessageData).Connection;
@@ -91,7 +91,7 @@ namespace Coflnet.Sky.Commands
                     });
 
 
-                con.AccountInfo.Value.Tier = expires.Item1;
+                con.AccountInfo.Value.Tier = expires.Item1 ?? AccountTier.PREMIUM;
                 con.AccountInfo.Value.ExpiresAt = expires.Item2;
                 await con.AccountInfo.Update();
             }
