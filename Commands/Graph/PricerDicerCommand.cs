@@ -15,7 +15,7 @@ namespace Coflnet.Sky.Commands
                 details.Reforge = Reforge.Any;
 
 
-            var res = await ItemPrices.Instance.GetPriceFor(details);
+            var res = await data.GetService<ItemPrices>().GetPriceFor(details);
 
             var maxAge = A_MINUTE;
             if (IsDayRange(details))

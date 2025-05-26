@@ -24,10 +24,10 @@ namespace Coflnet.Sky.Commands
                 var start = end - TimeSpan.FromMinutes(1.2);
                 var highVolumeIds = new System.Collections.Generic.HashSet<int>()
                 {
-                    ItemDetails.Instance.GetItemIdForTag("GOD_POTION_2"),
-                    ItemDetails.Instance.GetItemIdForTag("GRAPPLING_HOOK"),
-                    ItemDetails.Instance.GetItemIdForTag("KAT_FLOWER"),
-                    ItemDetails.Instance.GetItemIdForTag("ASPECT_OF_THE_DRAGON")
+                    DiHandler.GetService<ItemDetails>().GetItemIdForTag("GOD_POTION_2"),
+                    DiHandler.GetService<ItemDetails>().GetItemIdForTag("GRAPPLING_HOOK"),
+                    DiHandler.GetService<ItemDetails>().GetItemIdForTag("KAT_FLOWER"),
+                    DiHandler.GetService<ItemDetails>().GetItemIdForTag("ASPECT_OF_THE_DRAGON")
 
                 };
                 var pages = context.Auctions.Where(a => (highVolumeIds.Contains(a.ItemId)) && a.End < end && a.End > start)

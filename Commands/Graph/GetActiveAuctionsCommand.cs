@@ -14,7 +14,7 @@ namespace Coflnet.Sky.Commands
                 count = details.Limit;
             var engine = data.GetService<FilterEngine>();
             ItemPrices.AddFilters = engine.AddFilters;
-            var res = await ItemPrices.Instance.GetActiveAuctions(details, count);
+            var res = await data.GetService<ItemPrices>().GetActiveAuctions(details, count);
 
             await data.SendBack(data.Create("activeAuctions", res, A_MINUTE * 3));
         }

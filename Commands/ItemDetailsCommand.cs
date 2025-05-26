@@ -14,7 +14,7 @@ namespace Coflnet.Sky.Commands
         public static MessageData CreateResponse(MessageData data)
         {
             string search = ReplaceInvalidCharacters(data.Data); 
-            var details = ItemDetails.Instance.GetDetails(search);
+            var details = data.GetService<ItemDetails>().GetDetails(search);
             var time = A_DAY;
             if(details.Tag == "Unknown" || string.IsNullOrEmpty(details.Tag))
                 time = 0;

@@ -11,7 +11,7 @@ namespace Coflnet.Sky.Commands
         public override async Task Execute(MessageData data)
         {
             var search = RemoveInvalidChars(data.Data);
-            var result = await ItemDetails.Instance.Search(search);
+            var result = await DiHandler.GetService<ItemDetails>().Search(search);
             await data.SendBack(data.Create("itemSearch", result.Select(a => new SearchResultItem(a)).ToList(),A_HOUR));
         }
 

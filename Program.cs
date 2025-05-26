@@ -17,7 +17,6 @@ namespace SkyCommands
         {
             dev.Logger.Instance.Info("sky-commands");
             var server = new Server();
-            var itemLoad = ItemDetails.Instance.LoadLookup();
             var serverTask = Task.Run(() => server.Start()).ConfigureAwait(false);
             // increase threadpool size
             System.Threading.ThreadPool.SetMinThreads(100, 100);

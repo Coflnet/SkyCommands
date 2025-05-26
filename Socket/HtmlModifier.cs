@@ -120,7 +120,7 @@ namespace Coflnet.Sky.Commands
             {
                 if (path.Contains("i/"))
                     return res.RedirectSkyblock(parameter, "item", keyword);
-                if (!ItemDetails.Instance.TagLookup.ContainsKey(parameter))
+                if (!DiHandler.GetService<ItemDetails>().TagLookup.ContainsKey(parameter))
                 {
                     return await RedirectToItem(res, parameter, keyword);
                 }
@@ -128,7 +128,7 @@ namespace Coflnet.Sky.Commands
                 keyword = ItemDetails.TagToName(parameter);
 
 
-                var i = await ItemDetails.Instance.GetDetailsWithCache(parameter);
+                var i = await DiHandler.GetService<ItemDetails>().GetDetailsWithCache(parameter);
                 path = CreateCanoicalPath(urlParts, i);
                 var name = i?.Names?.FirstOrDefault();
                 if (name != null)
@@ -176,11 +176,11 @@ namespace Coflnet.Sky.Commands
         private static async  Task<string> RedirectToItem(RequestContext res, string parameter, string keyword)
         {
             var upperCased = parameter.ToUpper();
-            if (ItemDetails.Instance.TagLookup.ContainsKey(upperCased))
+            if (DiHandler.GetService<ItemDetails>().TagLookup.ContainsKey(upperCased))
                 return res.RedirectSkyblock(upperCased, "item");
             // likely not a tag
             parameter = HttpUtility.UrlDecode(parameter);
-            var thread = await ItemDetails.Instance.Search(parameter, 1);
+            var thread = await DiHandler.GetService<ItemDetails>().Search(parameter, 1);
             var item = thread.FirstOrDefault();
             keyword = item?.Name;
             parameter = item?.Tag;
@@ -347,7 +347,7 @@ namespace Coflnet.Sky.Commands
         {
             if (tag == null)
                 return "";
-            var isBazaar = ItemPrices.Instance.IsBazaar(ItemDetails.Instance.GetItemIdForTag(tag));
+            var isBazaar = DiHandler.GetService<ItemPrices>().IsBazaar(DiHandler.GetService<ItemDetails>().GetItemIdForTag(tag));
             if (isBazaar)
                 return " This is a bazaar item. Bazaartracker.com currently gives you a more detailed view of this history. ";
             var result = await Server.ExecuteCommandWithCache<ItemSearchQuery, IEnumerable<AuctionPreview>>("recentAuctions", new ItemSearchQuery()
@@ -382,7 +382,7 @@ namespace Coflnet.Sky.Commands
         private static string PopularPages()
         {
             var r = new Random();
-            var recentSearches = SearchService.Instance.GetPopularSites().OrderBy(x => r.Next());
+            var recentSearches = DiHandler.GetService<SearchService>().GetPopularSites().OrderBy(x => r.Next());
             var body = "<h2>Description</h2><p>View, search, browse, and filter by reforge or enchantment. "
                     + "You can find all current and historic prices for the auction house and bazaar on this web tracker. "
                     + "We are tracking about 250 million auctions. "

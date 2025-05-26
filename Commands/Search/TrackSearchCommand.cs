@@ -13,9 +13,9 @@ namespace Coflnet.Sky.Commands
             if(hit.Type=="player" && hit.Id.Length == 32)
                 PlayerSearch.Instance.AddHitFor(hit.Id);
             else 
-                ItemDetails.Instance.AddHitFor(hit.Id);
+                DiHandler.GetService<ItemDetails>().AddHitFor(hit.Id);
 
-            await SearchService.Instance.AddPopularSite(hit.Type,hit.Id);
+            await DiHandler.GetService<SearchService>().AddPopularSite(hit.Type,hit.Id);
             await data.Ok();
             
             TrackingService.Instance.TrackPage($"http://sky.coflnet.com/{hit.Type}/{hit.Id}",$"{hit.Type}/{hit.Id}",data);

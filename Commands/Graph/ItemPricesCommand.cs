@@ -5,6 +5,7 @@ using MessagePack;
 using Microsoft.EntityFrameworkCore;
 using static Coflnet.Sky.Core.ItemReferences;
 using Coflnet.Sky.Core;
+using Coflnet.Sky.Commands.Shared;
 
 namespace Coflnet.Sky.Commands
 {
@@ -26,7 +27,7 @@ namespace Coflnet.Sky.Commands
 
             int hourAmount = DetermineHourAmount(details);
 
-            var fromDB = await ItemPrices.Instance.GetPriceFor(details);
+            var fromDB = await data.GetService<ItemPrices>().GetPriceFor(details);
 
             var result = new List<Result>();
 
@@ -97,8 +98,8 @@ namespace Coflnet.Sky.Commands
         {
             using (var context = new HypixelContext())
             {
-                var tag = ItemDetails.Instance.GetIdForName(itemName);
-                var itemId = ItemDetails.Instance.GetItemIdForTag(itemName);
+                var tag = DiHandler.GetService<ItemDetails>().GetIdForName(itemName);
+                var itemId = DiHandler.GetService<ItemDetails>().GetItemIdForTag(itemName);
                 var mainSelect = context.Auctions
                     .Where(auction => /*auction.ItemName == itemName || */auction.ItemId == itemId);
 

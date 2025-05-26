@@ -41,9 +41,9 @@ namespace Coflnet.Sky.Commands
             Task save = null;
             if (preview == null)
             {
-                if (ItemDetails.Instance.GetItemIdForTag(tag, false) <= 0)
+                if (DiHandler.GetService<ItemDetails>().GetItemIdForTag(tag, false) <= 0)
                 {
-                    if (!ItemDetails.Instance.TagLookup.ContainsKey("PET_SKIN_" + tag))
+                    if (!DiHandler.GetService<ItemDetails>().TagLookup.ContainsKey("PET_SKIN_" + tag))
                         throw new CoflnetException("unkown_item", "The requested item was not found, please file a bugreport");
                     else
                         tag = "PET_SKIN_" + tag;

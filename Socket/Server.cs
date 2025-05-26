@@ -484,7 +484,7 @@ namespace Coflnet.Sky.Commands
 
         private static async Task PrintBazaarItems(RequestContext context)
         {
-            var data = await ItemDetails.Instance.GetBazaarItems();
+            var data = await DiHandler.GetService<ItemDetails>().GetBazaarItems();
 
 
             var json = Newtonsoft.Json.JsonConvert.SerializeObject(data.Select(i => new { i.Name, i.Tag, i.MinecraftType, i.IconUrl }));
@@ -537,7 +537,7 @@ namespace Coflnet.Sky.Commands
             var term = context.QueryString["term"];
             Console.WriteLine("searchig for:");
             Console.WriteLine(term);
-            var data = await ItemDetails.Instance.Search(term);
+            var data = await DiHandler.GetService<ItemDetails>().Search(term);
 
 
             var json = Newtonsoft.Json.JsonConvert.SerializeObject(data);
