@@ -17,7 +17,7 @@ public class ConfigUpdateArgs
 {
     [DataMember(Name = "configName")]
     public string ConfigName;
-    [DataMember(Name = "config")]
+    [DataMember(Name = "updateNotes")]
     public string ChangeNotes;
 }
 public class Void
