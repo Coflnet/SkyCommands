@@ -6,6 +6,7 @@ using Coflnet.Sky.Core.Services;
 using Coflnet.Sky.Core;
 
 namespace SkyCommands;
+
 internal class WarmStart : BackgroundService
 {
     private readonly ILogger<WarmStart> _logger;
@@ -21,7 +22,18 @@ internal class WarmStart : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        await itemDetails.LoadLookup();
-        await hypixelItemService.GetItemsAsync();
+        try
+        {
+            await itemDetails.LoadLookup();
+            await hypixelItemService.GetItemsAsync();
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "An error occurred during warm start.");
+        }
+        finally
+        {
+            _logger.LogInformation("Warm start completed.");
+        }
     }
 }
