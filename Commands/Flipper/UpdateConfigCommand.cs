@@ -51,6 +51,17 @@ public class UpdateConfigCommand : SelfDocumentingCommand<ConfigUpdateArgs, Void
         await current.Update();
         await DiHandler.GetService<SettingsService>().UpdateSetting(data.UserId.ToString() + "_archive", key + $"_version_{newVersion}", current.Value);
         await data.SendBack(data.Create("display", new MessageDisplay { Message = $"Config updated to version {newVersion}", Type = MessageDisplay.Success }));
+        var configapi = data.GetService<Coflnet.Sky.ModCommands.Client.Api.IConfigApi>();
+        var configRatingResponse = await configapi.ConfigGetAsync();
+        if(!configRatingResponse.TryOk(out var configRatings))
+        {
+            throw new CoflnetException("config_rating_error", "Failed to get config rating, please try again later");
+        }
+        var targetConfig = configRatings.FirstOrDefault(c => c.ConfigName == publishAs);
+        await configapi.ConfigUserIdConfigIdPostAsync(data.UserId.ToString(), key, new ModCommands.Client.Model.ConfigContainer()
+        {
+            Price = targetConfig.Price
+        });
         return null;
     }
 
