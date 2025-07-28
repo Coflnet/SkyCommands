@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Coflnet.Sky.ModCommands.Client" Version="0.8.0" />
+    <PackageReference Include="Coflnet.Sky.ModCommands.Client" Version="0.9.0" />
     <PackageReference Include="Coflnet.Sky.Subscriptions.Client" Version="1.0.0" />
     <PackageReference Include="ConcurrentHashSet" Version="1.3.0" />
     <PackageReference Include="Hashids.net" Version="1.7.0" />
