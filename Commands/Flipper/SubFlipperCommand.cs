@@ -52,7 +52,7 @@ namespace Coflnet.Sky.Commands
                 lastSettings.UserId = userId;
                 if (lastSettings?.Settings?.AllowedFinders == LowPricedAuction.FinderType.UNKOWN)
                     lastSettings.Settings.AllowedFinders = LowPricedAuction.FinderType.FLIPPER;
-
+                con.SessionTier = expires.Item1 ?? AccountTier.NONE;
                 var accountUpdateTask = UpdateAccountInfo(data, expires);
                 await data.Ok();
                 await accountUpdateTask;

@@ -23,6 +23,7 @@ namespace Coflnet.Sky.Commands
                 ModSettings = new ModSettings() { ShortNumbers = true },
                 Visibility = new VisibilitySettings() { SellerOpenButton = true, ExtraInfoMax = 3, Lore = true }
             });
+            con.FlipSettings.Value.PlayerInfo = con;
         }
     }
 }

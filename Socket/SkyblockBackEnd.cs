@@ -14,7 +14,7 @@ using System.Threading;
 
 namespace Coflnet.Sky.Commands
 {
-    public class SkyblockBackEnd : WebSocketBehavior, IFlipConnection
+    public class SkyblockBackEnd : WebSocketBehavior, IFlipConnection, IPlayerInfo
     {
         public static Dictionary<string, Command> Commands = new Dictionary<string, Command>();
         private static ConcurrentDictionary<long, SkyblockBackEnd> Subscribers = new ConcurrentDictionary<long, SkyblockBackEnd>();
@@ -66,6 +66,12 @@ namespace Coflnet.Sky.Commands
         public SettingsChange LatestSettings { get; set; } = new SettingsChange();
 
         AccountInfo IFlipConnection.AccountInfo => AccountInfo;
+
+        public long Purse { get => -1; set => throw new NotImplementedException(); }
+        public long AhSlotsOpen { get => -1; set => throw new NotImplementedException(); }
+        public AccountTier SessionTier { get;set; }
+        public string McName { get => null; set => throw new NotImplementedException(); }
+        public string McUuid { get => null; set => throw new NotImplementedException(); }
 
         private TimeLimiter limiter;
         public static event Action NextUpdateStart;
