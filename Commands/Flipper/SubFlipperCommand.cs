@@ -181,6 +181,7 @@ namespace Coflnet.Sky.Commands
                     return null; // special case to load settings
                 RemoveDupplicate(settings.WhiteList);
                 RemoveDupplicate(settings.BlackList);
+                settings.PlayerInfo = (data as SocketMessageData).Connection;
                 // test if settings compile
                 settings.MatchesSettings(testFlip);
             }
