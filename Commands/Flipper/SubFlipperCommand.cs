@@ -133,6 +133,7 @@ namespace Coflnet.Sky.Commands
             await GetFlipSettingsCommand.AssignSettings(con);
             con.FlipSettings.OnChange += (newsettings) =>
             {
+                con.FlipSettings.Value.PlayerInfo = con;
                 SendBackUpdates(data, con, newsettings);
             };
         }
