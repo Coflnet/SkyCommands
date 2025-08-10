@@ -21,6 +21,7 @@ namespace Coflnet.Sky.Commands
                 {
                     con.OldFallbackSettings?.CancelCompilation();
                     con.OldFallbackSettings = settings;
+                    con.OldFallbackSettings.PlayerInfo = con;
                 }
                 con.SubFlipMsgId = (int)data.mId;
                 var userId = data.UserId;
@@ -125,6 +126,7 @@ namespace Coflnet.Sky.Commands
             {
                 Console.WriteLine(e.ToString());
                 con.OldFallbackSettings = settings;
+                con.OldFallbackSettings.PlayerInfo = con;
             }
         }
 
