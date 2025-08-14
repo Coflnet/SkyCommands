@@ -7,6 +7,7 @@ using Newtonsoft.Json;
 using Microsoft.Extensions.Configuration;
 using System.Security.Cryptography;
 using System.Text;
+using System.IO;
 
 namespace Coflnet.Sky.Commands.Services
 {
@@ -60,9 +61,8 @@ namespace Coflnet.Sky.Commands.Services
 
             var uri = skyCryptClient.BuildUri(request);
             var response = await GetProxied(uri, size);
-            var hash = Encoding.UTF8.GetString(MD5.Create().ComputeHash(Encoding.UTF8.GetBytes(tag)));
-            var brokenFilehash = new HashSet<string>() { "1mfgd8A3YEGnfidqz4q0xg==", null };
-
+            var steveHead = "vbFna5G5td5ICdFlwkA97A==";
+            var brokenFilehash = new HashSet<string>() { "1mfgd8A3YEGnfidqz4q0xg==", null, steveHead };
             var fileHashBase64 = response?.RawBytes == null ? null : Convert.ToBase64String(MD5.Create().ComputeHash(response.RawBytes));
             Items.Client.Model.Item details = null;
             if (response.StatusCode != System.Net.HttpStatusCode.OK || brokenFilehash.Contains(fileHashBase64) || isVanilla)
