@@ -34,7 +34,8 @@ namespace Coflnet.Sky.Commands
                 await updater.Update(socket, arguments.Key, value);
                 socket.Settings.Changer = arguments.Changer;
                 var settings = socket.FlipSettings.Value;
-                TestSettings(settings);
+                settings.PlayerInfo = socket;
+                TestSettings(settings, data.UserId);
                 settings.LastChanged = arguments.Key;
                 await service.UpdateSetting(data.UserId.ToString(), "flipSettings", socket.Settings);
             }
@@ -44,7 +45,7 @@ namespace Coflnet.Sky.Commands
             }
         }
 
-        private static void TestSettings(FlipSettings settings)
+        private static void TestSettings(FlipSettings settings, int userId)
         {
             try
             {
@@ -56,7 +57,7 @@ namespace Coflnet.Sky.Commands
             }
             catch (Exception e)
             {
-                dev.Logger.Instance.Error(e, "validating settings\n" + JsonConvert.SerializeObject(settings, Formatting.Indented));
+                dev.Logger.Instance.Error(e, $"validating settings for {userId}\n" + JsonConvert.SerializeObject(settings, Formatting.Indented));
                 throw new CoflnetException("invalid_settings", "Your settings are invalid, please revert your last change");
             }
         }
