@@ -208,7 +208,7 @@ namespace Coflnet.Sky.Commands
             }
         }
 
-        private void CheckListValidity(FlipInstance testFlip, List<ListEntry> blacklist, MessageData data, bool whiteList = false)
+        public static bool CheckListValidity(FlipInstance testFlip, List<ListEntry> blacklist, MessageData data, bool whiteList = false)
         {
             foreach (var item in blacklist.ToList())
             {
@@ -225,8 +225,10 @@ namespace Coflnet.Sky.Commands
                     });
                     data.SendBack(data.Create("error", $"The following list entry could not be loaded please fix or remove it: {jsonWithoutDefault}"));
                     data.SendBack(data.Create("debug", $"Error: {e.Message}"));
+                    return true;
                 }
             }
+            return false;
         }
     }
 }
