@@ -63,7 +63,7 @@ namespace Coflnet.Sky.Commands.Services
             var response = await GetProxied(uri, size);
             var steveHead = "vbFna5G5td5ICdFlwkA97A==";
             var brokenFilehash = new HashSet<string>() { "1mfgd8A3YEGnfidqz4q0xg==", null, steveHead };
-            var fileHashBase64 = response?.RawBytes == null ? null : Convert.ToBase64String(MD5.Create().ComputeHash(response.RawBytes));
+            var fileHashBase64 = GetResponseHash(response);
             Items.Client.Model.Item details = null;
             if (response.StatusCode != System.Net.HttpStatusCode.OK || brokenFilehash.Contains(fileHashBase64) || isVanilla)
             {
@@ -88,9 +88,9 @@ namespace Coflnet.Sky.Commands.Services
                     url = await GetIconUrl(tag);
                 }
                 if (url.StartsWith("https://texture"))
-                    {
-                        url = ConvertTextureUrlToSkull(config["SKYCRYPT_BASE_URL"], url);
-                    }
+                {
+                    url = ConvertTextureUrlToSkull(config["SKYCRYPT_BASE_URL"], url);
+                }
                 if (url.StartsWith("https://sky.coflnet.com") && url.Length >= ("https://sky.coflnet.com/static/icon/" + tag).Length && !isVanilla)
                 {
                     Console.WriteLine($"skipping loop {url}");
@@ -103,7 +103,15 @@ namespace Coflnet.Sky.Commands.Services
                 uri = skyClient.BuildUri(new RestRequest(url));
                 Console.WriteLine($"alternate url {url} for {tag}");
                 response = await GetProxied(uri, size);
-                Console.WriteLine($"response for {tag} {response.StatusCode} {response.RawBytes?.Length}");
+                var hash = GetResponseHash(response);
+                if (hash == steveHead && url.Contains("mc-heads.net"))
+                {
+                    uri = skyCryptClient.BuildUri(new RestRequest("/api/head/" + url.Replace("https://mc-heads.net/head/", "").Split('/')[0]));
+                    Console.WriteLine($"replacing steve head {url} with {uri}");
+                    response = await GetProxied(uri, size);
+                    hash = GetResponseHash(response);
+                }
+                Console.WriteLine($"response for {tag} {response.StatusCode} {response.RawBytes?.Length} {hash}");
             }
 
             return new Preview()
@@ -114,6 +122,11 @@ namespace Coflnet.Sky.Commands.Services
                 Name = details?.Name,
                 MimeType = response?.ContentType
             };
+        }
+
+        private static string GetResponseHash(RestResponse response)
+        {
+            return response?.RawBytes == null ? null : Convert.ToBase64String(MD5.Create().ComputeHash(response.RawBytes));
         }
 
         private async Task<string> GetIconUrl(string tag)
