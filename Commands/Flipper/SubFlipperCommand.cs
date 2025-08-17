@@ -170,7 +170,7 @@ namespace Coflnet.Sky.Commands
                 LowestBin = 100000,
                 Context = new()
             };
-            if(data.Data.Length > 2_000_000)
+            if (data.Data.Length > 2_000_000)
             {
                 throw new CoflnetException("config_too_large", "The config you are trying to import appears to be bigger than the allowed maximum of 2MB");
             }
@@ -193,8 +193,9 @@ namespace Coflnet.Sky.Commands
             {
                 // could not get it continue with default
                 data.LogError(e, "subFlip");
-                CheckListValidity(testFlip, settings.BlackList, data);
-                CheckListValidity(testFlip, settings.WhiteList, data, true);
+                if (!CheckListValidity(testFlip, settings.BlackList, data) &&
+                !CheckListValidity(testFlip, settings.WhiteList, data, true))
+                    throw new CoflnetException("invalid_settings", "These settings could not be loaded at least one filter is invalid, please fix the config");
             }
             return settings;
         }
