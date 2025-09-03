@@ -3,6 +3,10 @@ using Coflnet.Sky.Commands.Shared;
 using Microsoft.Extensions.DependencyInjection;
 using Coflnet.Sky.Core;
 using Newtonsoft.Json;
+using Microsoft.Extensions.Logging;
+using System.Linq;
+using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Coflnet.Sky.Commands
 {
@@ -195,9 +199,140 @@ namespace Coflnet.Sky.Commands
                 data.LogError(e, "subFlip");
                 if (!CheckListValidity(testFlip, settings.BlackList, data) &&
                 !CheckListValidity(testFlip, settings.WhiteList, data, true))
-                    throw new CoflnetException("invalid_settings", "These settings could not be loaded at least one filter is invalid, please fix the config");
+                {
+                    var id = System.Security.Cryptography.RandomNumberGenerator.GetInt32(0x1000000);
+                    var idStr = id.ToString("X6");
+                    Activity.Current?.SetTag("id", idStr);
+                    TryFindingLogaritmicSearch(testFlip, settings.BlackList, data);
+                    TryFindingLogaritmicSearch(testFlip, settings.WhiteList, data, true);
+                    data.GetService<ILogger<SubFlipperCommand>>().LogError(e, "Could not load flip settings (error id: {ErrorId})", idStr);
+                    throw new CoflnetException("invalid_settings", $"These settings could not be loaded at least one filter is invalid, please fix the config (id {idStr})");
+                }
             }
             return settings;
+        }
+
+        private void TryFindingLogaritmicSearch(FlipInstance testFlip, List<ListEntry> list, MessageData data, bool isWhitelist = false)
+        {
+            if (list == null || list.Count == 0)
+                return;
+
+            try
+            {
+                var problematicEntries = FindProblematicEntriesLogarithmic(testFlip, list, data);
+                
+                if (problematicEntries.Any())
+                {
+                    var listType = isWhitelist ? "whitelist" : "blacklist";
+                    data.SendBack(data.Create("debug", $"Found {problematicEntries.Count} problematic entries in {listType} using logarithmic search"));
+                    
+                    foreach (var entry in problematicEntries)
+                    {
+                        var jsonWithoutDefault = JsonConvert.SerializeObject(entry, Formatting.Indented, new JsonSerializerSettings()
+                        {
+                            DefaultValueHandling = DefaultValueHandling.Ignore
+                        });
+                        data.SendBack(data.Create("error", $"Problematic {listType} entry found: {jsonWithoutDefault}"));
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                data.LogError(e, "Error during logarithmic search");
+            }
+        }
+
+        private List<ListEntry> FindProblematicEntriesLogarithmic(FlipInstance testFlip, List<ListEntry> list, MessageData data)
+        {
+            var problematicEntries = new List<ListEntry>();
+            
+            // If list is small enough, check each entry individually
+            if (list.Count <= 4)
+            {
+                foreach (var entry in list)
+                {
+                    if (IsEntryProblematic(testFlip, entry))
+                    {
+                        problematicEntries.Add(entry);
+                    }
+                }
+                return problematicEntries;
+            }
+
+            // Binary search approach - divide and conquer
+            var queue = new Queue<List<ListEntry>>();
+            queue.Enqueue(list);
+
+            while (queue.Count > 0)
+            {
+                var currentList = queue.Dequeue();
+                
+                // If current list is problematic, we need to investigate further
+                if (IsListProblematic(testFlip, currentList))
+                {
+                    data.SendBack(data.Create("debug", $"Found problematic group of size {currentList.Count}, dividing further"));
+                    
+                    if (currentList.Count == 1)
+                    {
+                        // Found the problematic entry
+                        problematicEntries.Add(currentList[0]);
+                    }
+                    else if (currentList.Count <= 4)
+                    {
+                        // Small enough to check individually
+                        foreach (var entry in currentList)
+                        {
+                            if (IsEntryProblematic(testFlip, entry))
+                            {
+                                problematicEntries.Add(entry);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // Divide the list in half and check both halves
+                        int midPoint = currentList.Count / 2;
+                        var firstHalf = currentList.Take(midPoint).ToList();
+                        var secondHalf = currentList.Skip(midPoint).ToList();
+                        
+                        queue.Enqueue(firstHalf);
+                        queue.Enqueue(secondHalf);
+                    }
+                }
+            }
+
+            return problematicEntries;
+        }
+
+        private bool IsListProblematic(FlipInstance testFlip, List<ListEntry> entries)
+        {
+            try
+            {
+                foreach (var entry in entries)
+                {
+                    var expression = entry.GetExpression(null);
+                    expression.Compile()(testFlip);
+                }
+                return false; // No problems found
+            }
+            catch
+            {
+                return true; // At least one problematic entry exists
+            }
+        }
+
+        private bool IsEntryProblematic(FlipInstance testFlip, ListEntry entry)
+        {
+            try
+            {
+                var expression = entry.GetExpression(null);
+                expression.Compile()(testFlip);
+                return false; // Entry is valid
+            }
+            catch
+            {
+                return true; // Entry is problematic
+            }
         }
 
         private static void RemoveDupplicate(List<ListEntry> list)
