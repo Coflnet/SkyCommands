@@ -61,7 +61,7 @@ namespace Coflnet.Sky.Commands.Services
 
             var uri = skyCryptClient.BuildUri(request);
             var response = await GetProxied(uri, size);
-            var brokenFilehash = new HashSet<string>() { "1mfgd8A3YEGnfidqz4q0xg==", null, "vbFna5G5td5ICdFlwkA97A==", "8pPWnpUQWNjGqrCtu0KXoQ==" };
+            var brokenFilehash = new HashSet<string>() { "1mfgd8A3YEGnfidqz4q0xg==", null, "vbFna5G5td5ICdFlwkA97A==", "8pPWnpUQWNjGqrCtu0KXoQ==", "QYYMg/ZsR4QjWxtViNiRSA==" };
             var fileHashBase64 = GetResponseHash(response);
             Items.Client.Model.Item details = null;
             if (response.StatusCode != System.Net.HttpStatusCode.OK || brokenFilehash.Contains(fileHashBase64) || isVanilla)
@@ -134,7 +134,7 @@ namespace Coflnet.Sky.Commands.Services
             var itemDataString = await hypixelClient.ExecuteAsync(new RestRequest("v2/resources/skyblock/items"));
             var itemData = JsonConvert.DeserializeObject<HypixelItems>(itemDataString.Content);
             var targetItem = itemData.Items.Where(i => i.Id == tag).FirstOrDefault();
-            Console.Write(JsonConvert.SerializeObject(itemData).Truncate(200));
+            Console.Write(JsonConvert.SerializeObject(targetItem).Truncate(200));
             if (targetItem == null && tag.StartsWith("POTION_"))
                 return skyCryptClient.BuildUri(new RestRequest("/api/item/POTION")).ToString();
             if (targetItem == null)
@@ -154,7 +154,7 @@ namespace Coflnet.Sky.Commands.Services
             {
                 url = skycryptBase + "/api/item/" + targetItem.Material;
             }
-            Console.WriteLine(url);
+            Console.WriteLine("final url " + url);
 
             return url;
         }
