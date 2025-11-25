@@ -69,7 +69,7 @@ namespace Coflnet.Sky.Commands.Services
                 if (!NBT.IsPet(tag) && !isVanilla)
                     dev.Logger.Instance.Error($"Failed to load item preview for {tag} from {uri} code {response.StatusCode}");
                 var info = await DiHandler.GetService<Items.Client.Api.IItemsApi>().ItemItemTagGetWithHttpInfoAsync(tag, true);
-                Console.WriteLine($"info {info.StatusCode}");
+                Console.WriteLine($"info {info.StatusCode} {info.RawContent}");
                 if (info.StatusCode == System.Net.HttpStatusCode.OK)
                 {
                     details = info.Data;
