@@ -505,6 +505,11 @@ namespace Coflnet.Sky.Commands
             await FlipperService.FillVisibilityProbs(flip, this.Settings);
             if (!Settings.MatchesSettings(flip).Item1)
                 return true; // test again after filling visibility probs
+            if(flip.Auction.Context?.ContainsKey("pre-api") ?? false)
+            {
+                // pre api flip, add extra delay
+                flipDelay += TimeSpan.FromSeconds(10);
+            }
             var data = new MessageData("flip", JSON.Stringify(flip));
 
             await TrackFlipReceive(flip);
