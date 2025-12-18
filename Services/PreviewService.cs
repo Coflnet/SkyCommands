@@ -110,6 +110,13 @@ namespace Coflnet.Sky.Commands.Services
                     response = await GetProxied(uri, size);
                     hash = GetResponseHash(response);
                 }
+                if(brokenFilehash.Contains(hash) && url.Contains("sky.shiiyu.moe"))
+                {
+                    uri = skyClient.BuildUri(new RestRequest("/static/icon/" + tag));
+                    Console.WriteLine($"replacing broken sky.shiiyu.moe image {url} with {uri}");
+                    response = await GetProxied(uri, size);
+                    hash = GetResponseHash(response);
+                }
                 Console.WriteLine($"response for {tag} {response.StatusCode} {response.RawBytes?.Length} {hash} {url}");
             }
 
