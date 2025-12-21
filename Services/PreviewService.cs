@@ -6,8 +6,6 @@ using System.Diagnostics;
 using Newtonsoft.Json;
 using Microsoft.Extensions.Configuration;
 using System.Security.Cryptography;
-using System.Text;
-using System.IO;
 
 namespace Coflnet.Sky.Commands.Services
 {
