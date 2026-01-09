@@ -7,7 +7,7 @@ namespace Coflnet.Sky.Commands
     {
         public override Task Execute(MessageData data)
         {
-            return data.SendBack(data.Create("version", "0.4.0-payments", A_DAY));
+            return data.SendBack(data.Create("version", "0.4.1-dragon", A_DAY));
         }
     }
 }
