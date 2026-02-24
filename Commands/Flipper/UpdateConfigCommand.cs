@@ -58,7 +58,7 @@ public class UpdateConfigCommand : SelfDocumentingCommand<ConfigUpdateArgs, Void
             throw new CoflnetException("config_rating_error", "Failed to get config rating, please try again later");
         }
         var targetConfig = configRatings.FirstOrDefault(c => c.ConfigName == publishAs);
-        await configapi.ConfigUserIdConfigIdPostAsync(data.UserId.ToString(), key, new ModCommands.Client.Model.ConfigContainer()
+        await configapi.ConfigUserIdConfigIdPostAsync(data.UserId.ToString(), publishAs, new ModCommands.Client.Model.ConfigContainer()
         {
             Price = targetConfig.Price
         });
