@@ -17,6 +17,26 @@ namespace Coflnet.Sky.Commands.Services
         private RestClient proxyClient;
         private RestClient hypixelClient;
         private IConfiguration config;
+        /// <summary>
+        /// Maps old 1.8 Minecraft material names to their modern 1.21 equivalents.
+        /// Some materials returned by the Hypixel API no longer exist in newer versions.
+        /// </summary>
+        private static readonly Dictionary<string, string> materialMappings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "BED", "RED_BED" },
+            { "BREWING_STAND_ITEM", "BREWING_STAND" },
+            { "COMMAND", "COMMAND_BLOCK" },
+            { "ENDER_PORTAL_FRAME", "END_PORTAL_FRAME" },
+            { "FIREBALL", "FIRE_CHARGE" },
+            { "FIREWORK_CHARGE", "FIREWORK_STAR" },
+            { "FLOWER_POT_ITEM", "FLOWER_POT" },
+            { "LONG_GRASS", "SHORT_GRASS" },
+            { "MONSTER_EGG", "ZOMBIE_SPAWN_EGG" },
+            { "NETHER_BRICK_ITEM", "NETHER_BRICK" },
+            { "QUARTZ_ORE", "NETHER_QUARTZ_ORE" },
+            { "WOOD_BUTTON", "OAK_BUTTON" },
+        };
+
         public PreviewService(IConfiguration config)
         {
             this.config = config;
@@ -59,7 +79,7 @@ namespace Coflnet.Sky.Commands.Services
 
             var uri = skyCryptClient.BuildUri(request);
             var response = await GetProxied(uri, size);
-            var brokenFilehash = new HashSet<string>() { "1mfgd8A3YEGnfidqz4q0xg==", null, "vbFna5G5td5ICdFlwkA97A==", "8pPWnpUQWNjGqrCtu0KXoQ==", "QYYMg/ZsR4QjWxtViNiRSA==" };
+            var brokenFilehash = new HashSet<string>() { "1mfgd8A3YEGnfidqz4q0xg==", null, "vbFna5G5td5ICdFlwkA97A==", "8pPWnpUQWNjGqrCtu0KXoQ==", "QYYMg/ZsR4QjWxtViNiRSA==", "FPQFp8YkfQBwmAiwBxPTrg==" };
             var fileHashBase64 = GetResponseHash(response);
             Items.Client.Model.Item details = null;
             if (response.StatusCode != System.Net.HttpStatusCode.OK || brokenFilehash.Contains(fileHashBase64) || isVanilla)
@@ -107,6 +127,20 @@ namespace Coflnet.Sky.Commands.Services
                     Console.WriteLine($"replacing steve head {url} with {uri}");
                     response = await GetProxied(uri, size);
                     hash = GetResponseHash(response);
+                } else if(brokenFilehash.Contains(hash))
+                {
+                    // convert the 1.8 minecraft type to 1.21
+                    var materialPart = url.Split('/').Last();
+                    var mapped = MapMaterial(materialPart);
+                    if (mapped != materialPart)
+                    {
+                        var skycryptBase = config["SKYCRYPT_BASE_URL"];
+                        var mappedUrl = skycryptBase + "/api/item/" + mapped;
+                        uri = skyClient.BuildUri(new RestRequest(mappedUrl));
+                        Console.WriteLine($"remapping old material {materialPart} to {mapped} for {tag}");
+                        response = await GetProxied(uri, size);
+                        hash = GetResponseHash(response);
+                    }
                 }
                 if(brokenFilehash.Contains(hash) && url.Contains("sky.shiiyu.moe"))
                 {
@@ -157,7 +191,8 @@ namespace Coflnet.Sky.Commands.Services
             }
             else
             {
-                url = skycryptBase + "/api/item/" + targetItem.Material;
+                var material = MapMaterial(targetItem.Material);
+                url = skycryptBase + "/api/item/" + material;
             }
             Console.WriteLine("final url " + url);
 
@@ -171,6 +206,19 @@ namespace Coflnet.Sky.Commands.Services
                 .Replace("https://textures.minecraft.net/texture/", "");
             Activity.Current?.AddTag("headUrl", url);
             return url;
+        }
+
+        /// <summary>
+        /// Maps an old 1.8 Minecraft material name to its modern 1.21 equivalent.
+        /// Returns the original name if no mapping exists.
+        /// </summary>
+        private static string MapMaterial(string material)
+        {
+            // strip durability suffix for lookup (e.g. "INK_SACK:4" -> "INK_SACK")
+            var baseMaterial = material.Contains(':') ? material.Split(':')[0] : material;
+            if (materialMappings.TryGetValue(baseMaterial, out var mapped))
+                return material.Contains(':') ? mapped + ":" + material.Split(':')[1] : mapped;
+            return material;
         }
 
         private async Task<RestResponse> GetProxied(Uri uri, int size)
