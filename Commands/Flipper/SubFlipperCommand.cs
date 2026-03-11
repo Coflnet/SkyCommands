@@ -56,7 +56,7 @@ namespace Coflnet.Sky.Commands
                 lastSettings.Settings = con.Settings;
                 lastSettings.UserId = userId;
                 if (lastSettings?.Settings?.AllowedFinders == LowPricedAuction.FinderType.UNKOWN)
-                    lastSettings.Settings.AllowedFinders = LowPricedAuction.FinderType.FLIPPER;
+                    lastSettings.Settings.AllowedFinders = LowPricedAuction.FinderType.SNIPER_MEDIAN;
                 con.SessionTier = expires.Item1 ?? AccountTier.NONE;
                 var accountUpdateTask = UpdateAccountInfo(data, expires);
                 await data.Ok();
@@ -220,12 +220,12 @@ namespace Coflnet.Sky.Commands
             try
             {
                 var problematicEntries = FindProblematicEntriesLogarithmic(testFlip, list, data);
-                
+
                 if (problematicEntries.Any())
                 {
                     var listType = isWhitelist ? "whitelist" : "blacklist";
                     data.SendBack(data.Create("debug", $"Found {problematicEntries.Count} problematic entries in {listType} using logarithmic search"));
-                    
+
                     foreach (var entry in problematicEntries)
                     {
                         var jsonWithoutDefault = JsonConvert.SerializeObject(entry, Formatting.Indented, new JsonSerializerSettings()
@@ -245,7 +245,7 @@ namespace Coflnet.Sky.Commands
         private List<ListEntry> FindProblematicEntriesLogarithmic(FlipInstance testFlip, List<ListEntry> list, MessageData data)
         {
             var problematicEntries = new List<ListEntry>();
-            
+
             // If list is small enough, check each entry individually
             if (list.Count <= 4)
             {
@@ -266,12 +266,12 @@ namespace Coflnet.Sky.Commands
             while (queue.Count > 0)
             {
                 var currentList = queue.Dequeue();
-                
+
                 // If current list is problematic, we need to investigate further
                 if (IsListProblematic(testFlip, currentList))
                 {
                     data.SendBack(data.Create("debug", $"Found problematic group of size {currentList.Count}, dividing further"));
-                    
+
                     if (currentList.Count == 1)
                     {
                         // Found the problematic entry
@@ -294,7 +294,7 @@ namespace Coflnet.Sky.Commands
                         int midPoint = currentList.Count / 2;
                         var firstHalf = currentList.Take(midPoint).ToList();
                         var secondHalf = currentList.Skip(midPoint).ToList();
-                        
+
                         queue.Enqueue(firstHalf);
                         queue.Enqueue(secondHalf);
                     }
