@@ -27,8 +27,9 @@ public partial class BasedOnCommand : Command
                         }),
                         A_HOUR));
         }
-        catch (System.Exception)
+        catch (System.Exception e)
         {
+            data.LogError(e, "Error while fetching based on data");
             throw new CoflnetException("turned_off", "This feature is currently turned disabled while we are working on getting more servers up and running. Sorry about that, you can use our mod in game to get an estimate of the price.");
         }
     }
