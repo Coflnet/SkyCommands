@@ -46,6 +46,7 @@ namespace Coflnet.Sky.Commands
             }
         }
         string IFlipConnection.UserId => UserId.ToString();
+        string IFlipConnection.GameServer => "skyblock";
 
         public FlipSettings Settings => FlipSettings?.Value ?? OldFallbackSettings;
 
