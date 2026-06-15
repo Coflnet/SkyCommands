@@ -3,9 +3,13 @@
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <NoWarn>1591</NoWarn>
+    <NoWarn>1591;MsgPack004</NoWarn>
     <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
     <GenerateProgramFile>false</GenerateProgramFile>
+    <GenerateTestingPlatformEntryPoint>false</GenerateTestingPlatformEntryPoint>
+    <!-- MTP 2.x dropped VSTest support on .NET 10 SDK. We use NUnit3TestAdapter (VSTest bridge)
+         — tell MTP this is NOT a testing-platform application so VSTest mode works. -->
+    <IsTestingPlatformApplication>false</IsTestingPlatformApplication>
   </PropertyGroup>
 
   <ItemGroup>
@@ -33,6 +37,19 @@
     </PackageReference>
     <PackageReference Include="RateLimiter" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.14" />
+    <!-- MessagePackAnalyzer v3.1.7 source generator produces invalid code on .NET 10 (CS0246 "T" not found).
+         Exclude the analyzer DLLs; reflection-based serialization still works. -->
+    <PackageReference Include="MessagePackAnalyzer" Version="3.1.7">
+      <ExcludeAssets>analyzers</ExcludeAssets>
+    </PackageReference>
   </ItemGroup>
+
+  <!-- Remove the MessagePack source generator DLL (buggy on .NET 10). The analyzer
+       (MessagePack.Analyzers.CodeFixes.dll) is still allowed for MsgPack diagnostics. -->
+  <Target Name="RemoveMessagePackSourceGenerator" BeforeTargets="CoreCompile">
+    <ItemGroup>
+      <Analyzer Remove="@(Analyzer)" Condition="'%(Analyzer.FileName)' == 'MessagePack.SourceGenerator'" />
+    </ItemGroup>
+  </Target>
 
 </Project>

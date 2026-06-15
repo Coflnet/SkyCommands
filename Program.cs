@@ -1,16 +1,17 @@
-using Coflnet.Security.OpenBao;
 global using RestSharp;
 global using System;
 global using System.Collections.Generic;
 global using System.Linq;
-using System.Threading.Tasks;
+using Coflnet.Core;
+using Coflnet.Security.OpenBao;
 using Coflnet.Sky.Core;
+using Coflnet.Sky.Commands;
+using Coflnet.Sky.Filter;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Coflnet.Sky.Filter;
-using Coflnet.Sky.Commands;
+using System.Threading.Tasks;
 
 namespace SkyCommands
 {
@@ -33,6 +34,14 @@ namespace SkyCommands
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
                 .ConfigureAppConfiguration((_, config) => config.AddOpenBaoFromEnvironment())
+                .ConfigureLogging((context, logging) =>
+                {
+                    // Shared OTel logging configuration from Coflnet.Core.
+                    // Bridges ILogger -> OTLP (HttpProtobuf) so logs land in Loki, correlated with traces in Jaeger.
+                    logging.AddOpenTelemetryLogging(
+                        context.Configuration,
+                        context.Configuration["JAEGER_SERVICE_NAME"] ?? "sky-commands");
+                })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();

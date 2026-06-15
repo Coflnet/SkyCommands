@@ -11,7 +11,7 @@ using Coflnet.Sky.Commands.Shared;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using StackExchange.Redis;
 using Coflnet.Sky.Commands.Services;
 using Coflnet.Payments.Client.Api;
