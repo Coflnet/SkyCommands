@@ -121,6 +121,9 @@ namespace Coflnet.Sky.Commands
             Commands.Add("testNotification", new SendTestNotificationCommand());
             Commands.Add("subEvents", new SubEventsCommand());
 
+            // live websocket updates: one topic per connection, replaced on each subscribe (auction bids / sold auctions)
+            Commands.Add("subUpdates", new SubscribeUpdatesCommand());
+
 
             Commands.Add("setGoogle", new SetGoogleIdCommand());
             Commands.Add("genToken", new GenerateTokenFor());

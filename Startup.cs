@@ -4,6 +4,7 @@ using System.Reflection;
 using AspNetCoreRateLimit;
 using AspNetCoreRateLimit.Redis;
 using Coflnet.Sky.Core;
+using Coflnet.Sky.Commands;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -94,6 +95,8 @@ namespace SkyCommands
             });
             services.AddHostedService<FlipperService>(s => s.GetRequiredService<FlipperService>());
             services.AddHostedService<WarmStart>();
+            services.AddSingleton<LiveUpdateService>();
+            services.AddHostedService<LiveUpdateService>(s => s.GetRequiredService<LiveUpdateService>());
             services.AddCoflService();
         }
 
