@@ -24,6 +24,10 @@ namespace Coflnet.Sky.Commands
             }
 
             var user = await GetOrCreateUser(token);
+            if (!await UserService.Instance.CanSignInUnderPriorAgreement(user))
+                throw new CoflnetException(
+                    "terms_acceptance_required",
+                    "Accept the current SkyCofl agreement before completing sign in.");
             data.UserId = user.Id;
             try
             {

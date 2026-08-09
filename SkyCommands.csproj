@@ -39,8 +39,9 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.14" />
     <!-- MessagePackAnalyzer v3.1.7 source generator produces invalid code on .NET 10 (CS0246 "T" not found).
          Exclude the analyzer DLLs; reflection-based serialization still works. -->
-    <PackageReference Include="MessagePackAnalyzer" Version="3.1.7">
+    <PackageReference Include="MessagePackAnalyzer" Version="3.1.8">
       <ExcludeAssets>analyzers</ExcludeAssets>
+      <IncludeAssets>runtime; compile; build; native; contentfiles; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
 

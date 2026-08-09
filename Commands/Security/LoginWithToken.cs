@@ -28,6 +28,10 @@ public class LoginWithToken : Command
         GoogleUser user = await UserService.Instance.GetUserByEmail(email);
         if (user == null)
             throw new CoflnetException("user_not_found", "No user exists for the token email");
+        if (!await UserService.Instance.CanSignInUnderPriorAgreement(user))
+            throw new CoflnetException(
+                "terms_acceptance_required",
+                "Accept the current SkyCofl agreement before completing sign in.");
         data.UserId = user.Id;
         con.Connection.AccountInfo = await SelfUpdatingValue<AccountInfo>.Create(user.Id.ToString(), "accountInfo", () => new());
         con.Log($"User {user.Id} logged in with token {email}");
