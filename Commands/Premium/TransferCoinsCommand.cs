@@ -32,13 +32,7 @@ namespace Coflnet.Sky.Commands
                 throw new CoflnetException("payment_error", "You need to verify with a unique Minecraft account to send funds to other users (at most one email per account)");
             try
             {
-                var transaction = await userApi.UserUserIdTransferPostAsync(data.UserId.ToString(), new Coflnet.Payments.Client.Model.TransferRequest()
-                {
-                    Amount = args.Amount,
-                    Reference = (args.TargetUserEmail + string.Empty + args.TargetUserMc) + args.Reference.Truncate(5),
-                    TargetUser = targetUser
-                });
-                await data.SendBack(data.Create("success", args.Amount));
+                data.GetService<ILogger<TransferCoinsCommand>>().LogInformation($"Transferring-Attempt {args.Amount} coins from {data.UserId} to {targetUser}");
             }
             catch (Payments.Client.Client.ApiException ex)
             {
