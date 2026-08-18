@@ -36,6 +36,12 @@ namespace Coflnet.Sky.Commands.Services
             { "QUARTZ_ORE", "NETHER_QUARTZ_ORE" },
             { "WOOD_BUTTON", "OAK_BUTTON" },
         };
+        private static readonly Dictionary<string, string> iconOverrides = new Dictionary<string, string>
+        {
+            { "ESSENCE_FOREST", "https://mc-heads.net/head/e019ece125ec79f95178e1af4da2a8b982de71ed42c31cac4b1d2f665355df5a/64" },
+            { "ESSENCE_SAFARI", "https://mc-heads.net/head/2d9eb19536a482fdfdba3dcd89dcbbd5daa94180d69e156d052061e376373aea/64" },
+            { "ESSENCE_FOSSIL", "https://mc-heads.net/head/93a1b830399ab432a5178fdaf3939b24bf25c724a66be947296c503352bc380d/64" },
+        };
 
         public PreviewService(IConfiguration config)
         {
@@ -169,6 +175,8 @@ namespace Coflnet.Sky.Commands.Services
 
         private async Task<string> GetIconUrl(string tag)
         {
+            if (iconOverrides.TryGetValue(tag, out var iconUrl))
+                return iconUrl;
             string url;
             var itemDataString = await hypixelClient.ExecuteAsync(new RestRequest("v2/resources/skyblock/items"));
             var itemData = JsonConvert.DeserializeObject<HypixelItems>(itemDataString.Content);
