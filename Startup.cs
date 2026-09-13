@@ -98,6 +98,7 @@ namespace SkyCommands
             services.AddSingleton<LiveUpdateService>();
             services.AddHostedService<LiveUpdateService>(s => s.GetRequiredService<LiveUpdateService>());
             services.AddCoflService();
+            services.AddHostedService(s => s.GetRequiredService<FilterStateService>());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
