@@ -51,6 +51,10 @@ namespace SkyCommands
             services.AddDbContext<HypixelContext>();
             services.AddSingleton<HypixelItemService>();
             services.AddHttpClient();
+            services.AddHttpClient<LegalManifestVersionService>();
+            services.AddSingleton<LegalManifestVersionService>();
+            services.AddHostedService(service =>
+                service.GetRequiredService<LegalManifestVersionService>());
             var paymentsUrl = Configuration["PAYMENTS_BASE_URL"] ?? "http://" + Configuration["PAYMENTS_HOST"];
             services.AddSingleton<ProductsApi>(sp =>
             {
