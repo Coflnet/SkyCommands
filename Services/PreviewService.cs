@@ -105,11 +105,15 @@ namespace Coflnet.Sky.Commands.Services
                     Console.WriteLine($"failed to load item details for {tag} from api");
                 }
                 var url = details?.IconUrl;
-                if (details?.IconUrl == null && !NBT.IsPet(tag))
+                // our own icon url is the non-vanilla one, vanilla requires the minecraft material
+                var isOwnIcon = url?.StartsWith("https://sky.coflnet.com/static/icon/") ?? false;
+                if ((url == null || isVanilla && isOwnIcon) && !NBT.IsPet(tag))
                 {
                     Console.WriteLine($"retrieving from api");
                     url = await GetIconUrl(tag);
                 }
+                if (url == null)
+                    return new Preview() { Id = tag, Name = details?.Name };
                 if (url.StartsWith("https://texture"))
                 {
                     url = ConvertTextureUrlToSkull(config["SKYCRYPT_BASE_URL"], url);

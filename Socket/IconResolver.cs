@@ -48,8 +48,9 @@ namespace Coflnet.Sky.Commands
                     else
                         tag = "PET_SKIN_" + tag;
                 }
-                preview = await DiHandler.ServiceProvider.GetRequiredService<PreviewService>().GetItemPreview(tag, isVanilla, 64);
-                if (preview.Image == "cmVxdWVzdGVkIFVSTCBpcyBub3QgYWxsb3dlZAo=" || preview.Image == null || preview.Image.Length < 50)
+                var previewService = DiHandler.ServiceProvider.GetRequiredService<PreviewService>();
+                preview = await GetPreviewWithFallback(previewService.GetItemPreview, tag, isVanilla);
+                if (IsMissing(preview))
                 {
                     // transparent 64x64 image
                     preview.Image = "iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAQAAAAAYLlVAAAAOUlEQVR42u3OIQEAAAACIP1/2hkWWEBzVgEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAYF3YDicAEE8VTiYAAAAAElFTkSuQmCC";
@@ -68,6 +69,35 @@ namespace Coflnet.Sky.Commands
             await context.WriteAsync(Convert.FromBase64String(preview.Image));
             if (save != null)
                 await save;
+        }
+
+        /// <summary>
+        /// Loads the preview, falling back to the non-vanilla icon if the vanilla one can't be loaded
+        /// </summary>
+        public static async Task<PreviewService.Preview> GetPreviewWithFallback(Func<string, bool, int, Task<PreviewService.Preview>> load, string tag, bool isVanilla)
+        {
+            if (!isVanilla)
+                return await load(tag, false, 64);
+            PreviewService.Preview preview = null;
+            try
+            {
+                preview = await load(tag, true, 64);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Failed to load vanilla icon for {tag}, falling back to non-vanilla {e.Message}");
+            }
+            if (!IsMissing(preview))
+                return preview;
+            return await load(tag, false, 64);
+        }
+
+        /// <summary>
+        /// Whether the preview contains no usable image
+        /// </summary>
+        public static bool IsMissing(PreviewService.Preview preview)
+        {
+            return preview?.Image == null || preview.Image == "cmVxdWVzdGVkIFVSTCBpcyBub3QgYWxsb3dlZAo=" || preview.Image.Length < 50;
         }
     }
 }
