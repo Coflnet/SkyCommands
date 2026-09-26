@@ -17,7 +17,7 @@ namespace Coflnet.Sky.Commands
     public class SkyblockBackEnd : WebSocketBehavior, IFlipConnection, IPlayerInfo
     {
         public static Dictionary<string, Command> Commands = new Dictionary<string, Command>();
-        private static ConcurrentDictionary<long, SkyblockBackEnd> Subscribers = new ConcurrentDictionary<long, SkyblockBackEnd>();
+        internal static ConcurrentDictionary<long, SkyblockBackEnd> Subscribers = new ConcurrentDictionary<long, SkyblockBackEnd>();
         public static int ConnectionCount => Subscribers.Count;
         // readonly access to subscribers
         public static IEnumerable<SkyblockBackEnd> SubscribersReadOnly => Subscribers.Values;
@@ -354,19 +354,37 @@ namespace Coflnet.Sky.Commands
             base.OnError(e);
             Console.WriteLine("=============================\nclosed socket because error");
             Console.WriteLine(e.Message);
-            Console.WriteLine(e.Exception.Message);
-            Close();
+            Console.WriteLine(e.Exception?.Message);
+            CleanupConnection();
+            // Errors (eg. a failed send) never close the library session by themselves, only
+            // ever raise OnError. Without this the session stays "Open" in the library's session
+            // manager forever, even though our app-level state was already torn down above.
+            // Abnormal (1006) is a reserved code that is never written to the wire, so this is a
+            // safe local-only close for a connection that may already be dead - it mirrors what
+            // WebSocketSessionManager.Sweep uses when it reaps stale sessions.
+            Close(CloseStatusCode.Abnormal, string.Empty);
         }
 
         protected override void OnClose(CloseEventArgs e)
         {
             base.OnClose(e);
             Console.WriteLine(e.Reason);
-            Close();
+            CleanupConnection();
+            OpenSessions.Set(Sessions.Count);
         }
 
-        private new void Close()
+        private int cleanedUp;
+
+        /// <summary>
+        /// Tears down all app-level state tied to this connection (subscriptions, flip settings,
+        /// account info, timers, flipper registration). Idempotent so it can safely be called from
+        /// both OnError and OnClose, whichever fires first (or, when OnError forces the library
+        /// session closed, both, since that triggers a re-entrant OnClose).
+        /// </summary>
+        internal void CleanupConnection()
         {
+            if (Interlocked.Exchange(ref cleanedUp, 1) == 1)
+                return; // already cleaned up
             OnBeforeClose?.Invoke(this);
             Subscribers.TryRemove(Id, out SkyblockBackEnd value);
             FlipSettings?.Dispose();
