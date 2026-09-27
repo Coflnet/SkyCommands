@@ -78,6 +78,35 @@ namespace Coflnet.Sky.Commands.Services
                 "https://sky.coflnet.com/static/icon/PET_SKIN_TAG", isPet: true), Is.False);
         }
 
+        // regression: IconCanaryFailing{source="vanilla"} - the Items API returned
+        // "https://static.coflnet.com/skyblock/item/4-0.png" as COBBLESTONE's IconUrl, a host that is
+        // now entirely dead (every url under it 404s, verified live for 4-0, 1-0, 264-0, 351-0, 351-4).
+        // Previously ShouldResolveViaHypixelApi trusted that url as-is, so the canary fetched a 404 and
+        // reported vanilla=0. It must be treated the same as a missing icon.
+        [Test]
+        public void ShouldResolveViaHypixelApi_DeadStaticSkyblockItemUrl_ResolvesViaApi()
+        {
+            Assert.That(PreviewService.ShouldResolveViaHypixelApi(
+                "https://static.coflnet.com/skyblock/item/4-0.png", isPet: false), Is.True);
+        }
+
+        [Test]
+        public void ShouldResolveViaHypixelApi_DeadStaticSkyblockItemUrl_Pet_DoesNotResolveViaApi()
+        {
+            Assert.That(PreviewService.ShouldResolveViaHypixelApi(
+                "https://static.coflnet.com/skyblock/item/351-4.png", isPet: true), Is.False);
+        }
+
+        [TestCase("https://static.coflnet.com/skyblock/item/4-0.png", true)]
+        [TestCase("https://static.coflnet.com/skyblock/item/351-4.png", true)]
+        [TestCase("https://static.coflnet.com/sky/skycrypt/api/item/COBBLESTONE", false)]
+        [TestCase("https://sky.coflnet.com/static/icon/COBBLESTONE", false)]
+        [TestCase(null, false)]
+        public void IsDeadStaticSkyblockItemUrl_DetectsDeadHost(string url, bool expected)
+        {
+            Assert.That(PreviewService.IsDeadStaticSkyblockItemUrl(url), Is.EqualTo(expected));
+        }
+
         [Test]
         public void IsOwnIconUrl_MatchesOnlyOwnPrefix()
         {

@@ -118,15 +118,20 @@ namespace Coflnet.Sky.Commands.Services
                     Console.WriteLine($"failed to load item details for {tag} from api");
                 }
                 var url = details?.IconUrl;
+                // whether url was (already) resolved via GetIconUrl - guards the retry below from
+                // looping back into the same call.
+                var resolvedViaHypixelApi = false;
                 // our own icon url is the non-vanilla one, vanilla requires the minecraft material.
                 // it can also be a leftover/circular url for skull items whose /api/item/{tag} was
-                // never in skycrypt (heads were only mirrored by texture hash) - resolve those via
-                // the Hypixel API (GetIconUrl) too, regardless of the vanilla flag, instead of
+                // never in skycrypt (heads were only mirrored by texture hash), or the now-entirely-dead
+                // static.coflnet.com/skyblock/item/ host (formerly written for e.g. dyes) - resolve
+                // those via the Hypixel API (GetIconUrl) too, regardless of the vanilla flag, instead of
                 // returning the "image unobtainable (loop)" preview below.
                 if (ShouldResolveViaHypixelApi(url, NBT.IsPet(tag)))
                 {
                     Console.WriteLine($"retrieving from api");
                     url = await GetIconUrl(tag);
+                    resolvedViaHypixelApi = true;
                 }
                 if (url == null)
                     return new Preview() { Id = tag, Name = details?.Name };
@@ -200,6 +205,27 @@ namespace Coflnet.Sky.Commands.Services
                         Console.WriteLine($"replacing broken mirror image {url} with {uri}");
                         response = await GetProxied(uri, size);
                         hash = GetResponseHash(response);
+                    }
+                }
+                if (response.StatusCode != System.Net.HttpStatusCode.OK && !resolvedViaHypixelApi && !NBT.IsPet(tag))
+                {
+                    // last resort: none of the more specific recoveries above applied (e.g. a stored
+                    // IconUrl pointing at some other now-dead host), try resolving via the Hypixel API
+                    // once. GetIconUrl throws CoflnetException for a tag it doesn't recognize - keep the
+                    // original (still broken) response in that case rather than failing the whole request.
+                    try
+                    {
+                        var retryUrl = await GetIconUrl(tag);
+                        uri = skyClient.BuildUri(new RestRequest(retryUrl));
+                        Console.WriteLine($"retrying {tag} via hypixel api after failed alternate url {url}: {retryUrl}");
+                        response = await GetProxied(uri, size);
+                        hash = GetResponseHash(response);
+                        url = retryUrl;
+                        resolvedViaHypixelApi = true;
+                    }
+                    catch (CoflnetException e)
+                    {
+                        Console.WriteLine($"retrying {tag} via hypixel api failed: {e.Message}");
                     }
                 }
                 Console.WriteLine($"response for {tag} {response.StatusCode} {response.RawBytes?.Length} {hash} {url}");
@@ -330,17 +356,34 @@ namespace Coflnet.Sky.Commands.Services
         }
 
         /// <summary>
+        /// Prefix of the old per-item icon host that is now entirely dead (every url under it 404s,
+        /// e.g. https://static.coflnet.com/skyblock/item/4-0.png for COBBLESTONE) - SkyItems used to
+        /// write these for e.g. dyes, and some items' stored IconUrl still points at it.
+        /// </summary>
+        private const string DeadStaticSkyblockItemPrefix = "https://static.coflnet.com/skyblock/item/";
+
+        /// <summary>
+        /// Whether the given icon url points at the dead static.coflnet.com/skyblock/item/ host (see
+        /// <see cref="DeadStaticSkyblockItemPrefix"/>).
+        /// </summary>
+        public static bool IsDeadStaticSkyblockItemUrl(string url)
+        {
+            return url?.StartsWith(DeadStaticSkyblockItemPrefix, StringComparison.Ordinal) ?? false;
+        }
+
+        /// <summary>
         /// Whether the item's icon should be resolved via the Hypixel API (material/skull lookup)
-        /// instead of trusting the details' IconUrl as-is: either there is no icon at all, or the
-        /// icon is our own static icon pointing back at ourselves (a stale/circular value - the mirror
-        /// never had this tag, e.g. a skull item saved by texture hash rather than tag). Pets are
-        /// excluded since their preview is generated separately.
+        /// instead of trusting the details' IconUrl as-is: either there is no icon at all, the icon is
+        /// our own static icon pointing back at ourselves (a stale/circular value - the mirror never had
+        /// this tag, e.g. a skull item saved by texture hash rather than tag), or it's one of the dead
+        /// static.coflnet.com/skyblock/item/ urls (see <see cref="IsDeadStaticSkyblockItemUrl"/>). Pets
+        /// are excluded since their preview is generated separately.
         /// </summary>
         public static bool ShouldResolveViaHypixelApi(string iconUrl, bool isPet)
         {
             if (isPet)
                 return false;
-            return iconUrl == null || IsOwnIconUrl(iconUrl);
+            return iconUrl == null || IsOwnIconUrl(iconUrl) || IsDeadStaticSkyblockItemUrl(iconUrl);
         }
 
         /// <summary>
