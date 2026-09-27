@@ -138,7 +138,7 @@ namespace Coflnet.Sky.Commands
                 Dictionary<string, string> filters = GetFiltersFromQuery(args);
                 description = await ComputeItemSiteDescription(parameter, description, keyword, refBy, filters);
 
-                imageUrl = "https://skycrypt.coflnet.com/item/" + parameter;
+                imageUrl = "https://sky.coflnet.com/static/icon/" + parameter;
                 if (parameter.StartsWith("PET_") && !parameter.StartsWith("PET_ITEM") || parameter.StartsWith("POTION"))
                     imageUrl = i.IconUrl;
                 await WriteHeader(path, res, description, title, imageUrl, keyword, header);

@@ -43,11 +43,24 @@ namespace Coflnet.Sky.Commands.Services
             { "ESSENCE_FOSSIL", "https://mc-heads.net/head/93a1b830399ab432a5178fdaf3939b24bf25c724a66be947296c503352bc380d/64" },
         };
 
+        /// <summary>
+        /// Our static mirror of skycrypt's (sky.shiiyu.moe) former image paths, copied 1:1 so the
+        /// /api/item/{tag}, /api/head/{hash} and /api/leather/{piece}/{rgb} shapes keep working
+        /// without depending on the now-defunct skycrypt image endpoints.
+        /// </summary>
+        public const string DefaultSkycryptBaseUrl = "https://static.coflnet.com/sky/skycrypt";
+        /// <summary>
+        /// Our fork of crafatar, deployed in-cluster, used to render player skull heads directly
+        /// instead of going through skycrypt.
+        /// </summary>
+        public const string DefaultHeadRenderBaseUrl = "http://crafatar:3000";
+        private const string OwnIconPrefix = "https://sky.coflnet.com/static/icon/";
+
         public PreviewService(IConfiguration config)
         {
             this.config = config;
             skyClient = new RestClient(config["SKY_BASE_URL"] ?? "https://sky.coflnet.com");
-            skyCryptClient = new RestClient(config["SKYCRYPT_BASE_URL"] ?? "https://sky.shiiyu.moe/");
+            skyCryptClient = new RestClient(config["SKYCRYPT_BASE_URL"] ?? DefaultSkycryptBaseUrl);
             crafatarClient = new RestClient(config["CRAFATAR_BASE_URL"] ?? "https://crafatar.com");
             proxyClient = new RestClient(config["IMGPROXY_BASE_URL"] ?? "http://imgproxy");
             hypixelClient = new RestClient(config["HYPIXEL_BASE_URL"] ?? "https://api.hypixel.net/");
@@ -105,9 +118,12 @@ namespace Coflnet.Sky.Commands.Services
                     Console.WriteLine($"failed to load item details for {tag} from api");
                 }
                 var url = details?.IconUrl;
-                // our own icon url is the non-vanilla one, vanilla requires the minecraft material
-                var isOwnIcon = url?.StartsWith("https://sky.coflnet.com/static/icon/") ?? false;
-                if ((url == null || isVanilla && isOwnIcon) && !NBT.IsPet(tag))
+                // our own icon url is the non-vanilla one, vanilla requires the minecraft material.
+                // it can also be a leftover/circular url for skull items whose /api/item/{tag} was
+                // never in skycrypt (heads were only mirrored by texture hash) - resolve those via
+                // the Hypixel API (GetIconUrl) too, regardless of the vanilla flag, instead of
+                // returning the "image unobtainable (loop)" preview below.
+                if (ShouldResolveViaHypixelApi(url, NBT.IsPet(tag)))
                 {
                     Console.WriteLine($"retrieving from api");
                     url = await GetIconUrl(tag);
@@ -116,9 +132,10 @@ namespace Coflnet.Sky.Commands.Services
                     return new Preview() { Id = tag, Name = details?.Name };
                 if (url.StartsWith("https://texture"))
                 {
-                    url = ConvertTextureUrlToSkull(config["SKYCRYPT_BASE_URL"], url);
+                    url = ConvertTextureUrlToSkull(config["HEAD_RENDER_BASE_URL"] ?? DefaultHeadRenderBaseUrl, url);
                 }
-                if (url.StartsWith("https://sky.coflnet.com") && url.Length >= ("https://sky.coflnet.com/static/icon/" + tag).Length && !isVanilla)
+                // keep the loop guard for anything that would still point back at our own /static/icon
+                if (IsOwnIconUrl(url) && url.Length >= (OwnIconPrefix + tag).Length && !isVanilla)
                 {
                     Console.WriteLine($"skipping loop {url}");
                     return new Preview()
@@ -133,18 +150,40 @@ namespace Coflnet.Sky.Commands.Services
                 var hash = GetResponseHash(response);
                 if (brokenFilehash.Contains(hash) && url.Contains("mc-heads.net"))
                 {
-                    uri = skyCryptClient.BuildUri(new RestRequest("/api/head/" + url.Replace("https://mc-heads.net/head/", "").Split('/')[0]));
+                    var headRenderBase = config["HEAD_RENDER_BASE_URL"] ?? DefaultHeadRenderBaseUrl;
+                    var headHash = ExtractMcHeadsHash(url);
+                    var renderUrl = BuildHeadRenderUrl(headRenderBase, headHash);
+                    uri = skyClient.BuildUri(new RestRequest(renderUrl));
                     Console.WriteLine($"replacing steve head {url} with {uri}");
                     response = await GetProxied(uri, size);
                     hash = GetResponseHash(response);
-                } else if(brokenFilehash.Contains(hash))
+                    if (brokenFilehash.Contains(hash) || response.StatusCode != System.Net.HttpStatusCode.OK)
+                    {
+                        var mirrorUrl = BuildMirrorHeadUrl(config["SKYCRYPT_BASE_URL"] ?? DefaultSkycryptBaseUrl, headHash);
+                        uri = skyClient.BuildUri(new RestRequest(mirrorUrl));
+                        Console.WriteLine($"crafatar render failed, falling back to mirror head {mirrorUrl}");
+                        response = await GetProxied(uri, size);
+                        hash = GetResponseHash(response);
+                    }
+                }
+                else if ((brokenFilehash.Contains(hash) || response.StatusCode != System.Net.HttpStatusCode.OK) && url.Contains("/renders/head/"))
+                {
+                    // our own crafatar render failed / returned a broken hash, fall back to the static mirror
+                    var headHash = ExtractHeadHashFromRenderUrl(url);
+                    var mirrorUrl = BuildMirrorHeadUrl(config["SKYCRYPT_BASE_URL"] ?? DefaultSkycryptBaseUrl, headHash);
+                    uri = skyClient.BuildUri(new RestRequest(mirrorUrl));
+                    Console.WriteLine($"crafatar head render failed for {url}, falling back to mirror {mirrorUrl}");
+                    response = await GetProxied(uri, size);
+                    hash = GetResponseHash(response);
+                }
+                else if(brokenFilehash.Contains(hash))
                 {
                     // convert the 1.8 minecraft type to 1.21
                     var materialPart = url.Split('/').Last();
                     var mapped = MapMaterial(materialPart);
                     if (mapped != materialPart)
                     {
-                        var skycryptBase = config["SKYCRYPT_BASE_URL"];
+                        var skycryptBase = config["SKYCRYPT_BASE_URL"] ?? DefaultSkycryptBaseUrl;
                         var mappedUrl = skycryptBase + "/api/item/" + mapped;
                         uri = skyClient.BuildUri(new RestRequest(mappedUrl));
                         Console.WriteLine($"remapping old material {materialPart} to {mapped} for {tag}");
@@ -152,12 +191,16 @@ namespace Coflnet.Sky.Commands.Services
                         hash = GetResponseHash(response);
                     }
                 }
-                if(brokenFilehash.Contains(hash) && url.Contains("sky.shiiyu.moe"))
+                if (brokenFilehash.Contains(hash) && IsSkycryptMirrorUrl(url, config["SKYCRYPT_BASE_URL"] ?? DefaultSkycryptBaseUrl))
                 {
-                    uri = skyClient.BuildUri(new RestRequest("/static/icon/" + url.Split('/').Last()));
-                    Console.WriteLine($"replacing broken sky.shiiyu.moe image {url} with {uri}");
-                    response = await GetProxied(uri, size);
-                    hash = GetResponseHash(response);
+                    var material = url.Split('/').Last();
+                    if (material != tag)
+                    {
+                        uri = skyClient.BuildUri(new RestRequest("/static/icon/" + material));
+                        Console.WriteLine($"replacing broken mirror image {url} with {uri}");
+                        response = await GetProxied(uri, size);
+                        hash = GetResponseHash(response);
+                    }
                 }
                 Console.WriteLine($"response for {tag} {response.StatusCode} {response.RawBytes?.Length} {hash} {url}");
             }
@@ -190,12 +233,12 @@ namespace Coflnet.Sky.Commands.Services
                 return skyCryptClient.BuildUri(new RestRequest("/api/item/POTION")).ToString();
             if (targetItem == null)
                 throw new CoflnetException("unkown_item", "there was no image found for the item " + tag);
-            var skycryptBase = config["SKYCRYPT_BASE_URL"];
+            var skycryptBase = config["SKYCRYPT_BASE_URL"] ?? DefaultSkycryptBaseUrl;
             if (targetItem.Material == "SKULL_ITEM")
             {
                 dynamic skinData = JsonConvert.DeserializeObject(System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(targetItem.Skin.Value)));
                 string skinUrl = skinData.textures.SKIN.url;
-                url = ConvertTextureUrlToSkull(skycryptBase, skinUrl);
+                url = ConvertTextureUrlToSkull(config["HEAD_RENDER_BASE_URL"] ?? DefaultHeadRenderBaseUrl, skinUrl);
             }
             else if (targetItem.Material == "INK_SACK")
             {
@@ -211,13 +254,106 @@ namespace Coflnet.Sky.Commands.Services
             return url;
         }
 
-        private static string ConvertTextureUrlToSkull(string skycryptBase, string skinUrl)
+        /// <summary>
+        /// Builds a render url for our crafatar fork from a textures.minecraft.net skin url (or a
+        /// bare texture hash). This is the primary way we get skull head images now; callers should
+        /// fall back to <see cref="BuildMirrorHeadUrl"/> if the render comes back broken.
+        /// </summary>
+        public static string ConvertTextureUrlToSkull(string headRenderBase, string skinUrl)
         {
-            string url = skycryptBase + "/api/head/" + skinUrl
-                .Replace("http://textures.minecraft.net/texture/", "")
-                .Replace("https://textures.minecraft.net/texture/", "");
+            string url = BuildHeadRenderUrl(headRenderBase, ExtractTextureHash(skinUrl));
             Activity.Current?.AddTag("headUrl", url);
             return url;
+        }
+
+        /// <summary>
+        /// Strips the textures.minecraft.net (http or https) prefix off a skin url, leaving the bare
+        /// texture hash. If the input is already a bare hash it is returned unchanged.
+        /// </summary>
+        public static string ExtractTextureHash(string skinUrlOrHash)
+        {
+            return skinUrlOrHash
+                .Replace("http://textures.minecraft.net/texture/", "")
+                .Replace("https://textures.minecraft.net/texture/", "");
+        }
+
+        /// <summary>
+        /// Builds a head render url against our in-cluster crafatar fork.
+        /// </summary>
+        public static string BuildHeadRenderUrl(string headRenderBase, string textureHash)
+        {
+            return $"{headRenderBase}/renders/head/{textureHash}?overlay";
+        }
+
+        /// <summary>
+        /// Builds a fallback head url against the static skycrypt mirror, for when the crafatar
+        /// render fails or comes back broken.
+        /// </summary>
+        public static string BuildMirrorHeadUrl(string skycryptBase, string textureHash)
+        {
+            return $"{skycryptBase}/api/head/{textureHash}";
+        }
+
+        /// <summary>
+        /// Pulls the texture hash back out of a url built by <see cref="BuildHeadRenderUrl"/>.
+        /// </summary>
+        public static string ExtractHeadHashFromRenderUrl(string renderUrl)
+        {
+            var afterMarker = renderUrl.Split("/renders/head/").Last();
+            return afterMarker.Split('?')[0];
+        }
+
+        /// <summary>
+        /// Extracts the texture hash out of a legacy mc-heads.net head url (e.g. one of the hardcoded
+        /// icon overrides).
+        /// </summary>
+        public static string ExtractMcHeadsHash(string mcHeadsUrl)
+        {
+            return mcHeadsUrl.Replace("https://mc-heads.net/head/", "").Split('/')[0];
+        }
+
+        /// <summary>
+        /// Converts one of the hardcoded mc-heads.net icon overrides into a crafatar render url.
+        /// </summary>
+        public static string ConvertMcHeadsUrlToRenderUrl(string headRenderBase, string mcHeadsUrl)
+        {
+            return BuildHeadRenderUrl(headRenderBase, ExtractMcHeadsHash(mcHeadsUrl));
+        }
+
+        /// <summary>
+        /// Whether the given icon url is our own generated static icon (i.e. resolving it further
+        /// via the skycrypt mirror/Hypixel API would just call back into ourselves).
+        /// </summary>
+        public static bool IsOwnIconUrl(string url)
+        {
+            return url?.StartsWith(OwnIconPrefix) ?? false;
+        }
+
+        /// <summary>
+        /// Whether the item's icon should be resolved via the Hypixel API (material/skull lookup)
+        /// instead of trusting the details' IconUrl as-is: either there is no icon at all, or the
+        /// icon is our own static icon pointing back at ourselves (a stale/circular value - the mirror
+        /// never had this tag, e.g. a skull item saved by texture hash rather than tag). Pets are
+        /// excluded since their preview is generated separately.
+        /// </summary>
+        public static bool ShouldResolveViaHypixelApi(string iconUrl, bool isPet)
+        {
+            if (isPet)
+                return false;
+            return iconUrl == null || IsOwnIconUrl(iconUrl);
+        }
+
+        /// <summary>
+        /// Whether the given (now broken) url points at our static skycrypt mirror - either by the
+        /// configured base url, or one of the old dead hosts it replaced.
+        /// </summary>
+        public static bool IsSkycryptMirrorUrl(string url, string skycryptBase)
+        {
+            if (string.IsNullOrEmpty(url))
+                return false;
+            if (url.Contains("sky.shiiyu.moe") || url.Contains("skycrypt.coflnet.com"))
+                return true;
+            return !string.IsNullOrEmpty(skycryptBase) && url.StartsWith(skycryptBase);
         }
 
         /// <summary>
@@ -236,11 +372,19 @@ namespace Coflnet.Sky.Commands.Services
         private async Task<RestResponse> GetProxied(Uri uri, int size)
         {
             // request image to be squared
-            var proxyRequest = new RestRequest($"/a/rs:fill:{size}:{size}/plain/" + uri.ToString())
-                        .AddUrlSegment("size", size);
+            var proxyRequest = new RestRequest(BuildProxyPath(uri, size));
             proxyRequest.Timeout = TimeSpan.FromSeconds(5);
             var response = await proxyClient.ExecuteAsync(proxyRequest);
             return response;
+        }
+
+        /// <summary>
+        /// Builds the imgproxy path for a source url. The source has to be escaped,
+        /// otherwise imgproxy treats its query (eg. crafatar's ?overlay) as its own and drops it.
+        /// </summary>
+        public static string BuildProxyPath(Uri source, int size)
+        {
+            return $"/a/rs:fill:{size}:{size}/plain/" + Uri.EscapeDataString(source.ToString());
         }
 
         [DataContract]
