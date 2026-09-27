@@ -69,6 +69,7 @@ namespace SkyCommands
                 return new TopUpApi(paymentsUrl);
             });
             services.AddSingleton<PreviewService>();
+            services.AddHostedService<IconCanaryService>();
             services.AddApi(options => options.AddApiHttpClients(c =>
                 {
                     c.BaseAddress = new Uri(Configuration["MOD_BASE_URL"]);

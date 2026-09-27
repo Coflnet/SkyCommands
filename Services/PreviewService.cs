@@ -379,6 +379,28 @@ namespace Coflnet.Sky.Commands.Services
         }
 
         /// <summary>
+        /// Fetches a preview for an already-known source url, going through the same imgproxy
+        /// proxying path as <see cref="GetItemPreview"/> but without the item-tag lookup/fallback
+        /// chain. Used by the icon canary to deterministically exercise a specific upstream source
+        /// (e.g. crafatar) instead of depending on which fallback branch a given item tag happens
+        /// to hit.
+        /// </summary>
+        /// <param name="id">identifier to stamp onto the returned preview (e.g. the canary source name)</param>
+        /// <param name="source">the source url to proxy</param>
+        /// <param name="size">the size to get the image in</param>
+        public async Task<Preview> GetDirectPreview(string id, Uri source, int size = 64)
+        {
+            var response = await GetProxied(source, size);
+            return new Preview()
+            {
+                Id = id,
+                Image = response?.RawBytes == null ? null : Convert.ToBase64String(response.RawBytes),
+                ImageUrl = source?.ToString(),
+                MimeType = response?.ContentType
+            };
+        }
+
+        /// <summary>
         /// Builds the imgproxy path for a source url. The source has to be escaped,
         /// otherwise imgproxy treats its query (eg. crafatar's ?overlay) as its own and drops it.
         /// </summary>
