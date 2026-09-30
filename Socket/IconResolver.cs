@@ -34,6 +34,7 @@ namespace Coflnet.Sky.Commands
                 tag = parts.Reverse().Skip(1).First();
                 isVanilla = true;
             }
+            tag = Uri.UnescapeDataString(tag);
             Console.WriteLine("Resolving icon for " + tag);
             var key = "img" + tag;
             PreviewService.Preview preview = null;// await CacheService.Instance.GetFromRedis<PreviewService.Preview>(key);
