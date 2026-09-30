@@ -34,7 +34,7 @@ namespace Coflnet.Sky.Commands
                 tag = parts.Reverse().Skip(1).First();
                 isVanilla = true;
             }
-            tag = Uri.UnescapeDataString(tag);
+            tag = Uri.UnescapeDataString(Uri.UnescapeDataString(tag));
             Console.WriteLine("Resolving icon for " + tag);
             var key = "img" + tag;
             PreviewService.Preview preview = null;// await CacheService.Instance.GetFromRedis<PreviewService.Preview>(key);
@@ -45,9 +45,13 @@ namespace Coflnet.Sky.Commands
                 if (DiHandler.GetService<ItemDetails>().GetItemIdForTag(tag, false) <= 0)
                 {
                     if (!DiHandler.GetService<ItemDetails>().TagLookup.ContainsKey("PET_SKIN_" + tag))
-                        throw new CoflnetException("unkown_item", "The requested item was not found, please file a bugreport");
-                    else
-                        tag = "PET_SKIN_" + tag;
+                    {
+                        context.SetStatusCode(404);
+                        context.SetContentType("text/plain");
+                        await context.WriteAsync("The requested item was not found, please file a bugreport");
+                        return;
+                    }
+                    tag = "PET_SKIN_" + tag;
                 }
                 var previewService = DiHandler.ServiceProvider.GetRequiredService<PreviewService>();
                 preview = await GetPreviewWithFallback(previewService.GetItemPreview, tag, isVanilla);
