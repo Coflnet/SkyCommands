@@ -12,7 +12,8 @@ COPY . .
 RUN dotnet test
 RUN dotnet publish -c release -o /app /p:UseAppHost=false /p:PublishReadyToRun=true
 
-FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble-chiseled-extra
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble
+RUN apt-get update && apt-get install -y --only-upgrade libssl3t64 openssl && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 
 COPY --from=build --chown=$APP_UID:$APP_UID /app .
