@@ -104,7 +104,14 @@ namespace Coflnet.Sky.Commands.Services
             if (response.StatusCode != System.Net.HttpStatusCode.OK || brokenFilehash.Contains(fileHashBase64) || isVanilla)
             {
                 if (!NBT.IsPet(tag) && !isVanilla)
-                    dev.Logger.Instance.Error($"Failed to load item preview for {tag} from {uri} code {response.StatusCode}");
+                {
+                    var message = $"Failed to load item preview for {tag} from {uri} code {response.StatusCode}";
+                    // a missing asset is expected data (and remembered by IconResolver), not an error
+                    if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                        dev.Logger.Instance.Info(message);
+                    else
+                        dev.Logger.Instance.Error(message);
+                }
                 var info = await DiHandler.GetService<Items.Client.Api.IItemsApi>().ItemItemTagGetWithHttpInfoAsync(tag, true);
                 Console.WriteLine($"info {info.StatusCode} {info.RawContent}");
                 if (info.StatusCode == System.Net.HttpStatusCode.OK)
@@ -134,7 +141,8 @@ namespace Coflnet.Sky.Commands.Services
                     resolvedViaHypixelApi = true;
                 }
                 if (url == null)
-                    return new Preview() { Id = tag, Name = details?.Name };
+                    // item api failures say nothing about whether an icon exists
+                    return new Preview() { Id = tag, Name = details?.Name, Miss = details == null && info.StatusCode != System.Net.HttpStatusCode.NotFound ? MissKind.Transient : MissKind.Conclusive };
                 if (url.StartsWith("https://texture"))
                 {
                     url = ConvertTextureUrlToSkull(config["HEAD_RENDER_BASE_URL"] ?? DefaultHeadRenderBaseUrl, url);
@@ -147,6 +155,8 @@ namespace Coflnet.Sky.Commands.Services
                     {
                         Id = tag,
                         Name = "image unobtainable (loop)",
+                        // depends on the (possibly broken) stored url, may be fixed later
+                        Miss = MissKind.Transient
                     };
                 }
                 uri = skyClient.BuildUri(new RestRequest(url));
@@ -237,7 +247,8 @@ namespace Coflnet.Sky.Commands.Services
                 Image = response?.RawBytes == null ? null : Convert.ToBase64String(response.RawBytes),
                 ImageUrl = uri?.ToString(),
                 Name = details?.Name,
-                MimeType = response?.ContentType
+                MimeType = response?.ContentType,
+                Miss = ClassifyProxyResponse(response?.StatusCode ?? 0, response?.RawBytes?.Length)
             };
         }
 
@@ -253,6 +264,9 @@ namespace Coflnet.Sky.Commands.Services
             string url;
             var itemDataString = await hypixelClient.ExecuteAsync(new RestRequest("v2/resources/skyblock/items"));
             var itemData = JsonConvert.DeserializeObject<HypixelItems>(itemDataString.Content);
+            // an empty/failed answer says nothing about the item, don't report it as unknown (that is remembered)
+            if (itemData?.Items == null || itemData.Items.Count == 0)
+                throw new InvalidOperationException("hypixel item list unavailable, status " + itemDataString.StatusCode);
             var targetItem = itemData.Items.Where(i => i.Id == tag).FirstOrDefault();
             Console.Write(JsonConvert.SerializeObject(targetItem).Truncate(200));
             if (targetItem == null && tag.StartsWith("POTION_"))
@@ -452,6 +466,35 @@ namespace Coflnet.Sky.Commands.Services
             return $"/a/rs:fill:{size}:{size}/plain/" + Uri.EscapeDataString(source.ToString());
         }
 
+        /// <summary>
+        /// How sure we are that an icon doesn't exist
+        /// </summary>
+        public enum MissKind
+        {
+            /// <summary>Not classified, treated as conclusive</summary>
+            None,
+            /// <summary>Known without the image proxy: no url, unknown item, not allowed</summary>
+            Conclusive,
+            /// <summary>The image proxy answered 404, which it may also do when the source download fails</summary>
+            ProxyNotFound,
+            /// <summary>Timeouts, connection and upstream errors, empty bodies: may recover</summary>
+            Transient
+        }
+
+        /// <summary>
+        /// Classifies the answer of the image proxy. <see cref="MissKind.None"/> means a usable image.
+        /// </summary>
+        /// <param name="status">http status, 0 if there was no response</param>
+        /// <param name="bodyLength">length of the body, null if there was none</param>
+        public static MissKind ClassifyProxyResponse(System.Net.HttpStatusCode status, int? bodyLength)
+        {
+            if (status == System.Net.HttpStatusCode.OK)
+                // 50 base64 chars is the smallest image IconResolver accepts
+                return bodyLength == null || bodyLength.Value < 37 ? MissKind.Transient : MissKind.None;
+            // imgproxy answers 404 when the source download failed as well as when the source is gone
+            return status == System.Net.HttpStatusCode.NotFound ? MissKind.ProxyNotFound : MissKind.Transient;
+        }
+
         [DataContract]
         public class Preview
         {
@@ -465,6 +508,10 @@ namespace Coflnet.Sky.Commands.Services
             public string ImageUrl;
             [DataMember(Name = "mime")]
             public string MimeType;
+            /// <summary>
+            /// Why the image is missing, see <see cref="MissKind"/>. Not serialized.
+            /// </summary>
+            public MissKind Miss;
         }
 
         public class HypixelItems

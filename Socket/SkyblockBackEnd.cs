@@ -70,7 +70,95 @@ namespace Coflnet.Sky.Commands
 
         public long Purse { get => -1; set => throw new NotImplementedException(); }
         public long AhSlotsOpen { get => -1; set => throw new NotImplementedException(); }
-        public AccountTier SessionTier { get;set; }
+        private AccountTier sessionTier;
+        private int sessionTierUser;
+        /// <summary>Tier assigned at subscribe/refresh time, remembers which user it belongs to</summary>
+        public AccountTier SessionTier
+        {
+            get => sessionTier;
+            set { sessionTier = value; sessionTierUser = _userId; }
+        }
+        /// <summary>
+        /// Whether the last flip subscribe of this socket succeeded (set by the subscribe commands).
+        /// The tier refresh must not promote a connection whose subscription failed.
+        /// </summary>
+        public volatile bool HasFlipSubscription;
+
+        internal static readonly UserTierCache TierCache = new UserTierCache();
+
+        /// <summary>
+        /// Tier the periodic refresh of <see cref="FlipConWrapper"/> should place this connection in.
+        /// Uses the same source as the flip subscribe command (<see cref="PremiumService.GetCurrentTier"/>, shared
+        /// per user via <see cref="UserTierCache"/>) so expired premium gets downgraded and newly bought premium
+        /// upgraded. Never throws and persists nothing; anonymous or not subscribed connections are NONE.
+        /// </summary>
+        public Task<AccountTier> UserAccountTier()
+        {
+            return ResolveAccountTier(userId => Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetService<PremiumService>(DiHandler.ServiceProvider).GetCurrentTier(userId));
+        }
+
+        /// <summary>
+        /// The tier the subscribe command would have put a user of the given tier in:
+        /// it has no case for SUPER_PREMIUM (pre-api), which therefore ends up in the slow set.
+        /// </summary>
+        internal static AccountTier SubscribePathTier(AccountTier tier)
+        {
+            return tier switch
+            {
+                AccountTier.STARTER_PREMIUM or AccountTier.PREMIUM or AccountTier.PREMIUM_PLUS => tier,
+                _ => AccountTier.NONE
+            };
+        }
+
+        internal async Task<AccountTier> ResolveAccountTier(Func<string, Task<(AccountTier?, DateTime)>> lookup, UserTierCache cache = null)
+        {
+            cache ??= TierCache;
+            var userId = _userId;
+            try
+            {
+                // the user can change on a live socket (login without resubscribe), only trust a result for the current user
+                for (var attempt = 0; attempt < 3; attempt++)
+                {
+                    userId = _userId;
+                    if (userId == 0 || !HasFlipSubscription)
+                        return AccountTier.NONE;
+                    var current = await cache.Get(userId, lookup).ConfigureAwait(false);
+                    if (userId != _userId)
+                        continue;
+                    if (current.Item1 == null)
+                        return KnownTierOnFailure(cache, userId);
+                    SessionTier = current.Item1.Value;
+                    return SubscribePathTier(current.Item1.Value);
+                }
+            }
+            catch (Exception e)
+            {
+                dev.Logger.Instance.Error(e, "refreshing account tier");
+                return KnownTierOnFailure(cache, userId);
+            }
+            return AccountTier.NONE;
+        }
+
+        /// <summary>
+        /// A failed lookup keeps the known tier, but only while the last successful lookup (plus a grace period)
+        /// says the premium can still be valid
+        /// </summary>
+        private AccountTier KnownTierOnFailure(UserTierCache cache, int userId)
+        {
+            if (userId == 0 || userId != _userId || userId != sessionTierUser || !cache.HasTrustedKnownTier(userId))
+                return AccountTier.NONE;
+            return SubscribePathTier(SessionTier);
+        }
+
+        /// <summary>
+        /// Looks up the tier for the subscribe commands. Always asks the premium api and feeds the shared cache
+        /// so a following refresh can't downgrade with an older cached value.
+        /// </summary>
+        public static Task<(AccountTier?, DateTime)> FetchCurrentTier(int userId)
+        {
+            return TierCache.Fetch(userId, id => Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetService<PremiumService>(DiHandler.ServiceProvider).GetCurrentTier(id));
+        }
+
         public string McName { get => null; set => throw new NotImplementedException(); }
         public string McUuid { get => null; set => throw new NotImplementedException(); }
 

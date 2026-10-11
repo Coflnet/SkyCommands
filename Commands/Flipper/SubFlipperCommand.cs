@@ -33,7 +33,7 @@ namespace Coflnet.Sky.Commands
 
                 var lastSettings = con.LatestSettings;
 
-                var expires = await DiHandler.ServiceProvider.GetService<PremiumService>().GetCurrentTier(data.UserId.ToString());
+                var expires = await SkyblockBackEnd.FetchCurrentTier(data.UserId);
                 switch (expires.Item1)
                 {
                     case AccountTier.STARTER_PREMIUM:
@@ -49,6 +49,7 @@ namespace Coflnet.Sky.Commands
                         data.GetService<FlipperService>().AddNonConnection(con);
                         break;
                 }
+                con.HasFlipSubscription = true;
                 await data.SendBack(data.Create("debug", $"Subbed on " + System.Net.Dns.GetHostName()));
 
                 // load settings
@@ -65,11 +66,13 @@ namespace Coflnet.Sky.Commands
             }
             catch (CoflnetException e)
             {
+                con.HasFlipSubscription = false;
                 data.GetService<FlipperService>().AddNonConnection(con);
                 await data.SendBack(data.Create("debug", $"exception " + e));
             }
             catch (Exception e)
             {
+                con.HasFlipSubscription = false;
                 data.GetService<FlipperService>().AddNonConnection(con);
                 dev.Logger.Instance.Error(e, "flip error");
                 await data.SendBack(data.Create("debug", $"unkown exception "));
