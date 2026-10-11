@@ -33,7 +33,9 @@ namespace Coflnet.Sky.Commands
 
                 var lastSettings = con.LatestSettings;
 
-                var expires = await DiHandler.ServiceProvider.GetService<PremiumService>().GetCurrentTier(data.UserId.ToString());
+                var expires = await SkyblockBackEnd.FetchCurrentTier(data.UserId);
+                // before the Add*Connection call, that starts the tier refresh
+                con.HasFlipSubscription = true;
                 switch (expires.Item1)
                 {
                     case AccountTier.STARTER_PREMIUM:
@@ -43,6 +45,7 @@ namespace Coflnet.Sky.Commands
                         data.GetService<FlipperService>().AddConnection(con);
                         break;
                     case AccountTier.PREMIUM_PLUS:
+                    case AccountTier.SUPER_PREMIUM:
                         data.GetService<FlipperService>().AddConnectionPlus(con);
                         break;
                     default:
@@ -65,11 +68,13 @@ namespace Coflnet.Sky.Commands
             }
             catch (CoflnetException e)
             {
+                con.HasFlipSubscription = false;
                 data.GetService<FlipperService>().AddNonConnection(con);
                 await data.SendBack(data.Create("debug", $"exception " + e));
             }
             catch (Exception e)
             {
+                con.HasFlipSubscription = false;
                 data.GetService<FlipperService>().AddNonConnection(con);
                 dev.Logger.Instance.Error(e, "flip error");
                 await data.SendBack(data.Create("debug", $"unkown exception "));
@@ -84,6 +89,9 @@ namespace Coflnet.Sky.Commands
 
         public static async Task UpdateAccountInfo(MessageData data, (AccountTier?, DateTime) expires)
         {
+            // the cache reports an unknown tier (failed or timed out lookup) with no expiry, don't persist that
+            if (expires.Item1 == null && expires.Item2 <= DateTime.UtcNow)
+                return;
             var service = DiHandler.ServiceProvider.GetRequiredService<SettingsService>();
             var con = (data as SocketMessageData).Connection;
 

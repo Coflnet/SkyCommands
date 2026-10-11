@@ -14,6 +14,7 @@ public class SubFlipAnonymousCommand : SubFlipperCommand
         CapListLength(settings.BlackList, con);
         con.OldFallbackSettings = settings;
         con.SubFlipMsgId = (int)data.mId;
+        con.HasFlipSubscription = false;
         data.GetService<FlipperService>().AddNonConnection(con);
         await data.Ok();
         await Task.Delay(500); // backof attempt
