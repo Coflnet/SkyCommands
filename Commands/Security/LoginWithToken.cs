@@ -33,7 +33,7 @@ public class LoginWithToken : Command
                 "terms_acceptance_required",
                 "Accept the current SkyCofl agreement before completing sign in.");
         data.UserId = user.Id;
-        con.Connection.AccountInfo = await SelfUpdatingValue<AccountInfo>.Create(user.Id.ToString(), "accountInfo", () => new());
+        con.Connection.AccountInfo = await SkyblockBackEnd.LoadAccountInfo(user.Id);
         con.Log($"User {user.Id} logged in with token {email}");
         var internalToken = data.GetService<TokenService>().CreateToken(email);
         await con.SendBack(data.Create("token", internalToken));

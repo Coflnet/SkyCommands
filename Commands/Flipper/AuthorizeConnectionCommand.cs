@@ -61,8 +61,8 @@ namespace Coflnet.Sky.Commands
 
 
             lastSettings.UserId = data.UserId;
-            var expires = await DiHandler.ServiceProvider.GetService<PremiumService>().GetCurrentTier(data.UserId.ToString());
-            await SubFlipperCommand.UpdateAccountInfo(data, expires);
+            var expires = await SkyblockBackEnd.FetchCurrentTier(data.UserId);
+            await SubFlipperCommand.UpdateAccountInfo(data, expires, data.UserId);
             await authTask;
         }
     }

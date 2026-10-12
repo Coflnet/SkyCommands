@@ -33,7 +33,7 @@ namespace Coflnet.Sky.Commands
             {
                 if (data is not SocketMessageData con)
                     return;
-                con.Connection.AccountInfo = await SelfUpdatingValue<AccountInfo>.Create(user.Id.ToString(), "accountInfo", () => new());
+                con.Connection.AccountInfo = await SkyblockBackEnd.LoadAccountInfo(user.Id);
                 var accountInfo = con.Connection.AccountInfo;
                 var email = user.Email ?? token.Email;
                 if (string.IsNullOrWhiteSpace(email))
