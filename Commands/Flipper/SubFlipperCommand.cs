@@ -61,7 +61,7 @@ namespace Coflnet.Sky.Commands
                 if (lastSettings?.Settings?.AllowedFinders == LowPricedAuction.FinderType.UNKOWN)
                     lastSettings.Settings.AllowedFinders = LowPricedAuction.FinderType.SNIPER_MEDIAN;
                 con.SessionTier = expires.Item1 ?? AccountTier.NONE;
-                var accountUpdateTask = UpdateAccountInfo(data, expires);
+                var accountUpdateTask = UpdateAccountInfo(data, expires, userId);
                 await data.Ok();
                 await accountUpdateTask;
                 return;
@@ -87,26 +87,28 @@ namespace Coflnet.Sky.Commands
             await Task.Delay(500); // backof attempt
         }
 
-        public static async Task UpdateAccountInfo(MessageData data, (AccountTier?, DateTime) expires)
+        /// <param name="data">the message of the connection</param>
+        /// <param name="expires">the tier (and its expiry) fetched for <paramref name="userId"/></param>
+        /// <param name="userId">the user the tier belongs to, it is only written to an account info owned by that user</param>
+        public static async Task UpdateAccountInfo(MessageData data, (AccountTier?, DateTime) expires, int userId)
         {
             // the cache reports an unknown tier (failed or timed out lookup) with no expiry, don't persist that
             if (expires.Item1 == null && expires.Item2 <= DateTime.UtcNow)
                 return;
-            var service = DiHandler.ServiceProvider.GetRequiredService<SettingsService>();
             var con = (data as SocketMessageData).Connection;
 
             try
             {
-                if (con.AccountInfo.Value == default)
-                    con.AccountInfo = await SelfUpdatingValue<AccountInfo>.Create(data.UserId.ToString(), "accountInfo", () => new AccountInfo()
-                    {
-                        UserId = data.UserId.ToString(),
-                    });
+                if (con.AccountInfo?.Value == default)
+                    con.AccountInfo = await SkyblockBackEnd.LoadAccountInfo(userId);
 
-
-                con.AccountInfo.Value.Tier = expires.Item1 ?? AccountTier.PREMIUM;
-                con.AccountInfo.Value.ExpiresAt = expires.Item2;
-                await con.AccountInfo.Update();
+                // capture once, the write goes to the object checked here
+                var holder = con.AccountInfo;
+                if (holder?.Value == null || holder.Value.UserId != userId.ToString())
+                    return;
+                holder.Value.Tier = expires.Item1 ?? AccountTier.PREMIUM;
+                holder.Value.ExpiresAt = expires.Item2;
+                await holder.Update();
             }
             catch (Exception e)
             {

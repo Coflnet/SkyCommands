@@ -403,7 +403,7 @@ namespace Coflnet.Sky.Commands
             var connection = new SkyblockBackEnd { UserId = 7 };
             var data = new SocketMessageData { Connection = connection };
 
-            await SubFlipperCommand.UpdateAccountInfo(data, UserTierCache.Failure);
+            await SubFlipperCommand.UpdateAccountInfo(data, UserTierCache.Failure, 7);
 
             Assert.That(connection.AccountInfo, Is.Null.Or.Property("Value").EqualTo(default(AccountInfo)));
         }
@@ -465,8 +465,9 @@ namespace Coflnet.Sky.Commands
             Assert.That(connection.AccountInfo.Value.ExpiresAt, Is.EqualTo(expiry));
         }
 
+        /// <summary>an account info without a known owner is never written by the tick (the login stamps the owner when loading)</summary>
         [Test]
-        public async Task RefreshSyncsAccountInfoOfWebsiteAccountsWithoutUserId()
+        public async Task AccountInfoWithoutOwnerIsNotWrittenByTheRefresh()
         {
             var connection = Subscribed(7);
             connection.AccountInfo = SelfUpdatingValue<AccountInfo>.CreateNoUpdate(new AccountInfo { Tier = AccountTier.NONE });
@@ -474,7 +475,7 @@ namespace Coflnet.Sky.Commands
 
             await connection.ResolveAccountTier(lookup.Run, new UserTierCache());
 
-            Assert.That(connection.AccountInfo.Value.Tier, Is.EqualTo(AccountTier.PREMIUM));
+            Assert.That(connection.AccountInfo.Value.Tier, Is.EqualTo(AccountTier.NONE));
         }
 
         [Test]
@@ -516,28 +517,174 @@ namespace Coflnet.Sky.Commands
             Assert.That(writes, Is.EqualTo(1), "unchanged paid tier and expiry");
         }
 
-        [Test]
-        public async Task UserChangeDuringLookupDoesNotAssignStaleTier()
+        private class TrackingConnection : SkyblockBackEnd
         {
-            var connection = Subscribed(7, AccountTier.NONE);
-            var cache = new UserTierCache();
+            public int Closes;
+            internal override void CloseForUserChange() => Closes++;
+        }
+
+        [Test]
+        public void LoginAsAnotherUserIsRefusedAndKeepsTheIdentityAndClosesTheSocket()
+        {
+            var connection = new TrackingConnection { UserId = 7 };
+
+            var e = Assert.Throws<CoflnetException>(() => connection.UserId = 8);
+
+            Assert.That(e.Slug, Is.EqualTo("user_changed"));
+            Assert.That(connection.UserId, Is.EqualTo(7));
+            Assert.That(connection.Closes, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void UnsettingTheUserOfALoggedInSocketIsRefused()
+        {
+            var connection = new TrackingConnection { UserId = 7 };
+
+            Assert.Throws<CoflnetException>(() => connection.UserId = 0);
+
+            Assert.That(connection.UserId, Is.EqualTo(7));
+            Assert.That(connection.Closes, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void LoginAsTheSameUserAgainAndFirstLoginAreAllowed()
+        {
+            var connection = new TrackingConnection();
+            Assert.Throws<CoflnetException>(() => _ = connection.UserId, "not logged in");
+
+            connection.UserId = 7;
+            connection.UserId = 7;
+
+            Assert.That(connection.UserId, Is.EqualTo(7));
+            Assert.That(connection.Closes, Is.EqualTo(0));
+        }
+
+        /// <summary>the second login does not get to attach anything for the other account, the data stays the first account's</summary>
+        [Test]
+        public async Task RefusedLoginLeavesTheTierSyncWritingOnlyTheFirstAccount()
+        {
+            var connection = new TrackingConnection { UserId = 7, HasFlipSubscription = true };
+            var infoOfA = new AccountInfo { UserId = "7", Tier = AccountTier.NONE };
+            connection.AccountInfo = SelfUpdatingValue<AccountInfo>.CreateNoUpdate(infoOfA);
+            Assert.Throws<CoflnetException>(() => connection.UserId = 8);
             var seen = new List<string>();
-            Task<(AccountTier?, DateTime)> lookup(string id)
+            var lookup = new Lookup { Result = (AccountTier.PREMIUM, DateTime.UtcNow.AddDays(30)) };
+
+            await connection.ResolveAccountTier(id => { seen.Add(id); return lookup.Run(id); }, new UserTierCache());
+
+            Assert.That(seen, Is.EqualTo(new[] { "7" }));
+            Assert.That(infoOfA.Tier, Is.EqualTo(AccountTier.PREMIUM));
+            Assert.That(connection.AccountInfo.Value, Is.SameAs(infoOfA));
+        }
+
+        /// <summary>an info of another owner that ends up on the field during the lookup is not written (pins the owner check, not the capture)</summary>
+        [Test]
+        public async Task AccountInfoOfAnotherOwnerReplacedDuringLookupIsLeftAlone()
+        {
+            var connection = Subscribed(7);
+            connection.AccountInfo = SelfUpdatingValue<AccountInfo>.CreateNoUpdate(new AccountInfo { UserId = "7", Tier = AccountTier.NONE });
+            var infoOfOther = new AccountInfo { UserId = "8", Tier = AccountTier.NONE };
+            var lookup = new Lookup
             {
-                seen.Add(id);
-                if (id == "7")
+                Result = (AccountTier.PREMIUM, DateTime.UtcNow.AddDays(30)),
+                Hook = () =>
                 {
-                    connection.UserId = 8; // account switch while the first lookup runs
-                    return Task.FromResult<(AccountTier?, DateTime)>((AccountTier.PREMIUM_PLUS, DateTime.UtcNow.AddDays(1)));
+                    connection.AccountInfo = SelfUpdatingValue<AccountInfo>.CreateNoUpdate(infoOfOther);
+                    return Task.CompletedTask;
                 }
-                return Task.FromResult<(AccountTier?, DateTime)>((AccountTier.STARTER_PREMIUM, DateTime.UtcNow.AddDays(1)));
+            };
+
+            await connection.ResolveAccountTier(lookup.Run, new UserTierCache());
+
+            Assert.That(infoOfOther.Tier, Is.EqualTo(AccountTier.NONE));
+            Assert.That(infoOfOther.ExpiresAt, Is.EqualTo(default(DateTime)));
+        }
+
+        [Test]
+        public async Task UpdateAccountInfoLeavesAnInfoOfAnotherOwnerAlone()
+        {
+            var connection = new SkyblockBackEnd { UserId = 7 };
+            var other = new AccountInfo { UserId = "8", Tier = AccountTier.NONE };
+            var writes = 0;
+            connection.AccountInfo = SelfUpdatingValue<AccountInfo>.CreateNoUpdate(other);
+            connection.AccountInfo.AfterChange += _ => writes++;
+            var data = new SocketMessageData { Connection = connection };
+
+            await SubFlipperCommand.UpdateAccountInfo(data, (AccountTier.PREMIUM, DateTime.UtcNow.AddDays(1)), 7);
+
+            Assert.That(other.Tier, Is.EqualTo(AccountTier.NONE));
+            Assert.That(writes, Is.EqualTo(0));
+        }
+
+        [Test]
+        public async Task UpdateAccountInfoWritesTheInfoOfTheUser()
+        {
+            var connection = new SkyblockBackEnd { UserId = 7 };
+            var own = new AccountInfo { UserId = "7", Tier = AccountTier.NONE };
+            connection.AccountInfo = SelfUpdatingValue<AccountInfo>.CreateNoUpdate(own);
+            var data = new SocketMessageData { Connection = connection };
+
+            await SubFlipperCommand.UpdateAccountInfo(data, (AccountTier.PREMIUM, DateTime.UtcNow.AddDays(1)), 7);
+
+            Assert.That(own.Tier, Is.EqualTo(AccountTier.PREMIUM));
+        }
+
+        /// <summary>the real close on a behavior that never started must not pre-empt the user_changed exception</summary>
+        [Test]
+        public void RealCloseOnUnstartedSessionStillThrowsUserChanged()
+        {
+            var connection = new SkyblockBackEnd { UserId = 7 };
+
+            var e = Assert.Throws<CoflnetException>(() => connection.UserId = 8);
+
+            Assert.That(e.Slug, Is.EqualTo("user_changed"));
+            Assert.That(connection.UserId, Is.EqualTo(7));
+        }
+
+        /// <summary>a started loopback server: the client sees close code 1008 with the reason, the connection is cleaned up</summary>
+        [Test]
+        public async Task RefusedLoginClosesTheRealSocketWithPolicyViolation()
+        {
+            var listener = new System.Net.Sockets.TcpListener(System.Net.IPAddress.Loopback, 0);
+            listener.Start();
+            var port = ((System.Net.IPEndPoint)listener.LocalEndpoint).Port;
+            listener.Stop();
+            var server = new WebSocketSharp.Server.WebSocketServer(System.Net.IPAddress.Loopback, port);
+            SkyblockBackEnd serverSide = null;
+            var opened = new TaskCompletionSource();
+            server.AddWebSocketService<SkyblockBackEnd>("/test", con =>
+            {
+                serverSide = con;
+                con.OnBeforeClose += _ => { };
+                opened.TrySetResult();
+            });
+            server.Start();
+            try
+            {
+                var closed = new TaskCompletionSource<WebSocketSharp.CloseEventArgs>();
+                using var client = new WebSocketSharp.WebSocket($"ws://127.0.0.1:{port}/test");
+                client.OnClose += (_, e) => closed.TrySetResult(e);
+                client.Connect();
+                await opened.Task.WaitAsync(TimeSpan.FromSeconds(10));
+                var cleaned = new TaskCompletionSource();
+                serverSide.OnBeforeClose += _ => cleaned.TrySetResult();
+                serverSide.UserId = 7;
+
+                var e = Assert.Throws<CoflnetException>(() => serverSide.UserId = 8);
+
+                Assert.That(e.Slug, Is.EqualTo("user_changed"));
+                Assert.That(serverSide.UserId, Is.EqualTo(7));
+                var close = await closed.Task.WaitAsync(TimeSpan.FromSeconds(10));
+                Assert.That(close.Code, Is.EqualTo((ushort)WebSocketSharp.CloseStatusCode.PolicyViolation));
+                Assert.That(close.Reason, Is.EqualTo("user_changed"));
+                await cleaned.Task.WaitAsync(TimeSpan.FromSeconds(10)); // normal close handling ran
+                // a reply on the closed socket is dropped instead of throwing
+                Assert.DoesNotThrow(() => serverSide.SendBack(new MessageData("error", "x")));
             }
-
-            var tier = await connection.ResolveAccountTier(lookup, cache);
-
-            Assert.That(seen, Is.EqualTo(new[] { "7", "8" }));
-            Assert.That(tier, Is.EqualTo(AccountTier.STARTER_PREMIUM));
-            Assert.That(connection.SessionTier, Is.EqualTo(AccountTier.STARTER_PREMIUM));
+            finally
+            {
+                server.Stop();
+            }
         }
     }
 }

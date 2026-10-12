@@ -42,9 +42,43 @@ namespace Coflnet.Sky.Commands
             }
             set
             {
-                _userId = value;
+                // the identity of a socket never changes once set, everything in flight (tier lookups, settings writes,
+                // flips matched against the settings) keeps belonging to the same account
+                var previous = Interlocked.CompareExchange(ref _userId, value, 0);
+                if (previous == 0 || previous == value)
+                    return;
+                RejectUserChange();
             }
         }
+
+        /// <summary>
+        /// A login as another account on a live socket: keep the identity, drop the connection so the client reconnects and logs in fresh.
+        /// </summary>
+        private void RejectUserChange()
+        {
+            CloseForUserChange();
+            throw new CoflnetException("user_changed", "This connection belongs to another account, reconnect to login again");
+        }
+
+        /// <summary>
+        /// Closes the websocket, the normal close handling (<see cref="OnClose"/>) then removes the connection from the flipper sets
+        /// and disposes its subscriptions. The close frame carries the reason. Commands run on the thread pool (<see cref="ExecuteCommand"/>),
+        /// never on the receive thread, so the synchronous close (it waits for the close handshake) is safe here.
+        /// CloseAsync is not an option, it uses Action.BeginInvoke which throws on .NET Core.
+        /// </summary>
+        internal virtual void CloseForUserChange()
+        {
+            try
+            {
+                Close(CloseStatusCode.PolicyViolation, "user_changed");
+            }
+            catch (Exception e)
+            {
+                // session not started or already gone, must never pre-empt the user_changed exception
+                dev.Logger.Instance.Error(e, "closing connection after user change");
+            }
+        }
+
         string IFlipConnection.UserId => UserId.ToString();
         string IFlipConnection.GameServer => "skyblock";
 
@@ -132,7 +166,7 @@ namespace Coflnet.Sky.Commands
                         continue;
                     if (current.Item1 == null)
                         return KnownTierOnFailure(cache, userId);
-                    await SyncAccountInfo(current).ConfigureAwait(false);
+                    await SyncAccountInfo(userId, current).ConfigureAwait(false);
                     if (userId != _userId || generation != Volatile.Read(ref subscriptionGeneration))
                         continue;
                     SessionTier = current.Item1.Value;
@@ -162,25 +196,39 @@ namespace Coflnet.Sky.Commands
         /// Brings the stored account info in step with a refreshed tier (like the mod connection does), the flip workers
         /// size themselves from AccountInfo.Tier. Never fails the refresh.
         /// </summary>
-        private async Task SyncAccountInfo((AccountTier?, DateTime) current)
+        private async Task SyncAccountInfo(int userId, (AccountTier?, DateTime) current)
         {
             try
             {
-                var info = AccountInfo?.Value;
-                // the login commands replace AccountInfo for the new user, an empty UserId (website accounts) is never a previous user's
-                if (info == null || (!string.IsNullOrEmpty(info.UserId) && info.UserId != _userId.ToString()))
+                // capture once, the write goes to the object checked here
+                var holder = AccountInfo;
+                var info = holder?.Value;
+                // only an account info owned by the user the tier was fetched for
+                if (info == null || info.UserId != userId.ToString())
                     return;
                 // same condition as the mod's AccountTierManager: free tiers get a new expiry on every lookup, that is no change
                 if (info.Tier == current.Item1 && (current.Item1 == AccountTier.NONE || info.ExpiresAt == current.Item2))
                     return;
                 info.Tier = current.Item1.Value;
                 info.ExpiresAt = current.Item2;
-                await AccountInfo.Update().ConfigureAwait(false);
+                await holder.Update().ConfigureAwait(false);
             }
             catch (Exception e)
             {
                 dev.Logger.Instance.Error(e, "syncing account info tier");
             }
+        }
+
+        /// <summary>
+        /// Loads the account info of the user. Its owner is always set, infos stored by older versions lack it
+        /// (they were loaded by the user's own key, so they are theirs).
+        /// </summary>
+        public static async Task<SelfUpdatingValue<AccountInfo>> LoadAccountInfo(int userId)
+        {
+            var loaded = await SelfUpdatingValue<AccountInfo>.Create(userId.ToString(), "accountInfo", () => new AccountInfo() { UserId = userId.ToString() });
+            if (loaded.Value != null && string.IsNullOrEmpty(loaded.Value.UserId))
+                loaded.Value.UserId = userId.ToString();
+            return loaded;
         }
 
         /// <summary>
@@ -611,7 +659,8 @@ namespace Coflnet.Sky.Commands
 
         public void SendBack(MessageData data)
         {
-            if (this.ReadyState == WebSocketState.Closed)
+            // Send throws unless Open, a closing socket (eg. after user_changed) can't take the reply of the failed command
+            if (this.ReadyState != WebSocketState.Open)
                 return;
             Send(MessagePackSerializer.ConvertToJson(MessagePackSerializer.Serialize(data)));
         }
