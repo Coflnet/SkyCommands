@@ -94,9 +94,6 @@ namespace Coflnet.Sky.Commands
 
         public event Action<SkyblockBackEnd> OnBeforeClose;
 
-        // required by IFlipConnection (SkyBackendForFrontend); the websocket backend tracks the tier per session
-        public Task<AccountTier> UserAccountTier() => Task.FromResult(SessionTier);
-
         void ILiveUpdateConnection.RegisterCloseHandler(Action onClose) => OnBeforeClose += _ => onClose();
 
         /// <summary>
