@@ -1,5 +1,6 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /build
+ARG CACHEBUST=20261025
 RUN git clone --depth=1 https://github.com/Ekwav/websocket-sharp \
     && git clone --depth=1 https://github.com/Coflnet/HypixelSkyblock.git dev \
     && git clone --depth=1 https://github.com/Coflnet/SkyFilter.git \

@@ -14,7 +14,7 @@ using System.Threading;
 
 namespace Coflnet.Sky.Commands
 {
-    public class SkyblockBackEnd : WebSocketBehavior, IFlipConnection, IPlayerInfo
+    public class SkyblockBackEnd : WebSocketBehavior, IFlipConnection, IPlayerInfo, ILiveUpdateConnection
     {
         public static Dictionary<string, Command> Commands = new Dictionary<string, Command>();
         internal static ConcurrentDictionary<long, SkyblockBackEnd> Subscribers = new ConcurrentDictionary<long, SkyblockBackEnd>();
@@ -93,6 +93,11 @@ namespace Coflnet.Sky.Commands
         private TimeSpan flipDelay = TimeSpan.FromSeconds(2);
 
         public event Action<SkyblockBackEnd> OnBeforeClose;
+
+        // required by IFlipConnection (SkyBackendForFrontend); the websocket backend tracks the tier per session
+        public Task<AccountTier> UserAccountTier() => Task.FromResult(SessionTier);
+
+        void ILiveUpdateConnection.RegisterCloseHandler(Action onClose) => OnBeforeClose += _ => onClose();
 
         /// <summary>
         /// The last or default settings change captured for this user/connection
