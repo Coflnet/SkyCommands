@@ -1,8 +1,10 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /build
-ARG CACHEBUST=20261025
+ARG CACHEBUST=20261108
 RUN git clone --depth=1 https://github.com/Ekwav/websocket-sharp \
-    && git clone --depth=1 https://github.com/Coflnet/HypixelSkyblock.git dev \
+    && git init dev && cd dev && git remote add origin https://github.com/Coflnet/HypixelSkyblock.git \
+    && git fetch --depth=1 origin d87dbb1a2461deced758dcfc7f4927908b291425 \
+    && git checkout --detach FETCH_HEAD && cd .. \
     && git clone --depth=1 https://github.com/Coflnet/SkyFilter.git \
     && git clone --depth=1 https://github.com/Coflnet/SkyBackendForFrontend.git
 RUN mkdir -p /build/skyblock/External/api
