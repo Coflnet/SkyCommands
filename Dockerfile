@@ -16,7 +16,8 @@ RUN dotnet test
 RUN dotnet publish -c release -o /app /p:UseAppHost=false /p:PublishReadyToRun=true
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble
-RUN apt-get update && apt-get install -y --only-upgrade libssl3t64 openssl && rm -rf /var/lib/apt/lists/*
+# apt in the base image has CVE-2026-109518 (HIGH); upgrade it until the base image ships the fix.
+RUN apt-get update && apt-get install -y --only-upgrade libssl3t64 openssl apt libapt-pkg6.0t64 && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 
 COPY --from=build --chown=$APP_UID:$APP_UID /app .
