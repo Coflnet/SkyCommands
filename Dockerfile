@@ -3,7 +3,7 @@ WORKDIR /build
 ARG CACHEBUST=20261108
 RUN git clone --depth=1 https://github.com/Ekwav/websocket-sharp \
     && git init dev && cd dev && git remote add origin https://github.com/Coflnet/HypixelSkyblock.git \
-    && git fetch --depth=1 origin d87dbb1a2461deced758dcfc7f4927908b291425 \
+    && git fetch --depth=1 origin df02c6a675c68a54be6a7ad58a5fcd379db97e42 \
     && git checkout --detach FETCH_HEAD && cd .. \
     && git clone --depth=1 https://github.com/Coflnet/SkyFilter.git \
     && git clone --depth=1 https://github.com/Coflnet/SkyBackendForFrontend.git
