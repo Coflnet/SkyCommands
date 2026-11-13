@@ -297,8 +297,6 @@ namespace Coflnet.Sky.Commands
 
 
             Commands.Add("setGoogle", new SetGoogleIdCommand());
-            Commands.Add("genToken", new GenerateTokenFor());
-            Commands.Add("loginExt", new LoginExternalCommand());
             Commands.Add("accountInfo", new AccountInfoCommand());
             Commands.Add("loginWithToken", new LoginWithToken());
 

@@ -659,28 +659,11 @@ Response:
 ```
 {
     "email": "email@example.com",
-    "token": "access token for external use"
     "mcId": "mcUUid if connected",
     "mcName": "the name of the mcId"
 }
 ```
 
-## loginExt
-Login via another tool that has no google login
-```
-{
-    type:"loginExt",
-    data: 
-    {
-        "email", "account email",
-        "token": "token from accountInfo"
-    }
-}
-```
-Response:
-```
-"you were logged in"
-```
 ## SubFlip Command 
 This will start pushing the command `flip` with the same format as `getFlips`.
 Please see the api endpoint `/api/flip/settings/options` for all options

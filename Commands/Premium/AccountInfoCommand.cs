@@ -11,7 +11,6 @@ namespace Coflnet.Sky.Commands
         public override async Task Execute(MessageData data)
         {
             var user = data.User;
-            var token = LoginExternalCommand.GenerateToken(user.Email);
             var mcName = "unknow";
 
             var activeAccount = await data.GetService<McAccountService>().GetActiveAccount(user.Id);
@@ -19,7 +18,7 @@ namespace Coflnet.Sky.Commands
             if (activeAccount != null && activeAccount.AccountUuid != null)
                 mcName = (await DiHandler.GetService<IPlayerNameApi>()
                     .PlayerNameNameUuidGetAsync(activeAccount.AccountUuid)).Trim('"');
-            await data.SendBack(data.Create("acInfo", new Response(user.Email, token, activeAccount?.AccountUuid, mcName)));
+            await data.SendBack(data.Create("acInfo", new Response(user.Email, activeAccount?.AccountUuid, mcName)));
         }
 
         [DataContract]
@@ -27,8 +26,6 @@ namespace Coflnet.Sky.Commands
         {
             [DataMember(Name = "email")]
             public string Email;
-            [DataMember(Name = "token")]
-            public string Token;
             [DataMember(Name = "mcId")]
             public string MinecraftId;
             [DataMember(Name = "mcName")]
@@ -38,10 +35,9 @@ namespace Coflnet.Sky.Commands
             {
             }
 
-            public Response(string email, string token, string minecraftId, string mcName)
+            public Response(string email, string minecraftId, string mcName)
             {
                 Email = email;
-                Token = token;
                 MinecraftId = minecraftId;
                 MinecraftName = mcName;
             }
