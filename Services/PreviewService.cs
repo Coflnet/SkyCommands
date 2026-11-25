@@ -1,7 +1,9 @@
 using System.Runtime.Serialization;
+using System.Threading;
 using System.Threading.Tasks;
 using Coflnet.Sky.Commands.Shared;
 using Coflnet.Sky.Core;
+using Coflnet.Sky.Items.Client.Api;
 using System.Diagnostics;
 using Newtonsoft.Json;
 using Microsoft.Extensions.Configuration;
@@ -17,6 +19,10 @@ namespace Coflnet.Sky.Commands.Services
         private RestClient proxyClient;
         private RestClient hypixelClient;
         private IConfiguration config;
+        private readonly IItemsApi itemsApi;
+        private readonly object animatedIconsLock = new();
+        private Task<Dictionary<string, Uri>> animatedIcons = Task.FromResult(new Dictionary<string, Uri>());
+        private DateTimeOffset refreshAnimatedIconsAt;
         /// <summary>
         /// Maps old 1.8 Minecraft material names to their modern 1.21 equivalents.
         /// Some materials returned by the Hypixel API no longer exist in newer versions.
@@ -56,13 +62,19 @@ namespace Coflnet.Sky.Commands.Services
         public const string DefaultHeadRenderBaseUrl = "http://crafatar:3000";
         private const string OwnIconPrefix = "https://sky.coflnet.com/static/icon/";
 
-        public PreviewService(IConfiguration config)
+        public PreviewService(IConfiguration config, IItemsApi itemsApi)
+            : this(config, itemsApi, new RestClient(config["IMGPROXY_BASE_URL"] ?? "http://imgproxy"))
+        {
+        }
+
+        internal PreviewService(IConfiguration config, IItemsApi itemsApi, RestClient proxyClient)
         {
             this.config = config;
+            this.itemsApi = itemsApi;
+            this.proxyClient = proxyClient;
             skyClient = new RestClient(config["SKY_BASE_URL"] ?? "https://sky.coflnet.com");
             skyCryptClient = new RestClient(config["SKYCRYPT_BASE_URL"] ?? DefaultSkycryptBaseUrl);
             crafatarClient = new RestClient(config["CRAFATAR_BASE_URL"] ?? "https://crafatar.com");
-            proxyClient = new RestClient(config["IMGPROXY_BASE_URL"] ?? "http://imgproxy");
             hypixelClient = new RestClient(config["HYPIXEL_BASE_URL"] ?? "https://api.hypixel.net/");
         }
 
@@ -94,6 +106,11 @@ namespace Coflnet.Sky.Commands.Services
         {
             if (tag.StartsWith("ENCHANTMENT_"))
                 tag = "ENCHANTED_BOOK";
+
+            var animatedUrl = isVanilla ? null : await GetAnimatedIconUrl(tag);
+            if (animatedUrl != null && await TryGetAnimatedPreview(tag, animatedUrl, size) is { } animated)
+                return animated;
+
             var request = new RestRequest("/api/item/{tag}").AddUrlSegment("tag", tag);
 
             var uri = skyCryptClient.BuildUri(request);
@@ -105,7 +122,7 @@ namespace Coflnet.Sky.Commands.Services
             {
                 if (!NBT.IsPet(tag) && !isVanilla)
                     dev.Logger.Instance.Error($"Failed to load item preview for {tag} from {uri} code {response.StatusCode}");
-                var info = await DiHandler.GetService<Items.Client.Api.IItemsApi>().ItemItemTagGetWithHttpInfoAsync(tag, true);
+                var info = await itemsApi.ItemItemTagGetWithHttpInfoAsync(tag, true);
                 Console.WriteLine($"info {info.StatusCode} {info.RawContent}");
                 if (info.StatusCode == System.Net.HttpStatusCode.OK)
                 {
@@ -118,6 +135,9 @@ namespace Coflnet.Sky.Commands.Services
                     Console.WriteLine($"failed to load item details for {tag} from api");
                 }
                 var url = details?.IconUrl;
+                // The preferred animation already failed validation. Try the existing material or head fallback.
+                if (animatedUrl != null && animatedUrl == GetOfficialAnimatedIcon(url))
+                    url = null;
                 // whether url was (already) resolved via GetIconUrl - guards the retry below from
                 // looping back into the same call.
                 var resolvedViaHypixelApi = false;
@@ -238,6 +258,64 @@ namespace Coflnet.Sky.Commands.Services
                 ImageUrl = uri?.ToString(),
                 Name = details?.Name,
                 MimeType = response?.ContentType
+            };
+        }
+
+        private async Task<Uri> GetAnimatedIconUrl(string tag)
+        {
+            Task<Dictionary<string, Uri>> snapshot;
+            lock (animatedIconsLock)
+            {
+                var now = DateTimeOffset.UtcNow;
+                if (animatedIcons.IsCompleted && now >= refreshAnimatedIconsAt)
+                {
+                    refreshAnimatedIconsAt = now.AddMinutes(5);
+                    animatedIcons = RefreshAnimatedIcons(animatedIcons.GetAwaiter().GetResult());
+                }
+                snapshot = animatedIcons;
+            }
+            return (await snapshot).GetValueOrDefault(tag);
+        }
+
+        private async Task<Dictionary<string, Uri>> RefreshAnimatedIcons(Dictionary<string, Uri> previous)
+        {
+            try
+            {
+                using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+                var items = await itemsApi.ItemsGetAsync(cancellationToken: timeout.Token);
+                var urls = new Dictionary<string, Uri>();
+                foreach (var item in items)
+                    if (!string.IsNullOrEmpty(item?.Tag) && GetOfficialAnimatedIcon(item.IconUrl) is { } url)
+                        urls[item.Tag] = url;
+                return urls;
+            }
+            catch (Exception exception)
+            {
+                Console.WriteLine($"Failed to refresh animated item icons: {exception.Message}");
+                return previous;
+            }
+        }
+
+        private static Uri GetOfficialAnimatedIcon(string url) =>
+            Uri.TryCreate(url, UriKind.Absolute, out var uri) && uri.Scheme == Uri.UriSchemeHttps
+            && uri.Authority == "static.coflnet.com" && uri.UserInfo.Length == 0
+            && uri.AbsolutePath.StartsWith("/sky/icons/", StringComparison.Ordinal) && uri.Segments.Length == 4
+            && uri.AbsolutePath.EndsWith(".gif", StringComparison.OrdinalIgnoreCase) ? uri : null;
+
+        private async Task<Preview> TryGetAnimatedPreview(string tag, Uri url, int size)
+        {
+            var response = await GetProxied(url, size);
+            if (response.StatusCode != System.Net.HttpStatusCode.OK || response.RawBytes is not { Length: > 36 } bytes
+                || !string.Equals(response.ContentType, "image/gif", StringComparison.OrdinalIgnoreCase)
+                || !(bytes.AsSpan().StartsWith("GIF89a"u8) || bytes.AsSpan().StartsWith("GIF87a"u8)))
+                return null;
+
+            return new Preview
+            {
+                Id = tag,
+                Image = Convert.ToBase64String(bytes),
+                ImageUrl = url.ToString(),
+                MimeType = response.ContentType
             };
         }
 

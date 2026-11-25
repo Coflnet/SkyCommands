@@ -1,3 +1,13 @@
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Threading;
+using System.Threading.Tasks;
+using Coflnet.Sky.Items.Client.Api;
+using Coflnet.Sky.Items.Client.Client;
+using Coflnet.Sky.Items.Client.Model;
+using Microsoft.Extensions.Configuration;
+using Moq;
 using NUnit.Framework;
 
 namespace Coflnet.Sky.Commands.Services
@@ -6,6 +16,118 @@ namespace Coflnet.Sky.Commands.Services
     {
         private const string HeadRenderBase = "http://crafatar:3000";
         private const string SkycryptBase = "https://static.coflnet.com/sky/skycrypt";
+        private const string AnimatedIcon = "https://static.coflnet.com/sky/icons/ITEM-abcd.gif";
+        private const string TestGif = "R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+        private const string TestPng = "iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAQAAAAAYLlVAAAAOUlEQVR42u3OIQEAAAACIP1/2hkWWEBzVgEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAYF3YDicAEE8VTiYAAAAAElFTkSuQmCC";
+
+        [TestCase(AnimatedIcon, true)]
+        [TestCase(AnimatedIcon + "?v=2", true)]
+        [TestCase("https://static.coflnet.com/sky/icons/ITEM.png", false)]
+        [TestCase("https://static.coflnet.com/sky/skycrypt/ITEM.gif", false)]
+        [TestCase("https://static.coflnet.com/sky/icons/../ITEM.gif", false)]
+        [TestCase("https://static.coflnet.com.example/sky/icons/ITEM.gif", false)]
+        public async Task PrefersOnlyOfficialAnimatedIcons(string url, bool animated)
+        {
+            var api = new Mock<IItemsApi>(MockBehavior.Strict);
+            api.Setup(client => client.ItemsGetAsync(0, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new List<Item> { new() { Tag = "ITEM", IconUrl = url } });
+            using var proxy = Proxy(source => source.Contains("/api/item/") ? ImageResponse() : GifResponse());
+            var previewService = new PreviewService(new ConfigurationBuilder().Build(), api.Object, proxy);
+
+            var preview = await previewService.GetItemPreview("ITEM", false, 64);
+            Assert.Multiple(() =>
+            {
+                Assert.That(preview.MimeType, Is.EqualTo(animated ? "image/gif" : "image/png"));
+                Assert.That(preview.ImageUrl, Is.EqualTo(animated ? url : SkycryptBase + "/api/item/ITEM"));
+            });
+        }
+
+        [TestCase(HttpStatusCode.NotFound, "image/gif")]
+        [TestCase(HttpStatusCode.OK, "image/png")]
+        [TestCase(HttpStatusCode.OK, "image/gif")]
+        public async Task FallsBackToMirrorWhenAnimationIsUnavailable(HttpStatusCode status, string contentType)
+        {
+            var api = new Mock<IItemsApi>(MockBehavior.Strict);
+            api.Setup(client => client.ItemsGetAsync(0, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new List<Item> { new() { Tag = "ITEM", IconUrl = AnimatedIcon } });
+            using var proxy = Proxy(source => source == AnimatedIcon ? ImageResponse(status, contentType) : ImageResponse());
+            var previewService = new PreviewService(new ConfigurationBuilder().Build(), api.Object, proxy);
+
+            var preview = await previewService.GetItemPreview("ITEM", false, 64);
+            Assert.That(preview.ImageUrl, Is.EqualTo(SkycryptBase + "/api/item/ITEM"));
+            Assert.That(preview.Image, Is.EqualTo(TestPng));
+        }
+
+        [Test]
+        public async Task CoalescesCatalogRequestsAndCachesFailure()
+        {
+            var catalog = new TaskCompletionSource<List<Item>>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var api = new Mock<IItemsApi>(MockBehavior.Strict);
+            api.Setup(client => client.ItemsGetAsync(0, It.IsAny<CancellationToken>())).Returns(catalog.Task);
+            using var proxy = Proxy(_ => ImageResponse());
+            var previewService = new PreviewService(new ConfigurationBuilder().Build(), api.Object, proxy);
+
+            var pending = Enumerable.Range(0, 4).Select(i => previewService.GetItemPreview("ITEM" + i, false, 64)).ToArray();
+            catalog.SetException(new HttpRequestException("Items API unavailable"));
+            var previews = await Task.WhenAll(pending);
+            var next = await previewService.GetItemPreview("ANOTHER_ITEM", false, 64);
+
+            api.Verify(client => client.ItemsGetAsync(0, It.IsAny<CancellationToken>()), Times.Once);
+            Assert.That(previews.Select(preview => preview.Image).Append(next.Image), Is.All.EqualTo(TestPng));
+        }
+
+        [Test]
+        public async Task UnavailableAnimationWithNoMirrorUsesTheExistingFallback()
+        {
+            const string tag = "ESSENCE_FOREST";
+            var api = new Mock<IItemsApi>(MockBehavior.Strict);
+            api.Setup(client => client.ItemsGetAsync(0, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new List<Item> { new() { Tag = tag, IconUrl = AnimatedIcon } });
+            api.Setup(client => client.ItemItemTagGetWithHttpInfoAsync(tag, true, 0, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ApiResponse<Item>(HttpStatusCode.OK, new Item { Tag = tag, IconUrl = AnimatedIcon }));
+            using var proxy = Proxy(source => source.StartsWith("https://mc-heads.net/")
+                ? ImageResponse() : ImageResponse(HttpStatusCode.NotFound));
+            var previewService = new PreviewService(new ConfigurationBuilder().Build(), api.Object, proxy);
+
+            var preview = await previewService.GetItemPreview(tag, false, 64);
+
+            Assert.That(preview.ImageUrl, Does.StartWith("https://mc-heads.net/head/"));
+            Assert.That(preview.MimeType, Is.EqualTo("image/png"));
+        }
+
+        [Test]
+        public async Task VanillaUsesStoredIconWithoutFetchingCatalog()
+        {
+            const string url = "https://static.coflnet.com/sky/icons/ITEM";
+            var api = new Mock<IItemsApi>(MockBehavior.Strict);
+            api.Setup(client => client.ItemItemTagGetWithHttpInfoAsync("ITEM", true, 0, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ApiResponse<Item>(HttpStatusCode.OK, new Item { Tag = "ITEM", IconUrl = url }));
+            using var proxy = Proxy(_ => ImageResponse());
+            var previewService = new PreviewService(new ConfigurationBuilder().Build(), api.Object, proxy);
+
+            var preview = await previewService.GetItemPreview("ITEM", true, 64);
+
+            Assert.That(preview.ImageUrl, Is.EqualTo(url));
+            api.Verify(client => client.ItemsGetAsync(0, It.IsAny<CancellationToken>()), Times.Never);
+        }
+
+        private static RestClient Proxy(Func<string, HttpResponseMessage> respond) =>
+            new(new HttpClient(new ProxyHandler(respond)) { BaseAddress = new Uri("http://imgproxy") }, disposeHttpClient: true);
+
+        private static HttpResponseMessage GifResponse() => ImageResponse(HttpStatusCode.OK, "image/gif", TestGif);
+
+        private static HttpResponseMessage ImageResponse(HttpStatusCode status = HttpStatusCode.OK, string contentType = "image/png", string body = TestPng)
+        {
+            var content = new ByteArrayContent(Convert.FromBase64String(body));
+            content.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
+            return new HttpResponseMessage(status) { Content = content };
+        }
+
+        private sealed class ProxyHandler(Func<string, HttpResponseMessage> respond) : HttpMessageHandler
+        {
+            protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) =>
+                Task.FromResult(respond(Uri.UnescapeDataString(request.RequestUri.PathAndQuery.Split("/plain/", 2)[1])));
+        }
 
         [TestCase("https://textures.minecraft.net/texture/abc123")]
         [TestCase("http://textures.minecraft.net/texture/abc123")]
